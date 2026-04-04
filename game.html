@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Gaffer's Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1a7a4a;
+    --green-light: #23a862;
+    --green-dark: #0f4f30;
+    --pitch: #14532d;
+    --cream: #f5f0e8;
+    --gold: #c9a84c;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --white: #ffffff;
+    --bg: #f0ece2;
+    --border: #d1d5db;
+    --radius: 10px;
+    --win: #16a34a;
+    --draw: #d97706;
+    --loss: #dc2626;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--pitch);
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--gold);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .nav-user {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .nav-user span {
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .btn-logout {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.8);
+    padding: 6px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-logout:hover { background: rgba(255,255,255,0.1); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--pitch);
+    padding: 0 1.5rem;
+    border-bottom: 3px solid var(--gold);
+  }
+
+  .tab {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: rgba(255,255,255,0.55);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -3px;
+    transition: all 0.2s;
+    letter-spacing: 0.4px;
+  }
+  .tab:hover { color: rgba(255,255,255,0.85); }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ── MAIN ── */
+  main { max-width: 860px; margin: 0 auto; padding: 2rem 1rem; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── SECTION HEADERS ── */
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--pitch);
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+  }
+  .section-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── MATCHWEEK SELECTOR ── */
+  .week-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .week-bar label { font-weight: 600; font-size: 14px; }
+  .week-bar select {
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    background: var(--white);
+    cursor: pointer;
+  }
+
+  /* ── MATCH CARD ── */
+  .match-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1rem;
+    transition: box-shadow 0.2s;
+  }
+  .match-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  .match-meta {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .match-teams {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .team-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .team-name.away { text-align: right; }
+
+  .vs-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* Prediction buttons */
+  .prediction-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pred-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    margin-right: 4px;
+  }
+  .pred-btn {
+    padding: 7px 18px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+  }
+  .pred-btn:hover { border-color: var(--green); color: var(--green); }
+  .pred-btn.selected-home { background: var(--win); border-color: var(--win); color: var(--white); }
+  .pred-btn.selected-draw { background: var(--draw); border-color: var(--draw); color: var(--white); }
+  .pred-btn.selected-away { background: var(--loss); border-color: var(--loss); color: var(--white); }
+
+  /* Result entry (admin) */
+  .result-entry {
+    margin-top: 10px;
+    display: none;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .result-entry.show { display: flex; }
+  .result-entry label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .score-input {
+    width: 48px;
+    padding: 6px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-set-result {
+    padding: 7px 14px;
+    background: var(--pitch);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+  }
+  .btn-set-result:hover { background: var(--green-dark); }
+
+  .result-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e5e7eb;
+    color: var(--text);
+  }
+  .result-badge.set { background: var(--green); color: var(--white); }
+
+  /* ── SAVE BUTTON ── */
+  .save-bar {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .btn-primary {
+    padding: 12px 28px;
+    background: var(--green);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--green-dark); }
+  .save-msg {
+    font-size: 14px;
+    color: var(--win);
+    font-weight: 500;
+    display: none;
+  }
+  .save-msg.show { display: block; }
+
+  /* ── LEADERBOARD ── */
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+  }
+  .leaderboard-table th {
+    background: var(--pitch);
+    color: var(--gold);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    padding: 12px 16px;
+    text-align: left;
+  }
+  .leaderboard-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+  }
+  .leaderboard-table tr:last-child td { border-bottom: none; }
+  .leaderboard-table tr:nth-child(even) td { background: #fafaf9; }
+  .rank-badge {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--border);
+    color: var(--text);
+  }
+  .rank-1 { background: var(--gold); color: var(--white); }
+  .rank-2 { background: #9ca3af; color: var(--white); }
+  .rank-3 { background: #c9734a; color: var(--white); }
+
+  /* ── RULES ── */
+  .rules-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .rules-card h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: var(--pitch);
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rules-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .rules-card li {
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    align-items: flex-start;
+  }
+  .rule-icon {
+    min-width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--green);
+    color: var(--white);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+  .points-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 1.5rem;
+  }
+  .points-card {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .points-card .pts {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    color: var(--green);
+    line-height: 1;
+  }
+  .points-card .pts-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── ADMIN PANEL ── */
+  .admin-warning {
+    background: #fffbeb;
+    border: 1.5px solid #fcd34d;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #92400e;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+  }
+
+  @media (max-width: 540px) {
+    .match-teams { grid-template-columns: 1fr auto 1fr; gap: 6px; }
+    .team-name { font-size: 14px; }
+    .tab { padding: 10px 12px; font-size: 13px; }
+    main { padding: 1.2rem 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">⚽ The Gaffer's Game</div>
+  <div class="nav-right">
+    <span class="nav-user">Logged in as <span id="navUser">—</span></span>
+    <button class="btn-logout" onclick="logout()">Log Out</button>
+  </div>
+</nav>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('predict')">My Predictions</div>
+  <div class="tab" onclick="showTab('leaderboard')">Leaderboard</div>
+  <div class="tab" onclick="showTab('rules')">Rules & Points</div>
+  <div class="tab" id="adminTab" style="display:none" onclick="showTab('admin')">Admin Panel</div>
+</div>
+
+<main>
+
+  <!-- ── PREDICTIONS TAB ── -->
+  <section class="section active" id="predict">
+    <h2 class="section-title">Make Your Predictions</h2>
+    <p class="section-sub">Pick a result for each match before the deadline. Predictions lock at kick-off.</p>
+
+    <div class="week-bar">
+      <label>Matchweek:</label>
+      <select id="weekSelect" onchange="renderMatches()">
+        <option value="1">Matchweek 1</option>
+        <option value="2">Matchweek 2</option>
+        <option value="3">Matchweek 3</option>
+        <option value="4">Matchweek 4</option>
+        <option value="5">Matchweek 5</option>
+      </select>
+    </div>
+
+    <div id="matchList"></div>
+
+    <div class="save-bar">
+      <button class="btn-primary" onclick="savePredictions()">Save Predictions</button>
+      <span class="save-msg" id="saveMsg">✓ Predictions saved!</span>
+    </div>
+  </section>
+
+  <!-- ── LEADERBOARD TAB ── -->
+  <section class="section" id="leaderboard">
+    <h2 class="section-title">Leaderboard</h2>
+    <p class="section-sub">Overall standings. Updated after each matchweek's results are entered.</p>
+    <table class="leaderboard-table" id="leaderboardTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Player</th>
+          <th>Correct Results</th>
+          <th>Exact Scores</th>
+          <th>Total Points</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody"></tbody>
+    </table>
+  </section>
+
+  <!-- ── RULES TAB ── -->
+  <section class="section" id="rules">
+    <h2 class="section-title">Rules & Points</h2>
+    <p class="section-sub">How the game works.</p>
+
+    <div class="rules-card">
+      <h3>⚽ How to Play</h3>
+      <ul>
+        <li><span class="rule-icon">1</span> Each matchweek, predict the result (Home Win / Draw / Away Win) for every listed fixture.</li>
+        <li><span class="rule-icon">2</span> Optionally, enter a predicted scoreline for bonus points.</li>
+        <li><span class="rule-icon">3</span> Predictions must be submitted before the first match kicks off.</li>
+        <li><span class="rule-icon">4</span> Once results are entered by the admin, points are calculated automatically.</li>
+        <li><span class="rule-icon">5</span> The player with the most points at the end of the season wins the league.</li>
+      </ul>
+
+      <div class="points-grid">
+        <div class="points-card">
+          <div class="pts">3</div>
+          <div class="pts-label">Correct result (H/D/A)</div>
+        </div>
+        <div class="points-card">
+          <div class="pts">5</div>
+          <div class="pts-label">Exact scoreline</div>
+        </div>
+        <div class="points-card">
+          <div class="pts">0</div>
+          <div class="pts-label">Wrong result</div>
+        </div>
+        <div class="points-card">
+          <div class="pts">−</div>
+          <div class="pts-label">Late/missing prediction</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ADMIN TAB ── -->
+  <section class="section" id="admin">
+    <h2 class="section-title">Admin Panel</h2>
+    <p class="section-sub">Enter match results to update scores and the leaderboard.</p>
+    <div class="admin-warning">⚠ This panel is visible to the admin account only. Enter final scores after matches have been played.</div>
+
+    <div class="week-bar">
+      <label>Matchweek:</label>
+      <select id="adminWeekSelect" onchange="renderAdminMatches()">
+        <option value="1">Matchweek 1</option>
+        <option value="2">Matchweek 2</option>
+        <option value="3">Matchweek 3</option>
+        <option value="4">Matchweek 4</option>
+        <option value="5">Matchweek 5</option>
+      </select>
+    </div>
+    <div id="adminMatchList"></div>
+    <div class="save-bar">
+      <button class="btn-primary" onclick="saveResults()">Save Results & Update Scores</button>
+      <span class="save-msg" id="adminSaveMsg">✓ Results saved!</span>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ════════════════════════════════════════════════════
+   DATA — Edit matches here to set up your fixtures
+   ════════════════════════════════════════════════════ */
+const MATCHES = {
+  1: [
+    { id: "1-1", home: "Arsenal",    away: "Chelsea",       date: "Sat 5 Apr, 12:30" },
+    { id: "1-2", home: "Man City",   away: "Liverpool",     date: "Sat 5 Apr, 15:00" },
+    { id: "1-3", home: "Man United", away: "Tottenham",     date: "Sat 5 Apr, 17:30" },
+    { id: "1-4", home: "Newcastle",  away: "Aston Villa",   date: "Sun 6 Apr, 14:00" },
+    { id: "1-5", home: "Brighton",   away: "Everton",       date: "Sun 6 Apr, 16:30" },
+  ],
+  2: [
+    { id: "2-1", home: "Chelsea",    away: "Man City",      date: "Sat 12 Apr, 12:30" },
+    { id: "2-2", home: "Liverpool",  away: "Arsenal",       date: "Sat 12 Apr, 15:00" },
+    { id: "2-3", home: "Tottenham",  away: "Brighton",      date: "Sat 12 Apr, 17:30" },
+    { id: "2-4", home: "Aston Villa",away: "Man United",    date: "Sun 13 Apr, 14:00" },
+    { id: "2-5", home: "Everton",    away: "Newcastle",     date: "Sun 13 Apr, 16:30" },
+  ],
+  3: [
+    { id: "3-1", home: "Man City",   away: "Tottenham",     date: "Sat 19 Apr, 12:30" },
+    { id: "3-2", home: "Arsenal",    away: "Everton",       date: "Sat 19 Apr, 15:00" },
+    { id: "3-3", home: "Chelsea",    away: "Newcastle",     date: "Sat 19 Apr, 17:30" },
+    { id: "3-4", home: "Liverpool",  away: "Aston Villa",   date: "Sun 20 Apr, 14:00" },
+    { id: "3-5", home: "Brighton",   away: "Man United",    date: "Sun 20 Apr, 16:30" },
+  ],
+  4: [
+    { id: "4-1", home: "Tottenham",  away: "Liverpool",     date: "Sat 26 Apr, 12:30" },
+    { id: "4-2", home: "Newcastle",  away: "Man City",      date: "Sat 26 Apr, 15:00" },
+    { id: "4-3", home: "Everton",    away: "Chelsea",       date: "Sat 26 Apr, 17:30" },
+    { id: "4-4", home: "Man United", away: "Arsenal",       date: "Sun 27 Apr, 14:00" },
+    { id: "4-5", home: "Aston Villa",away: "Brighton",      date: "Sun 27 Apr, 16:30" },
+  ],
+  5: [
+    { id: "5-1", home: "Arsenal",    away: "Man City",      date: "Sat 3 May, 12:30" },
+    { id: "5-2", home: "Chelsea",    away: "Liverpool",     date: "Sat 3 May, 15:00" },
+    { id: "5-3", home: "Brighton",   away: "Newcastle",     date: "Sat 3 May, 17:30" },
+    { id: "5-4", home: "Aston Villa",away: "Tottenham",     date: "Sun 4 May, 14:00" },
+    { id: "5-5", home: "Man United", away: "Everton",       date: "Sun 4 May, 16:30" },
+  ]
+};
+
+const USERS = ["admin","player1","player2","player3"];
+
+/* ════════════════════════════════════════════════════
+   AUTH
+   ════════════════════════════════════════════════════ */
+const currentUser = sessionStorage.getItem('gaffersGame_user');
+if (!currentUser) window.location.href = 'login.html';
+
+document.getElementById('navUser').textContent = currentUser;
+if (currentUser === 'admin') document.getElementById('adminTab').style.display = 'inline-block';
+
+function logout() {
+  sessionStorage.removeItem('gaffersGame_user');
+  window.location.href = 'login.html';
+}
+
+/* ════════════════════════════════════════════════════
+   STORAGE HELPERS
+   ════════════════════════════════════════════════════ */
+function getPreds(user, week) {
+  return JSON.parse(localStorage.getItem(`preds_${user}_w${week}`) || '{}');
+}
+function savePreds(user, week, data) {
+  localStorage.setItem(`preds_${user}_w${week}`, JSON.stringify(data));
+}
+function getResults(week) {
+  return JSON.parse(localStorage.getItem(`results_w${week}`) || '{}');
+}
+function saveResultsData(week, data) {
+  localStorage.setItem(`results_w${week}`, JSON.stringify(data));
+}
+
+/* ════════════════════════════════════════════════════
+   TABS
+   ════════════════════════════════════════════════════ */
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'leaderboard') renderLeaderboard();
+  if (id === 'admin') renderAdminMatches();
+}
+
+/* ════════════════════════════════════════════════════
+   PREDICTIONS
+   ════════════════════════════════════════════════════ */
+function renderMatches() {
+  const week = parseInt(document.getElementById('weekSelect').value);
+  const matches = MATCHES[week];
+  const preds = getPreds(currentUser, week);
+  const results = getResults(week);
+  let html = '';
+
+  matches.forEach(m => {
+    const pred = preds[m.id] || {};
+    const result = results[m.id];
+    const locked = !!result;
+
+    const hSel = pred.outcome === 'H' ? 'selected-home' : '';
+    const dSel = pred.outcome === 'D' ? 'selected-draw' : '';
+    const aSel = pred.outcome === 'A' ? 'selected-away' : '';
+
+    let resultBadge = '';
+    if (result) {
+      resultBadge = `<span class="result-badge set">Final: ${result.home} – ${result.away}</span>`;
+    }
+
+    let pointsBadge = '';
+    if (result && pred.outcome) {
+      const pts = calcPoints(pred, result);
+      pointsBadge = `<span class="result-badge set" style="background:${pts>0?'#16a34a':'#6b7280'}">You earned: ${pts} pts</span>`;
+    }
+
+    html += `
+      <div class="match-card">
+        <div class="match-meta">${m.date}</div>
+        <div class="match-teams">
+          <div class="team-name">${m.home}</div>
+          <div class="vs-label">VS</div>
+          <div class="team-name away">${m.away}</div>
+        </div>
+        <div class="prediction-row">
+          <span class="pred-label">Pick:</span>
+          <button class="pred-btn ${hSel}" onclick="setPred('${m.id}','H',this)" ${locked?'disabled':''}>Home Win</button>
+          <button class="pred-btn ${dSel}" onclick="setPred('${m.id}','D',this)" ${locked?'disabled':''}>Draw</button>
+          <button class="pred-btn ${aSel}" onclick="setPred('${m.id}','A',this)" ${locked?'disabled':''}>Away Win</button>
+        </div>
+        ${resultBadge} ${pointsBadge}
+      </div>`;
+  });
+  document.getElementById('matchList').innerHTML = html;
+}
+
+// Temp store for unsaved picks
+let tempPreds = {};
+
+function setPred(matchId, outcome, btn) {
+  const week = parseInt(document.getElementById('weekSelect').value);
+  if (!tempPreds[week]) tempPreds[week] = getPreds(currentUser, week);
+  if (!tempPreds[week][matchId]) tempPreds[week][matchId] = {};
+  tempPreds[week][matchId].outcome = outcome;
+
+  // Update button styles
+  const card = btn.closest('.match-card');
+  card.querySelectorAll('.pred-btn').forEach(b => {
+    b.classList.remove('selected-home','selected-draw','selected-away');
+  });
+  if (outcome === 'H') btn.classList.add('selected-home');
+  if (outcome === 'D') btn.classList.add('selected-draw');
+  if (outcome === 'A') btn.classList.add('selected-away');
+}
+
+function savePredictions() {
+  const week = parseInt(document.getElementById('weekSelect').value);
+  const existing = getPreds(currentUser, week);
+  const updated = Object.assign(existing, tempPreds[week] || {});
+  savePreds(currentUser, week, updated);
+  const msg = document.getElementById('saveMsg');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 3000);
+}
+
+/* ════════════════════════════════════════════════════
+   POINTS CALCULATION
+   ════════════════════════════════════════════════════ */
+function outcomeFromScore(home, away) {
+  if (home > away) return 'H';
+  if (home === away) return 'D';
+  return 'A';
+}
+
+function calcPoints(pred, result) {
+  const actual = outcomeFromScore(parseInt(result.home), parseInt(result.away));
+  let pts = 0;
+  if (pred.outcome === actual) pts += 3;
+  if (pred.homeGoals !== undefined && pred.awayGoals !== undefined) {
+    if (parseInt(pred.homeGoals) === parseInt(result.home) && parseInt(pred.awayGoals) === parseInt(result.away)) pts += 5;
+  }
+  return pts;
+}
+
+/* ════════════════════════════════════════════════════
+   LEADERBOARD
+   ════════════════════════════════════════════════════ */
+function renderLeaderboard() {
+  const rows = USERS.map(user => {
+    let correctResults = 0, exactScores = 0, total = 0;
+    for (let w = 1; w <= 5; w++) {
+      const preds = getPreds(user, w);
+      const results = getResults(w);
+      MATCHES[w].forEach(m => {
+        const result = results[m.id];
+        const pred = preds[m.id];
+        if (result && pred && pred.outcome) {
+          const pts = calcPoints(pred, result);
+          const actual = outcomeFromScore(parseInt(result.home), parseInt(result.away));
+          if (pred.outcome === actual) correctResults++;
+          if (pts >= 8) exactScores++;
+          total += pts;
+        }
+      });
+    }
+    return { user, correctResults, exactScores, total };
+  });
+
+  rows.sort((a, b) => b.total - a.total);
+
+  const tbody = document.getElementById('leaderboardBody');
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr>
+      <td><span class="rank-badge rank-${i+1}">${i+1}</span></td>
+      <td style="font-weight:600">${r.user === 'admin' ? r.user + ' 🛠' : r.user}</td>
+      <td>${r.correctResults}</td>
+      <td>${r.exactScores}</td>
+      <td style="font-weight:700;color:var(--green)">${r.total} pts</td>
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════════════════
+   ADMIN — ENTER RESULTS
+   ════════════════════════════════════════════════════ */
+function renderAdminMatches() {
+  const week = parseInt(document.getElementById('adminWeekSelect').value);
+  const matches = MATCHES[week];
+  const results = getResults(week);
+  let html = '';
+
+  matches.forEach(m => {
+    const res = results[m.id] || {};
+    html += `
+      <div class="match-card">
+        <div class="match-meta">${m.date}</div>
+        <div class="match-teams">
+          <div class="team-name">${m.home}</div>
+          <div class="vs-label">VS</div>
+          <div class="team-name away">${m.away}</div>
+        </div>
+        <div class="result-entry show">
+          <label>Score:</label>
+          <input class="score-input" type="number" min="0" max="20" id="h-${m.id}" value="${res.home ?? ''}" placeholder="0">
+          <span style="font-weight:700">–</span>
+          <input class="score-input" type="number" min="0" max="20" id="a-${m.id}" value="${res.away ?? ''}" placeholder="0">
+        </div>
+        ${res.home !== undefined ? `<span class="result-badge set">Saved: ${res.home}–${res.away}</span>` : '<span class="result-badge">Not set</span>'}
+      </div>`;
+  });
+  document.getElementById('adminMatchList').innerHTML = html;
+}
+
+function saveResults() {
+  const week = parseInt(document.getElementById('adminWeekSelect').value);
+  const matches = MATCHES[week];
+  const results = getResults(week);
+
+  matches.forEach(m => {
+    const h = document.getElementById(`h-${m.id}`).value;
+    const a = document.getElementById(`a-${m.id}`).value;
+    if (h !== '' && a !== '') {
+      results[m.id] = { home: parseInt(h), away: parseInt(a) };
+    }
+  });
+  saveResultsData(week, results);
+
+  const msg = document.getElementById('adminSaveMsg');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 3000);
+  renderAdminMatches();
+}
+
+/* ════════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════════ */
+renderMatches();
+</script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Gaffer's Game – Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1a7a4a;
+    --green-light: #23a862;
+    --green-dark: #0f4f30;
+    --pitch: #14532d;
+    --cream: #f5f0e8;
+    --gold: #c9a84c;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --error: #dc2626;
+    --white: #ffffff;
+    --radius: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: var(--pitch);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 60px,
+        rgba(255,255,255,0.03) 60px,
+        rgba(255,255,255,0.03) 61px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 60px,
+        rgba(255,255,255,0.03) 60px,
+        rgba(255,255,255,0.03) 61px
+      );
+  }
+
+  .card {
+    background: var(--cream);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--green-dark);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    color: var(--pitch);
+    line-height: 1;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+  }
+
+  h1 span {
+    color: var(--green-light);
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .divider {
+    height: 2px;
+    background: linear-gradient(90deg, var(--green), var(--gold));
+    border-radius: 2px;
+    margin-bottom: 2rem;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #d1d5db;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    background: var(--white);
+    color: var(--text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 1.25rem;
+    outline: none;
+  }
+
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(26, 122, 74, 0.12);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--green);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn:hover { background: var(--green-dark); }
+  .btn:active { transform: scale(0.98); }
+
+  .error-msg {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: var(--error);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 1.25rem;
+    display: none;
+  }
+
+  .error-msg.show { display: block; }
+
+  .footer-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 1.5rem;
+  }
+
+  .ball-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <span class="ball-icon">⚽</span>
+  <span class="badge">Private Access</span>
+  <h1>The <span>Gaffer's</span> Game</h1>
+  <p class="subtitle">Football Prediction League — Members Only</p>
+  <div class="divider"></div>
+
+  <div class="error-msg" id="errorMsg">
+    Wrong username or password. Try again.
+  </div>
+
+  <label for="username">Username</label>
+  <input type="text" id="username" placeholder="Enter your username" autocomplete="username" />
+
+  <label for="password">Password</label>
+  <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+
+  <button class="btn" onclick="login()">Enter the League</button>
+
+  <p class="footer-note">Don't have access? Contact the league admin.</p>
+</div>
+
+<script>
+  /*
+   * ─────────────────────────────────────────────
+   *  USER ACCOUNTS — Edit this to add/remove members
+   *  Format: { username: "password" }
+   * ─────────────────────────────────────────────
+   */
+  const USERS = {
+    "admin":   "gaffer2024",
+    "player1": "boots123",
+    "player2": "offside99",
+    "player3": "penalty22"
+  };
+
+  function login() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const err = document.getElementById('errorMsg');
+
+    if (USERS[username] && USERS[username] === password) {
+      sessionStorage.setItem('gaffersGame_user', username);
+      window.location.href = 'game.html';
+    } else {
+      err.classList.add('show');
+      document.getElementById('password').value = '';
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+</script>
+</body>
+</html>
