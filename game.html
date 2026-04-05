@@ -201,12 +201,12 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 </nav>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('predict',this)">My Predictions</div>
-  <div class="tab" onclick="showTab('bonus',this)">Bonus Picks</div>
-  <div class="tab" onclick="showTab('groups',this)">Group Stage</div>
-  <div class="tab" onclick="showTab('bracket',this)">Bracket</div>
-  <div class="tab" onclick="showTab('leaderboard',this)">Leaderboard</div>
-  <div class="tab" onclick="showTab('rules',this)">Rules</div>
+  <div class="tab active" onclick="showTab('predict',this)">Minu ennustused</div>
+  <div class="tab" onclick="showTab('bonus',this)">Boonusennustused</div>
+  <div class="tab" onclick="showTab('groups',this)">Alagrupitabelid</div>
+  <div class="tab" onclick="showTab('bracket',this)">Play-off tabel</div>
+  <div class="tab" onclick="showTab('leaderboard',this)">edetabel</div>
+  <div class="tab" onclick="showTab('rules',this)">Reeglid</div>
   <div class="tab" id="adminTab" style="display:none" onclick="showTab('admin',this)">Admin Panel</div>
 </div>
 
@@ -226,15 +226,15 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
   </div>
   <div id="matchList"></div>
   <div class="save-bar">
-    <button class="btn-primary" onclick="savePredictions()">Save My Predictions</button>
+    <button class="btn-primary" onclick="savePredictions()">Salvesta minu ennustused</button>
     <span class="save-ok" id="saveOk">✓ Saved!</span>
   </div>
 </section>
 
 <!-- BONUS PICKS -->
 <section class="section" id="bonus">
-  <h2 class="sec-title">Bonus Predictions</h2>
-  <p class="sec-sub">Optional extra picks that earn big points. Must be locked in before the tournament starts on <b>Jun 11</b>.</p>
+  <h2 class="sec-title">Boonusennustused</h2>
+  <p class="sec-sub">Valikulised lisapanused, millega on võimalik teenida palju punkte. Tuleb lukku panna enne turniiri algust <b>11. juunil</b>.</p>
   <div class="bonus-card">
     <h3>🏆 Boonusennustused</h3>
     <div class="bonus-grid">
