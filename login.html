@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WC2026 Ennustused – Sisselogimine</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#c0392b;--red-d:#922b21;--gold:#d4ac0d;--gold-l:#f7dc6f;--dark:#1a1a2e;--cream:#fdfcf8;--muted:#6b7280;--border:#d1d5db;--radius:10px}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--dark);background-image:radial-gradient(circle at 20% 20%,rgba(192,57,43,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(212,172,13,0.1) 0%,transparent 50%)}
+.card{background:var(--cream);border-radius:18px;width:100%;max-width:420px;padding:2.5rem 2rem;box-shadow:0 30px 80px rgba(0,0,0,0.5)}
+.trophy{font-size:2.5rem;display:block;text-align:center;margin-bottom:.5rem}
+.badge{display:inline-block;background:var(--red);color:var(--gold-l);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:.75rem}
+h1{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;color:var(--dark);line-height:1;letter-spacing:1px;margin-bottom:.2rem;text-align:center}
+h1 span{color:var(--red)}
+.sub{font-size:14px;color:var(--muted);margin-bottom:1.5rem;text-align:center}
+.divider{height:3px;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:2px;margin-bottom:1.75rem}
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:5px;letter-spacing:.4px}
+.field input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:15px;background:#fff;color:var(--dark);transition:border-color .2s,box-shadow .2s;outline:none}
+.field input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,0.12)}
+.btn{width:100%;padding:13px;background:var(--red);color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:.5px;transition:background .2s,transform .1s;margin-top:.25rem}
+.btn:hover{background:var(--red-d)}
+.btn:active{transform:scale(.98)}
+.err{background:#fdf2f2;border:1px solid #fca5a5;color:var(--red);border-radius:var(--radius);padding:10px 14px;font-size:13px;margin-bottom:1.1rem;display:none}
+.err.show{display:block}
+.note{text-align:center;font-size:12px;color:var(--muted);margin-top:1.25rem}
+
+/* First-run setup screen */
+#setupScreen{display:none}
+.setup-info{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:var(--radius);padding:12px 14px;font-size:13px;color:#92400e;margin-bottom:1.25rem;line-height:1.6}
+.setup-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;max-height:300px;overflow-y:auto}
+.setup-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center}
+.setup-row input{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:100%}
+.setup-row input:focus{border-color:var(--red)}
+.del-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid #fca5a5;background:transparent;cursor:pointer;font-size:13px;color:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.del-btn:hover{background:#fee2e2}
+.add-row-btn{background:transparent;border:1.5px dashed var(--border);border-radius:8px;padding:7px;font-size:13px;color:var(--muted);cursor:pointer;width:100%;transition:all .2s;margin-bottom:.5rem}
+.add-row-btn:hover{border-color:var(--red);color:var(--red)}
+.col-header{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);padding:0 2px}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div class="card" id="loginScreen">
+  <span class="trophy">🏆</span>
+  <div style="text-align:center;margin-bottom:.5rem"><span class="badge">Ainult sõpradele</span></div>
+  <h1>WC<span>2026</span></h1>
+  <p class="sub">FIFA maailmamestrivõistluste sõpradevaheline ennustusvõistlus</p>
+  <div class="divider"></div>
+  <div class="err" id="loginErr">Vale kasutajanimi või parool. Proovi uuesti.</div>
+  <div class="field">
+    <label for="u">Kasutajanimi</label>
+    <input type="text" id="u" placeholder="Sisesta oma kasutajanimi" autocomplete="username">
+  </div>
+  <div class="field">
+    <label for="p">Parool</label>
+    <input type="password" id="p" placeholder="Sisesta oma parool" autocomplete="current-password">
+  </div>
+  <button class="btn" onclick="login()">Sisene ennustusvõistlusele</button>
+  <p class="note">Ligipääsuprobleemide korral võta ühendust korraldajaga.</p>
+</div>
+
+<!-- ── FIRST-RUN SETUP SCREEN (shown only if no accounts exist yet) ── -->
+<div class="card" id="setupScreen">
+  <span class="trophy">⚙️</span>
+  <div style="text-align:center;margin-bottom:.5rem"><span class="badge">Esmane seadistus</span></div>
+  <h1>WC<span>2026</span></h1>
+  <p class="sub" style="margin-bottom:1rem">Tere tulemast! Seadista esmalt kontod.</p>
+  <div class="divider"></div>
+  <div class="setup-info">
+    ⚠️ <b>Seda ekraani näeb ainult korraldaja.</b> Lisa admin-konto ja mängijad. Pärast salvestamist saab kontosid hallata Admin Paneelis. Kasutajanimed salvestatakse väiketähtedena.
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;padding:0 2px">
+    <span class="col-header">Kasutajanimi</span>
+    <span class="col-header">Parool</span>
+    <span style="width:28px"></span>
+  </div>
+  <div class="setup-rows" id="setupRows"></div>
+  <button class="add-row-btn" onclick="addSetupRow()">+ Lisa mängija</button>
+  <div class="err" id="setupErr"></div>
+  <button class="btn" onclick="saveSetup()">Salvesta kontod ja alusta</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   This login file contains NO usernames, NO passwords,
+   and NO hashes. All accounts are managed exclusively
+   through the Admin Panel inside game.html.
+
+   On first visit (no accounts in localStorage yet),
+   the setup screen appears so the admin can create
+   the initial accounts right here in the browser.
+   After that, the setup screen never appears again.
+═══════════════════════════════════════════════════════════ */
+
+const ACCOUNTS_KEY = 'wc2026_accounts';
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ── STARTUP: show login or setup depending on whether accounts exist ── */
+function startup(){
+  const existing = localStorage.getItem(ACCOUNTS_KEY);
+  if(existing && Object.keys(JSON.parse(existing)).length > 0){
+    document.getElementById('loginScreen').style.display = 'block';
+  } else {
+    // No accounts yet — show first-run setup
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('setupScreen').style.display = 'block';
+    // Pre-populate with an admin row
+    addSetupRow('admin', '');
+    addSetupRow('', '');
+  }
+}
+
+/* ── LOGIN ── */
+async function login(){
+  const u = document.getElementById('u').value.trim().toLowerCase();
+  const p = document.getElementById('p').value;
+  const e = document.getElementById('loginErr');
+  e.classList.remove('show');
+  if(!u || !p){ e.classList.add('show'); return; }
+  const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '{}');
+  const inputHash = await sha256(u + ':' + p);
+  if(accounts[u] && accounts[u] === inputHash){
+    sessionStorage.setItem('wc2026_user', u);
+    window.location.href = 'game.html';
+  } else {
+    e.classList.add('show');
+    document.getElementById('p').value = '';
+  }
+}
+
+/* ── FIRST-RUN SETUP ── */
+let setupRowCount = 0;
+function addSetupRow(username='', password=''){
+  const id = setupRowCount++;
+  const row = document.createElement('div');
+  row.className = 'setup-row';
+  row.id = 'setup-row-' + id;
+  row.innerHTML =
+    '<input type="text" placeholder="Kasutajanimi" value="'+username+'" id="su-'+id+'">'
+    + '<input type="password" placeholder="Parool" value="'+password+'" id="sp-'+id+'">'
+    + '<button class="del-btn" onclick="removeSetupRow('+id+')">✕</button>';
+  document.getElementById('setupRows').appendChild(row);
+}
+function removeSetupRow(id){
+  const el = document.getElementById('setup-row-'+id);
+  if(el) el.remove();
+}
+async function saveSetup(){
+  const rows = document.querySelectorAll('.setup-row');
+  const err = document.getElementById('setupErr');
+  err.classList.remove('show');
+  const accounts = {};
+  let hasAdmin = false;
+  for(const row of rows){
+    const uEl = row.querySelector('input[type=text]');
+    const pEl = row.querySelector('input[type=password]');
+    if(!uEl || !pEl) continue;
+    const u = uEl.value.trim().toLowerCase();
+    const p = pEl.value.trim();
+    if(!u && !p) continue; // skip empty rows
+    if(!u){ err.textContent='Üks rida on ilma kasutajanimeta.'; err.classList.add('show'); return; }
+    if(!p){ err.textContent='"'+u+'" kasutajal puudub parool.'; err.classList.add('show'); return; }
+    if(p.length < 4){ err.textContent='"'+u+'" parool peab olema vähemalt 4 tähemärki.'; err.classList.add('show'); return; }
+    if(accounts[u]){ err.textContent='Kasutajanimi "'+u+'" on mitu korda.'; err.classList.add('show'); return; }
+    accounts[u] = await sha256(u + ':' + p);
+    if(u === 'admin') hasAdmin = true;
+  }
+  if(!hasAdmin){ err.textContent='Lisa palun "admin" konto (korraldaja konto).'; err.classList.add('show'); return; }
+  if(Object.keys(accounts).length < 2){ err.textContent='Lisa vähemalt admin + üks mängija.'; err.classList.add('show'); return; }
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  // Switch to login screen
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'block';
+  // Auto-fill admin username for convenience
+  document.getElementById('u').value = 'admin';
+  document.getElementById('p').focus();
+}
+
+document.addEventListener('keydown', ev => {
+  if(ev.key === 'Enter'){
+    if(document.getElementById('loginScreen').style.display !== 'none') login();
+  }
+});
+
+startup();
+</script>
+</body>
+</html>
