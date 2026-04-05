@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WC2026 Predictions</title>
+<title>MM2026 Predictions</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -298,7 +298,7 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 <!-- RULES -->
 <section class="section" id="rules">
   <h2 class="sec-title">Reeglid &amp; punktiarvestus</h2>
-  <p class="sec-sub">WC2026 ennustusvõistluse täielikud reeglid.</p>
+  <p class="sec-sub">MM2026 ennustusvõistluse täielikud reeglid.</p>
   <div class="rules-card">
     <h3>⚽ Kuidas mäng käib</h3>
     <ul>
@@ -640,14 +640,14 @@ const DEFAULT_GKS=[
    STORAGE KEYS
 ═══════════════════════════════════════════ */
 const K={
-  results:'wc2026_results',
-  deadlines:'wc2026_deadlines',
-  lockWindow:'wc2026_lockWindow',
-  scorers:'wc2026_scorers',
-  gks:'wc2026_gks',
-  accounts:'wc2026_accounts',
-  bonusPrefix:'wc2026_bonus_',
-  predPrefix:'wc2026_p_'
+  results:'MM2026_results',
+  deadlines:'MM2026_deadlines',
+  lockWindow:'MM2026_lockWindow',
+  scorers:'MM2026_scorers',
+  gks:'MM2026_gks',
+  accounts:'MM2026_accounts',
+  bonusPrefix:'MM2026_bonus_',
+  predPrefix:'MM2026_p_'
 };
 function getR(){return JSON.parse(localStorage.getItem(K.results)||'{}');}
 function setR(d){localStorage.setItem(K.results,JSON.stringify(d));}
@@ -672,11 +672,11 @@ function setBonus(u,d){localStorage.setItem(K.bonusPrefix+u,JSON.stringify(d));}
 /* ═══════════════════════════════════════════
    AUTH
 ═══════════════════════════════════════════ */
-const ME=sessionStorage.getItem('wc2026_user');
+const ME=sessionStorage.getItem('MM2026_user');
 if(!ME) window.location.href='login.html';
 document.getElementById('navUser').textContent=ME;
 if(ME==='admin') document.getElementById('adminTab').style.display='inline-block';
-function logout(){sessionStorage.removeItem('wc2026_user');window.location.href='login.html';}
+function logout(){sessionStorage.removeItem('MM2026_user');window.location.href='login.html';}
 
 async function sha256(str){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
