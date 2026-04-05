@@ -195,7 +195,7 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
   <div class="logo">WC<span>2026</span> ⚽</div>
   <div class="nav-r">
     <span class="nav-user">Hi, <b id="navUser">—</b></span>
-    <button class="btn-sm" onclick="showTab('settings',null)">⚙ My Settings</button>
+    <button class="btn-sm" onclick="showTab('settings',null)">⚙ Minu seaded</button>
     <button class="btn-sm" onclick="logout()">Log Out</button>
   </div>
 </nav>
@@ -372,24 +372,24 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 
 <!-- SETTINGS (change password) -->
 <section class="section" id="settings">
-  <h2 class="sec-title">My Settings</h2>
-  <p class="sec-sub">Change your login password.</p>
+  <h2 class="sec-title">Minu seaded</h2>
+  <p class="sec-sub">Muuda oma sisselogimisparooli.</p>
   <div class="settings-card">
-    <h3>🔒 Change Password</h3>
+    <h3>🔒 Muuda parooli</h3>
     <div class="field">
-      <label>Current password</label>
-      <input type="password" id="pwCurrent" placeholder="Enter current password">
+      <label>Praegune parool</label>
+      <input type="password" id="pwCurrent" placeholder="Sisesta praegune parool">
     </div>
     <div class="field">
-      <label>New password</label>
-      <input type="password" id="pwNew" placeholder="Enter new password">
+      <label>Uus parool</label>
+      <input type="password" id="pwNew" placeholder="Sisesta uus parool">
     </div>
     <div class="field">
-      <label>Confirm new password</label>
-      <input type="password" id="pwConfirm" placeholder="Repeat new password">
+      <label>Kinnita uus parool</label>
+      <input type="password" id="pwConfirm" placeholder="Korda uut parooli">
     </div>
-    <button class="btn-primary" onclick="changePassword()">Update Password</button>
-    <div class="msg-ok" id="pwOk">✓ Password updated successfully!</div>
+    <button class="btn-primary" onclick="changePassword()">Uuenda parool</button>
+    <div class="msg-ok" id="pwOk">✓ Parool uuendati edukalt!</div>
     <div class="msg-err" id="pwErr"></div>
   </div>
 </section>
