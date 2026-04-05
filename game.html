@@ -205,7 +205,7 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
   <div class="tab" onclick="showTab('bonus',this)">Boonusennustused</div>
   <div class="tab" onclick="showTab('groups',this)">Alagrupitabelid</div>
   <div class="tab" onclick="showTab('bracket',this)">Play-off tabel</div>
-  <div class="tab" onclick="showTab('leaderboard',this)">edetabel</div>
+  <div class="tab" onclick="showTab('leaderboard',this)">Edetabel</div>
   <div class="tab" onclick="showTab('rules',this)">Reeglid</div>
   <div class="tab" id="adminTab" style="display:none" onclick="showTab('admin',this)">Admin Panel</div>
 </div>
@@ -396,19 +396,19 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 
 <!-- ADMIN PANEL -->
 <section class="section" id="admin">
-  <h2 class="sec-title">Admin Panel</h2>
-  <p class="sec-sub">Visible to admin only.</p>
-  <div class="admin-warn">⚠️ All changes here are live immediately for all players.</div>
+  <h2 class="sec-title">Administraatrori paneel</h2>
+  <p class="sec-sub">Nähtav ainult administraatorile.</p>
+  <div class="admin-warn">⚠️ Kõik siin tehtud muudatused jõustuvad kohe kõigi mängijate jaoks.</div>
 
   <!-- DEADLINES -->
-  <div class="admin-section-title">⏰ Match Deadlines</div>
-  <div class="admin-section-sub">Set the exact kick-off time for each match round. Predictions lock 30 minutes before. You can adjust the lock window (default 30 min) below.</div>
+  <div class="admin-section-title">⏰ Mängude tähtajad</div>
+  <div class="admin-section-sub">Määra iga mängu või vooru täpne algusaeg. Ennustused lukustuvad 30 minutit enne avavilet. Allpool saad muuta ka lukustumise ajavahemikku (vaikimisi 30 min).</div>
   <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
-    <label style="font-size:13px;font-weight:600">Lock window (minutes before kick-off):</label>
+    <label style="font-size:13px;font-weight:600">Lukustumise aeg (mitu minutit enne avavilet):</label>
     <input type="number" id="lockWindow" min="0" max="120" value="30" style="width:80px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none" oninput="saveLockWindow()">
   </div>
   <table class="deadline-table">
-    <thead><tr><th>Round</th><th>Kick-off date &amp; time (local)</th><th>Status</th></tr></thead>
+    <thead><tr><th>Voor</th><th>Avavile kuupäev &amp; kellaaeg (kohalik aeg)</th><th>Olek</th></tr></thead>
     <tbody id="deadlineTableBody"></tbody>
   </table>
   <div class="save-bar"><button class="btn-primary" onclick="saveDeadlines()">Save Deadlines</button><span class="save-ok" id="dlSaveOk">✓ Saved!</span></div>
@@ -426,52 +426,52 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
   </div>
   <div id="adminMatchList"></div>
   <div class="save-bar">
-    <button class="btn-primary" onclick="saveResults()">Save Results</button>
-    <span class="save-ok" id="adminSaveOk">✓ Saved!</span>
+    <button class="btn-primary" onclick="saveResults()">Salvesta tulemused</button>
+    <span class="save-ok" id="adminSaveOk">✓ Salvestatud!</span>
   </div>
 
   <hr class="section-divider">
 
   <!-- PLAYER LIST MANAGER -->
-  <div class="admin-section-title">👥 Tournament Player List</div>
-  <div class="admin-section-sub">Manage the list of players available for Top Scorer and Golden Glove bonus picks. Update at any time — changes appear instantly for all users.</div>
+  <div class="admin-section-title">👥 Turniiri mängijate nimekiri</div>
+  <div class="admin-section-sub">Halda mängijate nimekirja, mida kasutatakse Top Scoreri ja Golden Glove’i boonusennustuste jaoks. Saad seda igal ajal uuendada — muudatused ilmuvad kohe kõigile kasutajatele.</div>
   <div class="player-list-wrap">
-    <div style="margin-bottom:.75rem;font-size:13px;font-weight:600;color:var(--muted)">Top Scorers / Outfield Players</div>
+    <div style="margin-bottom:.75rem;font-size:13px;font-weight:600;color:var(--muted)">Top Scoreri kandidaadid / väljakumängijad</div>
     <div class="player-list-grid" id="scorerListGrid"></div>
-    <button class="btn-secondary" onclick="addPlayerToList('scorer')" style="margin-bottom:1.5rem">+ Add Player</button>
-    <div style="margin-bottom:.75rem;font-size:13px;font-weight:600;color:var(--muted)">Goalkeepers (Golden Glove)</div>
+    <button class="btn-secondary" onclick="addPlayerToList('scorer')" style="margin-bottom:1.5rem">+ Lisa mängija</button>
+    <div style="margin-bottom:.75rem;font-size:13px;font-weight:600;color:var(--muted)">Väravavahid</div>
     <div class="player-list-grid" id="gkListGrid"></div>
-    <button class="btn-secondary" onclick="addPlayerToList('gk')" style="margin-bottom:1rem">+ Add Goalkeeper</button>
+    <button class="btn-secondary" onclick="addPlayerToList('gk')" style="margin-bottom:1rem">+ Lisa väravavaht</button>
     <div class="save-bar"><button class="btn-primary" onclick="savePlayerLists()">Save Player Lists</button><span class="save-ok" id="plSaveOk">✓ Saved!</span></div>
   </div>
 
   <hr class="section-divider">
 
   <!-- ACCOUNT MANAGER -->
-  <div class="admin-section-title">🔑 Account Manager</div>
-  <div class="admin-section-sub">Add players, reset passwords, or remove accounts. Passwords are stored as hashes — they cannot be read back.</div>
+  <div class="admin-section-title">🔑 Kontode haldus</div>
+  <div class="admin-section-sub">Lisa mängijaid, lähtesta paroole või eemalda kontosid. Paroolid salvestatakse räsi kujul — neid ei saa hiljem algsel kujul tagasi vaadata.</div>
   <table class="account-table" id="accountTable">
-    <thead><tr><th>Username</th><th>Set New Password</th><th>Role</th><th>Action</th></tr></thead>
+    <thead><tr><th>Kasutajanimi</th><th>Määra uus parool</th><th>Roll</th><th>Tegevus</th></tr></thead>
     <tbody id="accountTableBody"></tbody>
   </table>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem">
-    <input type="text" id="newUsername" placeholder="New username" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;width:160px">
-    <input type="password" id="newPassword" placeholder="Password" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;width:160px">
-    <button class="btn-primary" style="padding:8px 18px;font-size:13px" onclick="addAccount()">Add Account</button>
+    <input type="text" id="newUsername" placeholder="Uus kasutaja" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;width:160px">
+    <input type="password" id="newPassword" placeholder="Parool" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;width:160px">
+    <button class="btn-primary" style="padding:8px 18px;font-size:13px" onclick="addAccount()">Lisa konto</button>
     <span class="save-ok" id="acctSaveOk" style="margin:0">✓ Done!</span>
   </div>
 
   <hr class="section-divider">
 
   <!-- FULL PREDICTIONS TABLE -->
-  <div class="admin-section-title">📊 Full Predictions Table</div>
-  <div class="admin-section-sub">All players' predictions side by side. <span style="color:#15803d;font-weight:600">Green=exact</span> · <span style="color:#d97706;font-weight:600">Amber=correct</span> · <span style="color:#dc2626;font-weight:600">Red=wrong</span> · Grey=none/pending.</div>
+  <div class="admin-section-title">📊 Täielik ennustuste tabel</div>
+  <div class="admin-section-sub">Kõigi mängijate ennustused kõrvuti. <span style="color:#15803d;font-weight:600">Roheline=täpne</span> · <span style="color:#d97706;font-weight:600">Kollakas=õige tulemus</span> · <span style="color:#dc2626;font-weight:600">Punane=vale tulemus</span> · Hall=puudu/ootel.</div>
   <div class="filter-bar" id="predTableFilterBar">
     <span class="filter-lbl">Filter:</span>
-    <button class="filter-btn active" onclick="filterPredTable('all',this)">All</button>
-    <button class="filter-btn" onclick="filterPredTable('GS',this)">Group Stage</button>
-    <button class="filter-btn" onclick="filterPredTable('KO',this)">Knockout</button>
-    <button class="filter-btn" onclick="filterPredTable('scored',this)">Has Result</button>
+    <button class="filter-btn active" onclick="filterPredTable('all',this)">Kõik</button>
+    <button class="filter-btn" onclick="filterPredTable('GS',this)">Alagrupiturniir</button>
+    <button class="filter-btn" onclick="filterPredTable('KO',this)">Play-off</button>
+    <button class="filter-btn" onclick="filterPredTable('scored',this)">Tulemus olemas</button>
   </div>
   <div class="pred-table-wrap">
     <table class="pred-table"><thead id="predTableHead"></thead><tbody id="predTableBody"></tbody></table>
@@ -822,31 +822,31 @@ function renderBonusTab(){
   // Populate winner (teams)
   const teams=Object.values(GROUPS).flatMap(g=>g.teams).sort();
   const winnerSel=document.getElementById('bonus_winner');
-  winnerSel.innerHTML='<option value="">— Select team —</option>'+teams.map(t=>'<option value="'+t+'"'+(bonus.winner===t?' selected':'')+'>'+t+'</option>').join('');
+  winnerSel.innerHTML='<option value="">— Vali meeskond —</option>'+teams.map(t=>'<option value="'+t+'"'+(bonus.winner===t?' selected':'')+'>'+t+'</option>').join('');
   winnerSel.disabled=locked;
   // Populate top scorer
   const scorers=getScorerList();
   const scorerSel=document.getElementById('bonus_topscorer');
-  scorerSel.innerHTML='<option value="">— Select player —</option>'+scorers.map(p=>'<option value="'+p+'"'+(bonus.topscorer===p?' selected':'')+'>'+p+'</option>').join('');
+  scorerSel.innerHTML='<option value="">— Vali mängija —</option>'+scorers.map(p=>'<option value="'+p+'"'+(bonus.topscorer===p?' selected':'')+'>'+p+'</option>').join('');
   scorerSel.disabled=locked;
   // Populate GK
   const gks=getGkList();
   const gkSel=document.getElementById('bonus_gk');
-  gkSel.innerHTML='<option value="">— Select goalkeeper —</option>'+gks.map(p=>'<option value="'+p+'"'+(bonus.gk===p?' selected':'')+'>'+p+'</option>').join('');
+  gkSel.innerHTML='<option value="">— Vali väravavaht —</option>'+gks.map(p=>'<option value="'+p+'"'+(bonus.gk===p?' selected':'')+'>'+p+'</option>').join('');
   gkSel.disabled=locked;
   // Populate upset (group stage matches)
   const upsetSel=document.getElementById('bonus_upset');
   const gsMat=MATCHES.filter(m=>isGS(m));
-  upsetSel.innerHTML='<option value="">— Select match —</option>'+gsMat.map(m=>'<option value="'+m.id+'"'+(bonus.upset==m.id?' selected':'')+'>'+m.home+' v '+m.away+' ('+m.date+')</option>').join('');
+  upsetSel.innerHTML='<option value="">— Vali mäng —</option>'+gsMat.map(m=>'<option value="'+m.id+'"'+(bonus.upset==m.id?' selected':'')+'>'+m.home+' v '+m.away+' ('+m.date+')</option>').join('');
   upsetSel.disabled=locked;
-  document.getElementById('bonusDeadlineText').textContent=locked?'🔒 Bonus deadline has passed (Jun 11 14:00).':'🟢 Bonus picks are open until Jun 11 at 14:00.';
+  document.getElementById('bonusDeadlineText').textContent=locked?'🔒 Bonus deadline has passed (Jun 11 14:00).':'🟢 Boonusennustused on avatud kuni 11. juunini kell 14.00.';
   // Show current picks
   const parts=[];
   if(bonus.winner) parts.push('<b>🏆 Champion:</b> '+bonus.winner);
   if(bonus.topscorer) parts.push('<b>⚽ Top Scorer:</b> '+bonus.topscorer);
   if(bonus.gk) parts.push('<b>🧤 GK:</b> '+bonus.gk);
   if(bonus.upset){const m=MATCHES.find(x=>x.id==bonus.upset);if(m)parts.push('<b>📊 Upset:</b> '+m.home+' v '+m.away);}
-  document.getElementById('myBonusContent').innerHTML=parts.length?parts.join(' &nbsp;·&nbsp; '):'No picks saved yet.';
+  document.getElementById('myBonusContent').innerHTML=parts.length?parts.join(' &nbsp;·&nbsp; '):'Valikuid ei ole tehtud.';
 }
 function saveBonusPicks(){
   const bonusDeadline=new Date('2026-06-11T14:00:00');
