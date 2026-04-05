@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WC2026 Predictions – Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#c0392b;--red-d:#922b21;--gold:#d4ac0d;--gold-l:#f7dc6f;--dark:#1a1a2e;--cream:#fdfcf8;--muted:#6b7280;--border:#dde;--radius:10px}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--dark);background-image:radial-gradient(circle at 20% 20%,rgba(192,57,43,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(212,172,13,0.1) 0%,transparent 50%)}
+.card{background:var(--cream);border-radius:18px;width:100%;max-width:420px;padding:2.5rem 2rem;box-shadow:0 30px 80px rgba(0,0,0,0.5)}
+.trophy{font-size:2.5rem;display:block;text-align:center;margin-bottom:0.5rem}
+.badge{display:inline-block;background:var(--red);color:var(--gold-l);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:0.75rem}
+h1{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;color:var(--dark);line-height:1;letter-spacing:1px;margin-bottom:0.2rem;text-align:center}
+h1 span{color:var(--red)}
+.sub{font-size:14px;color:var(--muted);margin-bottom:1.5rem;text-align:center}
+.divider{height:3px;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:2px;margin-bottom:1.75rem}
+label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:5px;letter-spacing:0.4px}
+input[type=text],input[type=password]{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:15px;background:#fff;color:var(--dark);transition:border-color .2s,box-shadow .2s;margin-bottom:1.25rem;outline:none}
+input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,0.12)}
+.btn{width:100%;padding:13px;background:var(--red);color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:0.5px;transition:background .2s,transform .1s}
+.btn:hover{background:var(--red-d)}
+.btn:active{transform:scale(0.98)}
+.err{background:#fdf2f2;border:1px solid #fca5a5;color:var(--red);border-radius:var(--radius);padding:10px 14px;font-size:13px;margin-bottom:1.25rem;display:none}
+.err.show{display:block}
+.note{text-align:center;font-size:12px;color:var(--muted);margin-top:1.25rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <span class="trophy">🏆</span>
+  <div style="text-align:center;margin-bottom:0.5rem"><span class="badge">Members Only</span></div>
+  <h1>WC<span>2026</span></h1>
+  <p class="sub">FIFA World Cup Prediction Championship</p>
+  <div class="divider"></div>
+  <div class="err" id="err">Wrong username or password. Try again.</div>
+  <label for="u">Username</label>
+  <input type="text" id="u" placeholder="Enter your username" autocomplete="username">
+  <label for="p">Password</label>
+  <input type="password" id="p" placeholder="Enter your password" autocomplete="current-password">
+  <button class="btn" onclick="login()">Enter the Championship</button>
+  <p class="note">Contact the organiser if you need access.</p>
+</div>
+<script>
+// ── Simple hash (SHA-256 via Web Crypto) ──────────────────────
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Default accounts (only used if no accounts exist in storage yet)
+// Format: { username: plainTextPassword }  — stored as hashes immediately on first load
+const DEFAULT_ACCOUNTS = {
+  "admin":   "wc2026admin",
+  "player1": "kick1",
+  "player2": "kick2",
+  "player3": "kick3",
+  "player4": "kick4",
+  "player5": "kick5",
+  "player6": "kick6",
+  "player7": "kick7",
+  "player8": "kick8"
+};
+
+const ACCOUNTS_KEY = 'wc2026_accounts';
+
+async function initAccounts(){
+  if(localStorage.getItem(ACCOUNTS_KEY)) return;
+  const hashed={};
+  for(const [u,p] of Object.entries(DEFAULT_ACCOUNTS)){
+    hashed[u] = await sha256(u+':'+p);
+  }
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(hashed));
+}
+
+async function login(){
+  const u=document.getElementById('u').value.trim().toLowerCase();
+  const p=document.getElementById('p').value;
+  const e=document.getElementById('err');
+  if(!u||!p){e.classList.add('show');return;}
+  const accounts=JSON.parse(localStorage.getItem(ACCOUNTS_KEY)||'{}');
+  const inputHash=await sha256(u+':'+p);
+  if(accounts[u]&&accounts[u]===inputHash){
+    sessionStorage.setItem('wc2026_user',u);
+    window.location.href='game.html';
+  } else {
+    e.classList.add('show');
+    document.getElementById('p').value='';
+  }
+}
+
+document.addEventListener('keydown',ev=>{if(ev.key==='Enter')login();});
+initAccounts();
+</script>
+</body>
+</html>
