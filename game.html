@@ -194,9 +194,9 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 <nav>
   <div class="logo">WC<span>2026</span> ⚽</div>
   <div class="nav-r">
-    <span class="nav-user">Hi, <b id="navUser">—</b></span>
+    <span class="nav-user">Tere, <b id="navUser">—</b></span>
     <button class="btn-sm" onclick="showTab('settings',null)">⚙ Minu seaded</button>
-    <button class="btn-sm" onclick="logout()">Log Out</button>
+    <button class="btn-sm" onclick="logout()">Logi välja</button>
   </div>
 </nav>
 
@@ -354,7 +354,7 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
   <div class="rules-card">
     <h3>🎖 Mängijate märgid</h3>
     <ul>
-      <li>🏆 <b>Legend</b> — 20+ täpset ennustust · 🎯 <b>Snaiper</b> — 12+ täpset ennustust · 💯 <b>Century</b> — 100+ punkti</li>
+      <li>🏆 <b>Legend</b> — 20+ täpset ennustust · 🎯 <b>Snaiper</b> — 12+ täpset ennustust · 💯 <b>Sajalised</b> — 100+ punkti</li>
       <li>🔥 <b>Kuum seeria</b> — 6+ täpset · ⭐ <b>Tõusev täht</b> — 50+ punkti · ✨ <b>Terav silm</b> — 3+ täpset</li>
       <li>🌱 <b>Esimene läbimurre</b> — 1+ täpne · 🤞 <b>Algaja</b> — Ootab veel!</li>
     </ul>
@@ -979,10 +979,10 @@ function renderLeaderboard(){
   rows.sort((a,b)=>b.total-a.total||(b.exact-a.exact));
   let totalExact=0;rows.forEach(r=>{totalExact+=r.exact;});
   document.getElementById('statsGrid').innerHTML=
-    '<div class="stat-card"><div class="stat-num">'+totalWithResults+'</div><div class="stat-lbl">Results entered</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+totalExact+'</div><div class="stat-lbl">Total exact scores</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+(rows.length?rows[0].total:0)+'</div><div class="stat-lbl">Leader\'s points</div></div>'
-    +'<div class="stat-card"><div class="stat-num">'+players.length+'</div><div class="stat-lbl">Players</div></div>';
+    '<div class="stat-card"><div class="stat-num">'+totalWithResults+'</div><div class="stat-lbl">Sisestatud tulemused</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+totalExact+'</div><div class="stat-lbl">Täpselt ennustatud skoore kokku</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+(rows.length?rows[0].total:0)+'</div><div class="stat-lbl">Liidri punktid</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+players.length+'</div><div class="stat-lbl">Mängijaid</div></div>';
   document.getElementById('lbBody').innerHTML=rows.map((r,i)=>{
     const fh=r.form.map(f=>'<span class="form-dot form-'+f+'"></span>').join('');
     return '<tr>'
