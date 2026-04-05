@@ -214,15 +214,15 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 
 <!-- MY PREDICTIONS -->
 <section class="section active" id="predict">
-  <h2 class="sec-title">My Predictions</h2>
-  <p class="sec-sub">Enter your predicted score for each match. Predictions lock automatically 30 minutes before kick-off.</p>
+  <h2 class="sec-title">Minu ennustused</h2>
+  <p class="sec-sub">Sisesta iga mängu jaoks oma ennustatud tulemus. Ennustused lukustuvad automaatselt 30 minutit enne avavilet.</p>
   <div class="filter-bar">
     <span class="filter-lbl">Filter:</span>
-    <button class="filter-btn active" onclick="filterPred('all',this)">All (104)</button>
-    <button class="filter-btn" onclick="filterPred('GS',this)">Group Stage</button>
-    <button class="filter-btn" onclick="filterPred('KO',this)">Knockout</button>
-    <button class="filter-btn" onclick="filterPred('open',this)">Still Open</button>
-    <button class="filter-btn" onclick="filterPred('done',this)">Locked / Played</button>
+    <button class="filter-btn active" onclick="filterPred('all',this)">Kõik (104)</button>
+    <button class="filter-btn" onclick="filterPred('GS',this)">Alagrupiturniir</button>
+    <button class="filter-btn" onclick="filterPred('KO',this)">Play-off</button>
+    <button class="filter-btn" onclick="filterPred('open',this)">Veel avatud</button>
+    <button class="filter-btn" onclick="filterPred('done',this)">Lukus / Mängitud</button>
   </div>
   <div id="matchList"></div>
   <div class="save-bar">
@@ -236,55 +236,55 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
   <h2 class="sec-title">Bonus Predictions</h2>
   <p class="sec-sub">Optional extra picks that earn big points. Must be locked in before the tournament starts on <b>Jun 11</b>.</p>
   <div class="bonus-card">
-    <h3>🏆 Bonus Predictions</h3>
+    <h3>🏆 Boonusennustused</h3>
     <div class="bonus-grid">
       <div class="bonus-item">
-        <label>Tournament Winner <span class="bonus-pts">+20 pts</span></label>
-        <select id="bonus_winner"><option value="">— Select team —</option></select>
+        <label>Turniiri võitja <span class="bonus-pts">+20 punkti</span></label>
+        <select id="bonus_winner"><option value="">— Vali meeskond —</option></select>
       </div>
       <div class="bonus-item">
-        <label>Top Scorer <span class="bonus-pts">+10 pts</span></label>
-        <select id="bonus_topscorer"><option value="">— Select player —</option></select>
+        <label>Suurim väravakütt <span class="bonus-pts">+10 punkti</span></label>
+        <select id="bonus_topscorer"><option value="">— Vali mängija —</option></select>
       </div>
       <div class="bonus-item">
-        <label>Golden Glove (Best GK) <span class="bonus-pts">+10 pts</span></label>
-        <select id="bonus_gk"><option value="">— Select goalkeeper —</option></select>
+        <label>Parim väravavaht <span class="bonus-pts">+10 punkti</span></label>
+        <select id="bonus_gk"><option value="">— Vali väravavaht —</option></select>
       </div>
       <div class="bonus-item">
-        <label>Biggest Upset (group stage) <span class="bonus-pts">+5 pts</span></label>
-        <select id="bonus_upset"><option value="">— Select match —</option></select>
+        <label>Suurim üllatus (alagrupiturniir) <span class="bonus-pts">+5 punkti</span></label>
+        <select id="bonus_upset"><option value="">— Vali mäng —</option></select>
       </div>
     </div>
     <p class="bonus-deadline" id="bonusDeadlineText"></p>
     <div class="save-bar" style="margin-top:1rem">
-      <button class="btn-primary" onclick="saveBonusPicks()">Save Bonus Picks</button>
+      <button class="btn-primary" onclick="saveBonusPicks()">Salvesta boonusennustused</button>
       <span class="save-ok" id="bonusSaveOk">✓ Saved!</span>
     </div>
   </div>
   <div class="bonus-card" id="myBonusDisplay">
-    <h3>📋 My Current Picks</h3>
-    <div id="myBonusContent" style="font-size:14px;color:var(--muted)">No picks saved yet.</div>
+    <h3>📋 Minu praegused valikud</h3>
+    <div id="myBonusContent" style="font-size:14px;color:var(--muted)">Ühtegi valikut pole veel salvestatud.</div>
   </div>
 </section>
 
 <!-- GROUP STAGE -->
 <section class="section" id="groups">
-  <h2 class="sec-title">Group Stage Standings</h2>
-  <p class="sec-sub">Live standings. Top 2 per group advance, plus the 8 best 3rd-place teams.</p>
+  <h2 class="sec-title">Alagrupitabelid</h2>
+  <p class="sec-sub">Reaalajas tabeliseis. Iga alagrupi 2 parimat pääsevad edasi ning lisaks ka 8 parimat kolmanda koha meeskonda.</p>
   <div id="groupsContainer"></div>
 </section>
 
 <!-- BRACKET -->
 <section class="section" id="bracket">
-  <h2 class="sec-title">Knockout Bracket</h2>
-  <p class="sec-sub">Updates automatically as results are entered. Scroll right to see all rounds.</p>
+  <h2 class="sec-title">Play-off tabel</h2>
+  <p class="sec-sub">Uueneb automaatselt, kui tulemusi sisestatakse. Kõikide voorude nägemiseks keri paremale.</p>
   <div class="bracket-wrap"><div class="bracket" id="bracketContainer"></div></div>
 </section>
 
 <!-- LEADERBOARD -->
 <section class="section" id="leaderboard">
-  <h2 class="sec-title">Leaderboard</h2>
-  <p class="sec-sub">Overall standings — updated as the admin enters match results.</p>
+  <h2 class="sec-title">Edetabel</h2>
+  <p class="sec-sub">Üldine paremusjärjestus — uueneb, kui administraator sisestab mängude tulemused.</p>
   <div class="stats-grid" id="statsGrid"></div>
   <table class="lb-table">
     <thead><tr>
@@ -297,75 +297,75 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 
 <!-- RULES -->
 <section class="section" id="rules">
-  <h2 class="sec-title">Rules &amp; Scoring</h2>
-  <p class="sec-sub">Complete rules for the WC2026 Prediction Championship.</p>
+  <h2 class="sec-title">Reeglid &amp; punktiarvestus</h2>
+  <p class="sec-sub">WC2026 ennustusvõistluse täielikud reeglid.</p>
   <div class="rules-card">
-    <h3>⚽ How to Play</h3>
+    <h3>⚽ Kuidas mäng käib</h3>
     <ul>
-      <li><b>Predictions lock automatically 30 minutes before each match kicks off.</b> After that you cannot change them.</li>
-      <li>Enter your predicted score (e.g. <b>2–1</b>) and save. The system timestamps your last save.</li>
-      <li>The organiser enters actual results after each match. Points update automatically.</li>
-      <li>The player with the most points at the end of the tournament wins!</li>
+      <li><b>Ennustused lukustuvad automaatselt 30 minutit enne iga mängu avavilet.</b> Pärast seda neid enam muuta ei saa.</li>
+      <li>Sisesta oma ennustatud tulemus (näiteks 2–1) ja salvesta. Süsteem salvestab sinu viimase salvestamise aja.</li>
+      <li>Korraldaja sisestab pärast iga mängu tegelikud tulemused. Punktid uuenevad automaatselt.</li>
+      <li>Turniiri lõpus võidab kõige rohkem punkte kogunud mängija!</li>
     </ul>
   </div>
   <div class="rules-row">
     <div class="rules-card">
-      <h3>🏟 Group Stage Scoring</h3>
+      <h3>🏟 Alagrupiturniiri punktiarvestus</h3>
       <div class="scoring-grid">
         <div class="score-box"><div class="pts">5</div><div class="lbl">Exact scoreline</div></div>
         <div class="score-box"><div class="pts">2</div><div class="lbl">Correct result</div></div>
         <div class="score-box"><div class="pts">0</div><div class="lbl">Wrong prediction</div></div>
       </div>
       <p style="font-size:12px;color:var(--muted);margin-top:.75rem">
-        <b>Exact → 5 pts:</b> Predicted precise final score (e.g. 2–1), match ended 2–1.<br>
-        <b>Correct → 2 pts:</b> Got the right winner/draw but wrong exact score.<br>
-        <b>Wrong → 0 pts:</b> Missed the result direction entirely.
+        <b>Täpselt → 5 punkti:</b> Ennustasid täpse lõppskoori õigesti (näiteks 2–1) ja mäng lõppeski 2–1.<br>
+        <b>Õige tulemus → 2 punkti:</b> Said õigesti pihta võitja või viigi, aga mitte täpsele skoorile.<br>
+        <b>Vale ennustus → 0 punkti:</b> Eksisid täiesti tulemuse suuna osas.
       </p>
     </div>
     <div class="rules-card">
-      <h3>🏆 Knockout Scoring</h3>
+      <h3>🏆 Play-off vooru punktiarvestus</h3>
       <div class="scoring-grid">
-        <div class="score-box"><div class="pts">10</div><div class="lbl">Exact (90 min)</div></div>
-        <div class="score-box"><div class="pts">4</div><div class="lbl">Correct result</div></div>
-        <div class="score-box"><div class="pts">0</div><div class="lbl">Wrong prediction</div></div>
+        <div class="score-box"><div class="pts">10</div><div class="lbl">Täpselt (90 min)</div></div>
+        <div class="score-box"><div class="pts">4</div><div class="lbl">Õige tulemus</div></div>
+        <div class="score-box"><div class="pts">0</div><div class="lbl">Vale ennustus</div></div>
       </div>
       <p style="font-size:12px;color:var(--muted);margin-top:.75rem">
-        Only the 90-minute result counts. Extra time and penalties do <b>not</b> affect scoring.
+        Arvesse läheb ainult 90 minuti tulemus. Lisaaeg ja penaltid punktiarvestust ei mõjuta.
       </p>
     </div>
   </div>
   <div class="rules-card">
-    <h3>🎁 Bonus Predictions</h3>
+    <h3>🎁 Boonusennustused</h3>
     <ul>
-      <li><b>Tournament Winner → 20 pts</b> — Pick the overall champion before Jun 11.</li>
-      <li><b>Top Scorer → 10 pts</b> — Pick the player who scores the most goals. Ties = all correct pickers earn points.</li>
-      <li><b>Golden Glove → 10 pts</b> — Pick the best goalkeeper (official FIFA award).</li>
-      <li><b>Biggest Upset → 5 pts</b> — Pick one group match where the lower-seeded team wins. Lock in before the tournament.</li>
+      <li><b>Turniirivõitja → 20 punkti</b> — vali kogu turniiri võitja enne 11. juunit.</li>
+      <li><b>Suurim väravakütt → 10 punkti</b> — vali mängija, kes lööb kõige rohkem väravaid. Viigi korral saavad punktid kõik, kes õigesti ennustasid.</li>
+      <li><b>parim väravavaht → 10 punkti</b> — vali turniiri parim väravavaht (FIFA ametlik auhind).</li>
+      <li><b>Suurim üllatus → 5 punkti</b> — vali üks alagrupimäng, kus madalama asetusega meeskond võidab. Tuleb lukku panna enne turniiri algust.</li>
     </ul>
   </div>
   <div class="rules-card">
-    <h3>⚖️ Tiebreakers</h3>
+    <h3>⚖️ Viigimurdmise reeglid</h3>
     <ul>
-      <li><b>1st:</b> Most exact scores (5pt or 10pt) wins the tie.</li>
-      <li><b>2nd:</b> Most correct result directions wins.</li>
-      <li><b>3rd:</b> Most group winners predicted correctly. If all else fails — split the prize!</li>
+      <li><b>1st:</b> Võrdse seisu korral võidab see, kellel on rohkem täpseid ennustusi (5 p või 10 p).</li>
+      <li><b>2nd:</b> Kui viik püsib, loeb rohkem õigesti ennustatud tulemuse suundi.</li>
+      <li><b>3rd:</b> Kui ka siis on viik, loeb rohkem õigesti ennustatud alagrupivõitjaid. Kui kõik jääb endiselt võrdseks — jagatakse auhind omavahel!</li>
     </ul>
   </div>
   <div class="rules-card">
-    <h3>🎖 Player Badges</h3>
+    <h3>🎖 Mängijate märgid</h3>
     <ul>
-      <li>🏆 <b>Legend</b> — 20+ exact · 🎯 <b>Sniper</b> — 12+ exact · 💯 <b>Century</b> — 100+ pts</li>
-      <li>🔥 <b>Hot Streak</b> — 6+ exact · ⭐ <b>Rising Star</b> — 50+ pts · ✨ <b>Sharp Eye</b> — 3+ exact</li>
-      <li>🌱 <b>First Blood</b> — 1+ exact · 🤞 <b>Rookie</b> — still waiting!</li>
+      <li>🏆 <b>Legend</b> — 20+ täpset ennustust · 🎯 <b>Snaiper</b> — 12+ täpset ennustust · 💯 <b>Century</b> — 100+ punkti</li>
+      <li>🔥 <b>Kuum seeria</b> — 6+ täpset · ⭐ <b>Tõusev täht</b> — 50+ punkti · ✨ <b>Terav silm</b> — 3+ täpset</li>
+      <li>🌱 <b>Esimene läbimurre</b> — 1+ täpne · 🤞 <b>Algaja</b> — Ootab veel!</li>
     </ul>
   </div>
   <div class="rules-card">
-    <h3>📋 Fair Play Rules</h3>
+    <h3>📋 Ausa mängu reeglid</h3>
     <ul>
-      <li><b>Deadline:</b> Predictions lock 30 min before kick-off. Admin cannot accept late entries.</li>
-      <li><b>Organiser neutrality:</b> Admin enters actual scores only — cannot change player predictions.</li>
-      <li><b>Disputed results:</b> Official FIFA match report is the authoritative source.</li>
-      <li><b>Fun first!</b> Agree on prize pool before the tournament. Play fair, enjoy the football!</li>
+      <li><b>Tähtaeg:</b> Ennustused lukustuvad 30 minutit enne avavilet. Administraator ei tohi hilinenud ennustusi vastu võtta.</li>
+      <li><b>Korraldaja neutraalsus:</b> Administraator sisestab ainult tegelikud tulemused — mängijate ennustusi ta muuta ei saa.</li>
+      <li><b>Vaidlusalused tulemused:</b> Ametlik FIFA mänguraport on lõplik ja aluseks võetav allikas.</li>
+      <li><b>Mängurõõm ennekõike!</b> Leppige auhinnafond enne turniiri algust kokku. Mängige ausalt ja nautige jalgpalli!</li>
     </ul>
   </div>
 </section>
