@@ -468,7 +468,7 @@ const _db = firebase.firestore();
 
   <!-- DEADLINES -->
   <div class="admin-section-title">⏰ Mängude tähtajad</div>
-  <div class="admin-section-sub">Määra iga mängu või vooru täpne algusaeg. Ennustused lukustuvad 30 minutit enne avavilet. Allpool saad muuta ka lukustumise ajavahemikku (vaikimisi 30 min).</div>
+  <div class="admin-section-sub">Sisesta mängude algusajad <b>Eesti aja järgi (EEST, UTC+3)</b>. Ajavöönd lisatakse automaatselt — ennustused lukustuvad õigel ajal kõigi mängijate jaoks, olenemata nende asukohast. Lukustumise ajavahemik (vaikimisi 30 min) on muudetav allpool.</div>
   <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
     <label style="font-size:13px;font-weight:600">Lukustumise aeg (mitu minutit enne avavilet):</label>
     <input type="number" id="lockWindow" min="0" max="120" value="30" style="width:80px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none" oninput="saveLockWindow()">
@@ -1211,13 +1211,13 @@ const ROUND_GROUPS={
 };
 // Default kick-off times (one representative time per group — admin can override per-match)
 const DEFAULT_KO_TIMES={
-  1:'2026-06-11T19:00',2:'2026-06-12T02:00',
-  3:'2026-06-12T19:00',4:'2026-06-13T01:00',
-  5:'2026-06-13T19:00',6:'2026-06-14T01:00',7:'2026-06-14T01:00',8:'2026-06-14T01:00',
-  9:'2026-06-14T18:00',10:'2026-06-14T22:00',11:'2026-06-15T01:00',12:'2026-06-15T04:00',
-  13:'2026-06-15T18:00',14:'2026-06-15T22:00',15:'2026-06-16T01:00',16:'2026-06-16T04:00',
-  17:'2026-06-16T19:00',18:'2026-06-16T22:00',19:'2026-06-17T01:00',20:'2026-06-17T04:00',
-  21:'2026-06-17T18:00',22:'2026-06-17T21:00',23:'2026-06-18T00:00',24:'2026-06-18T02:00'
+  1:'2026-06-11T19:00+03:00',2:'2026-06-12T02:00+03:00',
+  3:'2026-06-12T19:00+03:00',4:'2026-06-13T01:00+03:00',
+  5:'2026-06-13T19:00+03:00',6:'2026-06-14T01:00+03:00',7:'2026-06-14T01:00+03:00',8:'2026-06-14T01:00+03:00',
+  9:'2026-06-14T18:00+03:00',10:'2026-06-14T22:00+03:00',11:'2026-06-15T01:00+03:00',12:'2026-06-15T04:00+03:00',
+  13:'2026-06-15T18:00+03:00',14:'2026-06-15T22:00+03:00',15:'2026-06-16T01:00+03:00',16:'2026-06-16T04:00+03:00',
+  17:'2026-06-16T19:00+03:00',18:'2026-06-16T22:00+03:00',19:'2026-06-17T01:00+03:00',20:'2026-06-17T04:00+03:00',
+  21:'2026-06-17T18:00+03:00',22:'2026-06-17T21:00+03:00',23:'2026-06-18T00:00+03:00',24:'2026-06-18T02:00+03:00'
 };
 function renderDeadlineTable(){
   const deadlines=getDeadlines();
@@ -1228,7 +1228,9 @@ function renderDeadlineTable(){
     html+='<tr style="background:#f8f7f3"><td colspan="3" style="font-weight:700;font-size:12px;letter-spacing:.5px;color:var(--muted);padding:8px 12px">'+label+'</td></tr>';
     ids.forEach(id=>{
       const m=MATCHES.find(x=>x.id===id);
-      const stored=deadlines[id]||DEFAULT_KO_TIMES[id]||'';
+      // Strip +03:00 for display in datetime-local input (it only accepts YYYY-MM-DDTHH:MM)
+  const rawStored=deadlines[id]||DEFAULT_KO_TIMES[id]||'';
+  const stored=rawStored.replace(/([+-]\d{2}:\d{2}|Z)$/, '');
       const status=isLocked(id)?'<span class="deadline-pill deadline-locked" style="font-size:11px">Locked</span>':'<span class="deadline-pill deadline-open" style="font-size:11px">Open</span>';
       html+='<tr>'
         +'<td style="font-size:12px">#'+id+' '+m.home+' v '+m.away+'</td>'
@@ -1244,9 +1246,15 @@ function saveLockWindow(){
 }
 function saveDeadlines(){
   const deadlines=getDeadlines();
+  // Append Estonian summer time offset (+03:00 = EEST, covers Jun 11–Jul 19)
+  // This ensures countdowns are correct for all players regardless of their timezone
   MATCHES.forEach(m=>{
     const el=document.getElementById('dl-'+m.id);
-    if(el&&el.value) deadlines[m.id]=el.value;
+    if(el&&el.value){
+      // Strip any existing offset and re-add +03:00
+      const clean=el.value.replace(/([+-]\d{2}:\d{2}|Z)$/, '');
+      deadlines[m.id]=clean+'+03:00';
+    }
   });
   setDeadlines(deadlines);
   const ok=document.getElementById('dlSaveOk');
