@@ -60,21 +60,18 @@ h1 span{color:var(--red)}
   <p class="note">Ligipääsuprobleemide korral võta ühendust korraldajaga.</p>
 </div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
-
-const firebaseConfig = {
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
   apiKey: "AIzaSyCLxqwO811b7j4oNsw-z0Yxe365XhGOKw4",
   authDomain: "mm2026-29834.firebaseapp.com",
   projectId: "mm2026-29834",
   storageBucket: "mm2026-29834.firebasestorage.app",
   messagingSenderId: "64265076996",
   appId: "1:64265076996:web:2ff8af4012b505c7e8d051"
-};
-
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+});
+const db = firebase.firestore();
 
 async function sha256(str){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -86,11 +83,10 @@ async function init(){
   document.getElementById('loadingMsg').classList.add('show');
   document.getElementById('loginBtn').disabled = true;
   try {
-    const snap = await getDoc(doc(db, 'accounts', 'admin'));
-    if(!snap.exists()){
-      // First ever visit — create default admin/admin account
+    const snap = await db.collection('accounts').doc('admin').get();
+    if(!snap.exists){
       const hash = await sha256('admin:admin');
-      await setDoc(doc(db, 'accounts', 'admin'), { hash, role: 'admin' });
+      await db.collection('accounts').doc('admin').set({ hash, role: 'admin' });
       document.getElementById('firstRunNote').classList.add('show');
     }
   } catch(e){
@@ -114,8 +110,8 @@ async function login(){
   document.getElementById('loginBtn').textContent = 'Kontrollin...';
 
   try {
-    const snap = await getDoc(doc(db, 'accounts', u));
-    if(snap.exists()){
+    const snap = await db.collection('accounts').doc(u).get();
+    if(snap.exists){
       const inputHash = await sha256(u + ':' + p);
       if(snap.data().hash === inputHash){
         sessionStorage.setItem('MM2026_user', u);
@@ -134,7 +130,6 @@ async function login(){
 }
 
 document.addEventListener('keydown', ev => { if(ev.key === 'Enter') login(); });
-window.login = login;
 init();
 </script>
 </body>
