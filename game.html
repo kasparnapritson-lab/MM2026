@@ -257,7 +257,7 @@ const _db = firebase.firestore();
 <body>
 
 <nav>
-  <div class="logo">WC<span>2026</span> ⚽</div>
+  <div class="logo">MM<span>2026</span> ⚽</div>
   <div class="nav-r">
     <span class="nav-user">Tere, <b id="navUser">—</b></span>
     <button class="btn-sm" onclick="showTab('settings',null)">⚙ Minu seaded</button>
@@ -354,8 +354,8 @@ const _db = firebase.firestore();
   <div class="stats-grid" id="statsGrid"></div>
   <table class="lb-table">
     <thead><tr>
-      <th>#</th><th>Player</th><th>GS Pts</th><th>KO Pts</th><th>Bonus Pts</th>
-      <th>Total</th><th>Exact</th><th>Correct</th><th>Form</th><th>Badge</th>
+      <th>#</th><th>Player</th><th>Alagr.</th><th>Play-off</th><th>Boonus</th>
+      <th>Kokku</th><th>Täpsed</th><th>Õiged</th><th>Form</th><th>Märgis</th>
     </tr></thead>
     <tbody id="lbBody"></tbody>
   </table>
@@ -653,38 +653,38 @@ const MATCHES=[
   {id:70,date:"Jun 27",round:"GS R3",home:"🇺🇿 Uzbekistan",away:"🇨🇩 DR Congo"},
   {id:71,date:"Jun 27",round:"GS R3",home:"🇩🇿 Algeria",away:"🇦🇹 Austria"},
   {id:72,date:"Jun 27",round:"GS R3",home:"🇯🇴 Jordan",away:"🇦🇷 Argentina"},
-  {id:73,date:"Jun 28",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:74,date:"Jun 29",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:75,date:"Jun 29",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:76,date:"Jun 29",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:77,date:"Jun 30",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:78,date:"Jun 30",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:79,date:"Jun 30",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:80,date:"Jul 1",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:81,date:"Jul 1",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:82,date:"Jul 1",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:83,date:"Jul 2",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:84,date:"Jul 2",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:85,date:"Jul 2",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:86,date:"Jul 3",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:87,date:"Jul 3",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:88,date:"Jul 3",round:"Round of 32",home:"TBD",away:"TBD"},
-  {id:89,date:"Jul 4",round:"Round of 16",home:"TBD",away:"TBD"},
-  {id:90,date:"Jul 4",round:"Round of 16",home:"TBD",away:"TBD"},
-  {id:91,date:"Jul 5",round:"Round of 16",home:"TBD",away:"TBD"},
-  {id:92,date:"Jul 5",round:"Round of 16",home:"TBD",away:"TBD"},
-  {id:93,date:"Jul 6",round:"Round of 16",home:"TBD",away:"TBD"},
-  {id:94,date:"Jul 6",round:"Round of 16",home:"TBD",away:"TBD"},
-  {id:95,date:"Jul 7",round:"Round of 16",home:"TBD",away:"TBD"},
-  {id:96,date:"Jul 7",round:"Round of 16",home:"TBD",away:"TBD"},
-  {id:97,date:"Jul 9",round:"Quarter-Final",home:"TBD",away:"TBD"},
-  {id:98,date:"Jul 10",round:"Quarter-Final",home:"TBD",away:"TBD"},
-  {id:99,date:"Jul 11",round:"Quarter-Final",home:"TBD",away:"TBD"},
-  {id:100,date:"Jul 11",round:"Quarter-Final",home:"TBD",away:"TBD"},
-  {id:101,date:"Jul 14",round:"Semi-Final",home:"TBD",away:"TBD"},
-  {id:102,date:"Jul 15",round:"Semi-Final",home:"TBD",away:"TBD"},
-  {id:103,date:"Jul 18",round:"3rd Place Final",home:"TBD",away:"TBD"},
-  {id:104,date:"Jul 19",round:"🏆 FINAL",home:"TBD",away:"TBD"}
+  {id:73,date:"Jun 28",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:74,date:"Jun 29",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:75,date:"Jun 29",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:76,date:"Jun 29",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:77,date:"Jun 30",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:78,date:"Jun 30",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:79,date:"Jun 30",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:80,date:"Jul 1",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:81,date:"Jul 1",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:82,date:"Jul 1",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:83,date:"Jul 2",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:84,date:"Jul 2",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:85,date:"Jul 2",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:86,date:"Jul 3",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:87,date:"Jul 3",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:88,date:"Jul 3",round:"32 paremat",home:"TBD",away:"TBD"},
+  {id:89,date:"Jul 4",round:"16 paremat",home:"TBD",away:"TBD"},
+  {id:90,date:"Jul 4",round:"16 paremat",home:"TBD",away:"TBD"},
+  {id:91,date:"Jul 5",round:"16 paremat",home:"TBD",away:"TBD"},
+  {id:92,date:"Jul 5",round:"16 paremat",home:"TBD",away:"TBD"},
+  {id:93,date:"Jul 6",round:"16 paremat",home:"TBD",away:"TBD"},
+  {id:94,date:"Jul 6",round:"16 paremat",home:"TBD",away:"TBD"},
+  {id:95,date:"Jul 7",round:"16 paremat",home:"TBD",away:"TBD"},
+  {id:96,date:"Jul 7",round:"16 paremat",home:"TBD",away:"TBD"},
+  {id:97,date:"Jul 9",round:"Veerandfinaal",home:"TBD",away:"TBD"},
+  {id:98,date:"Jul 10",round:"Veerandfinaal",home:"TBD",away:"TBD"},
+  {id:99,date:"Jul 11",round:"Veerandfinaal",home:"TBD",away:"TBD"},
+  {id:100,date:"Jul 11",round:"Veerandfinaal",home:"TBD",away:"TBD"},
+  {id:101,date:"Jul 14",round:"Poolfinaal",home:"TBD",away:"TBD"},
+  {id:102,date:"Jul 15",round:"Poolfinaal",home:"TBD",away:"TBD"},
+  {id:103,date:"Jul 18",round:"3. koha mäng",home:"TBD",away:"TBD"},
+  {id:104,date:"Jul 19",round:"🏆 FINAAL",home:"TBD",away:"TBD"}
 ];
 
 const GROUPS={
@@ -949,16 +949,16 @@ function renderMatches(){
     shown++;
     const p=preds[m.id]||{},r=results[m.id],ko=!isGS(m);
     const pts=(r&&p.h!==undefined)?calcPts(p,r,ko):null;
-    let pb='<span class="pts-badge pts-pending">⏳ Pending</span>';
+    let pb='<span class="pts-badge pts-pending">⏳ Ootel</span>';
     if(pts===null&&r)     pb='<span class="pts-badge pts-wrong">No prediction</span>';
     else if(pts===(ko?10:5)) pb='<span class="pts-badge pts-exact">✅ Exact! +'+pts+'pts</span>';
     else if(pts===(ko?4:2))  pb='<span class="pts-badge pts-correct">✔ Correct +'+pts+'pts</span>';
     else if(pts===0)          pb='<span class="pts-badge pts-wrong">❌ Wrong — 0pts</span>';
     const rb=r?'<span class="result-badge">Final: '+r.h+' – '+r.a+'</span>':'';
     html+='<div class="match-card'+(locked?' locked':'')+'">'
-      +'<div class="match-meta"><span>Match #'+m.id+' · '+m.date+'</span><span style="display:flex;gap:6px;align-items:center">'+roundPill(m)+deadlinePill(m.id)+'</span></div>'
+      +'<div class="match-meta"><span>Mäng #'+m.id+' · '+m.date+'</span><span style="display:flex;gap:6px;align-items:center">'+roundPill(m)+deadlinePill(m.id)+'</span></div>'
       +'<div class="teams"><div class="team">'+m.home+'</div><div class="vs">VS</div><div class="team away">'+m.away+'</div></div>'
-      +'<div class="pred-row"><span class="pred-lbl">Your score:</span>'
+      +'<div class="pred-row"><span class="pred-lbl">Sinu tulemus:</span>'
       +'<input class="score-inp" type="number" min="0" max="20" id="ph-'+m.id+'" value="'+(p.h!==undefined?p.h:'')+'" placeholder="0"'+(locked?' disabled':'')+'>'
       +'<span class="score-sep">–</span>'
       +'<input class="score-inp" type="number" min="0" max="20" id="pa-'+m.id+'" value="'+(p.a!==undefined?p.a:'')+'" placeholder="0"'+(locked?' disabled':'')+'>'
@@ -1055,11 +1055,11 @@ function renderGroups(){
   let html='';
   Object.keys(GROUPS).forEach(gk=>{
     const rows=calcGroupStandings(gk);
-    html+='<div class="group-block"><span class="group-title">Group '+gk+'</span>'
+    html+='<div class="group-block"><span class="group-title">Grupp '+gk+'</span>'
       +'<table class="gs-table"><thead><tr><th>Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th><th>Status</th></tr></thead><tbody>';
     rows.forEach((r,i)=>{
       const cls=i<2?'advance':i===2?'maybe':'';
-      const badge=i<2?'<span class="advance-badge">✅ Advance</span>':i===2?'<span class="maybe-badge">🟡 Maybe</span>':'<span class="out-badge">❌</span>';
+      const badge=i<2?'<span class="advance-badge">✅ Edasi</span>':i===2?'<span class="maybe-badge">🟡 Võib-olla</span>':'<span class="out-badge">❌</span>';
       html+='<tr class="'+cls+'"><td>'+r.team+'</td><td>'+r.mp+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td><td>'+r.gf+'</td><td>'+r.ga+'</td><td>'+(r.gd>0?'+'+r.gd:r.gd)+'</td><td style="font-weight:700">'+r.pts+'</td><td>'+badge+'</td></tr>';
     });
     html+='</tbody></table></div>';
@@ -1099,21 +1099,21 @@ function renderBracket(){
   const finW=getWinner(104)||'⏳ TBD';
   const r32p=[[getGroupTop('A',1),getGroupTop('B',1)],[getGroupTop('C',0),getGroupTop('F',1)],[getGroupTop('E',0),'Best 3rd'],[getGroupTop('F',0),getGroupTop('C',1)],[getGroupTop('E',1),getGroupTop('I',1)],[getGroupTop('I',0),'Best 3rd'],[getGroupTop('A',0),'Best 3rd'],[getGroupTop('L',0),'Best 3rd']];
   let html='';
-  html+='<div class="bk-round" style="flex:2"><div class="bk-round-title">Round of 32</div><div class="bk-matches">';
+  html+='<div class="bk-round" style="flex:2"><div class="bk-round-title">32 paremat</div><div class="bk-matches">';
   r32p.forEach((p,i)=>{html+=bkMatch(p[0],p[1],73+i);});
   html+='</div></div>';
-  html+='<div class="bk-round"><div class="bk-round-title">Round of 16</div><div class="bk-matches">';
+  html+='<div class="bk-round"><div class="bk-round-title">16 paremat</div><div class="bk-matches">';
   [[0,1,89],[2,3,90],[4,5,91],[6,7,92]].forEach(([a,b,id])=>{html+=bkMatch(r32W[a],r32W[b],id);});
   html+='</div></div>';
-  html+='<div class="bk-round"><div class="bk-round-title">Quarter-Finals</div><div class="bk-matches">';
+  html+='<div class="bk-round"><div class="bk-round-title">Veerandfinaalid</div><div class="bk-matches">';
   [[0,1,97],[2,3,98],[4,5,99],[6,7,100]].forEach(([a,b,id])=>{html+=bkMatch(r16W[a],r16W[b],id);});
   html+='</div></div>';
-  html+='<div class="bk-round"><div class="bk-round-title">Semi-Finals</div><div class="bk-matches">';
+  html+='<div class="bk-round"><div class="bk-round-title">Poolfinaalid</div><div class="bk-matches">';
   html+=bkMatch(qfW[0],qfW[1],101);html+=bkMatch(qfW[2],qfW[3],102);
   html+='</div></div>';
-  html+='<div class="bk-round"><div class="bk-round-title">Final</div><div class="bk-matches">';
+  html+='<div class="bk-round"><div class="bk-round-title">Finaal</div><div class="bk-matches">';
   html+=bkMatch(sfW[0],sfW[1],104);
-  html+='<div class="bk-winner"><div class="bk-winner-lbl">🏆 Champion</div><div class="bk-winner-name">'+finW+'</div></div>';
+  html+='<div class="bk-winner"><div class="bk-winner-lbl">🏆 Maailmameister</div><div class="bk-winner-name">'+finW+'</div></div>';
   html+='</div></div>';
   document.getElementById('bracketContainer').innerHTML=html;
 }
@@ -1203,11 +1203,11 @@ const ROUND_GROUPS={
   'GS Round 1 (Jun 11–17)':[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
   'GS Round 2 (Jun 18–23)':[25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48],
   'GS Round 3 (Jun 24–27)':[49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72],
-  'Round of 32 (Jun 28–Jul 3)':[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88],
-  'Round of 16 (Jul 4–7)':[89,90,91,92,93,94,95,96],
-  'Quarter-Finals (Jul 9–11)':[97,98,99,100],
-  'Semi-Finals (Jul 14–15)':[101,102],
-  '3rd Place & Final (Jul 18–19)':[103,104]
+  '32 paremat (Jun 28–Jul 3)':[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88],
+  '16 paremat (Jul 4–7)':[89,90,91,92,93,94,95,96],
+  'Veerandfinaalid (Jul 9–11)':[97,98,99,100],
+  'Poolfinaalid (Jul 14–15)':[101,102],
+  '3. koha mäng & Finaal (Jul 18–19)':[103,104]
 };
 // Default kick-off times (one representative time per group — admin can override per-match)
 const DEFAULT_KO_TIMES={
@@ -1272,7 +1272,7 @@ function renderAdminMatches(){
     if(adminFilter==='KO'&&isGS(m)) return;
     const r=results[m.id]||{},set=r.h!==undefined;
     html+='<div class="match-card">'
-      +'<div class="match-meta"><span>Match #'+m.id+' · '+m.date+'</span>'+roundPill(m)+'</div>'
+      +'<div class="match-meta"><span>Mäng #'+m.id+' · '+m.date+'</span>'+roundPill(m)+'</div>'
       +'<div class="teams"><div class="team">'+m.home+'</div><div class="vs">VS</div><div class="team away">'+m.away+'</div></div>'
       +'<div class="pred-row" style="margin-top:6px"><span class="pred-lbl">Actual score:</span>'
       +'<input class="score-inp" type="number" min="0" max="30" id="rh-'+m.id+'" value="'+(r.h!==undefined?r.h:'')+'" placeholder="0">'
@@ -1350,7 +1350,7 @@ async function renderAccountTable(){
     html+='<tr>'
       +'<td><b>'+u+'</b></td>'
       +'<td><input type="password" placeholder="New password" id="acct-pw-'+u+'" style="width:140px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none"></td>'
-      +'<td><span class="tag '+(u==='admin'?'admin-tag':'')+'">'+( u==='admin'?'Admin':'Player')+'</span></td>'
+      +'<td><span class="tag '+(u==='admin'?'admin-tag':'')+'">'+( u==='admin'?'Admin':'Mängija')+'</span></td>'
       +'<td><button class="btn-secondary" style="padding:5px 12px;font-size:12px" onclick="resetPassword(\''+u+'\')">Reset PW</button>'
       +(u!=='admin'?'&nbsp;<button class="btn-secondary" style="padding:5px 12px;font-size:12px;color:var(--red);border-color:var(--red)" onclick="deleteAccount(\''+u+'\')">Delete</button>':'')
       +'</td></tr>';
@@ -1509,7 +1509,7 @@ function renderMyStats(){
     +'<p>Mängitud: <b>'+played+'</b></p>';
 
   // Bar chart by round
-  const rounds={'GS R1':{},'GS R2':{},'GS R3':{},'Round of 32':{},'Round of 16':{},'Quarter-Final':{},'Semi-Final':{},'🏆 FINAL':{}};
+  const rounds={'GS R1':{},'GS R2':{},'GS R3':{},'32 paremat':{},'16 paremat':{},'Veerandfinaal':{},'Poolfinaal':{},'🏆 FINAAL':{}};
   recent.forEach(({m,pts,ko})=>{
     const rnd=m.round;
     if(!rounds[rnd]) rounds[rnd]={};
@@ -1526,7 +1526,7 @@ function renderMyStats(){
     const cp=Math.round((s.c||0)/total*100);
     const wp=100-ep-cp;
     barHtml+='<div class="bar-row">'
-      +'<div class="bar-label">'+rnd.replace('Round of ','R')+'</div>'
+      +'<div class="bar-label">'+rnd.replace('32 paremat','R32').replace('16 paremat','R16').replace('Veerandfinaal','VF').replace('Poolfinaal','PF').replace('3. koha mäng','3.k').replace('🏆 FINAAL','Finaal')+'</div>'
       +'<div class="bar-track">'
       +(ep?'<div class="bar-fill bar-exact" style="width:'+ep+'%;display:inline-flex"><span>'+ep+'%</span></div>':'')
       +(cp?'<div class="bar-fill bar-correct" style="width:'+cp+'%;display:inline-flex"><span>'+cp+'%</span></div>':'')
