@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MM2026 Predictions</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#c0392b;--red-d:#922b21;--gold:#d4ac0d;--gold-l:#fef9e7;--dark:#1a1a2e;--white:#fff;--bg:#f4f1e8;--card:#fff;--muted:#6b7280;--border:#e0ddd5;--radius:10px;--green:#1a7a4a;--amber:#d97706}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh}
+nav{background:var(--dark);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.35)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold);letter-spacing:1px}
+.logo span{color:#fff}
+.nav-r{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.nav-user{font-size:13px;color:rgba(255,255,255,0.65)}
+.nav-user b{color:var(--gold)}
+.btn-sm{background:transparent;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.75);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s}
+.btn-sm:hover{background:rgba(255,255,255,0.1)}
+.tabs{background:var(--dark);display:flex;padding:0 1.5rem;border-bottom:3px solid var(--red);overflow-x:auto}
+.tab{padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer;color:rgba(255,255,255,0.5);border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .2s;white-space:nowrap;letter-spacing:0.3px}
+.tab:hover{color:rgba(255,255,255,0.85)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
+.section{display:none}
+.section.active{display:block}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;color:var(--dark);letter-spacing:1px;margin-bottom:.2rem}
+.sec-sub{font-size:14px;color:var(--muted);margin-bottom:1.5rem}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center}
+.filter-lbl{font-size:13px;font-weight:600;color:var(--muted)}
+.filter-btn{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .15s;color:var(--dark)}
+.filter-btn.active{background:var(--red);border-color:var(--red);color:#fff}
+.filter-btn:hover:not(.active){border-color:var(--red);color:var(--red)}
+/* MATCH CARD */
+.match-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.85rem;transition:box-shadow .2s}
+.match-card:hover{box-shadow:0 4px 18px rgba(0,0,0,0.08)}
+.match-card.locked{opacity:.85;background:#fafaf9}
+.match-meta{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
+.round-pill{font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 9px;border-radius:20px;background:#f3f4f6;color:var(--muted)}
+.round-pill.gs{background:#e8f5e9;color:#1b5e20}
+.round-pill.ko{background:#fff3e0;color:#e65100}
+.deadline-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
+.deadline-open{background:#e0f2fe;color:#0369a1}
+.deadline-soon{background:#fef3c7;color:#92400e}
+.deadline-locked{background:#fee2e2;color:#991b1b}
+.teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:10px}
+.team{font-size:15px;font-weight:600}
+.team.away{text-align:right}
+.vs{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted);text-align:center}
+.pred-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pred-lbl{font-size:12px;font-weight:600;color:var(--muted)}
+.score-inp{width:52px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+.score-inp:focus{border-color:var(--red)}
+.score-inp:disabled{background:#f5f5f5;color:var(--muted);cursor:not-allowed}
+.score-sep{font-weight:700;font-size:1rem;color:var(--muted)}
+.pts-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;margin-top:6px}
+.pts-exact{background:#e8f5e9;color:#1b5e20}
+.pts-correct{background:#fff3e0;color:#e65100}
+.pts-wrong{background:#fce4ec;color:#880e4f}
+.pts-pending{background:#f3f4f6;color:var(--muted)}
+.result-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--green);color:#fff;margin-top:6px}
+.save-bar{margin-top:1.5rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+.btn-primary{padding:11px 26px;background:var(--red);color:#fff;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s}
+.btn-primary:hover{background:var(--red-d)}
+.btn-secondary{padding:10px 20px;background:transparent;color:var(--dark);border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-secondary:hover{border-color:var(--red);color:var(--red)}
+.save-ok{font-size:14px;color:var(--green);font-weight:500;display:none}
+.save-ok.show{display:block}
+/* GROUP STAGE */
+.group-block{margin-bottom:2rem}
+.group-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:1px;color:#fff;background:var(--dark);padding:7px 14px;border-radius:8px 8px 0 0;display:block}
+.gs-table{width:100%;border-collapse:collapse;background:var(--card);border:1.5px solid var(--border);border-top:none;overflow:hidden}
+.gs-table th{background:#f3f4f6;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:7px 10px;text-align:center}
+.gs-table th:first-child,.gs-table td:first-child{text-align:left;padding-left:12px}
+.gs-table td{padding:8px 10px;border-bottom:1px solid #f0ede5;font-size:13px;text-align:center}
+.gs-table tr:last-child td{border-bottom:none}
+.gs-table tr.advance td{background:#f0fdf4}
+.gs-table tr.maybe td{background:#fffbeb}
+.advance-badge{font-size:11px;font-weight:700;color:#15803d}
+.maybe-badge{font-size:11px;font-weight:700;color:#d97706}
+.out-badge{font-size:11px;font-weight:700;color:#dc2626}
+/* BRACKET */
+.bracket-wrap{overflow-x:auto;padding-bottom:1rem}
+.bracket{display:flex;gap:0;min-width:900px}
+.bk-round{display:flex;flex-direction:column;flex:1;padding:0 5px}
+.bk-round-title{font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:1px;color:var(--gold);background:var(--dark);text-align:center;padding:5px 4px;border-radius:6px;margin-bottom:8px}
+.bk-matches{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:4px}
+.bk-match{background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:5px 8px;min-height:46px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.bk-team{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-team.tbd{color:var(--muted);font-weight:400;font-style:italic}
+.bk-sep{height:1px;background:var(--border);margin:1px 0}
+.bk-winner{background:var(--gold-l);border:2px solid var(--gold);border-radius:10px;padding:10px 12px;text-align:center;margin-top:10px}
+.bk-winner-lbl{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--gold);text-transform:uppercase}
+.bk-winner-name{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--dark);letter-spacing:1px;margin-top:2px}
+/* LEADERBOARD */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem}
+.stat-card{background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--red);line-height:1}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:4px}
+.lb-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;border:1.5px solid var(--border)}
+.lb-table th{background:var(--dark);color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:1px;padding:10px 12px;text-align:left}
+.lb-table td{padding:10px 12px;border-bottom:1px solid #f4f4f4;font-size:13px}
+.lb-table tr:last-child td{border-bottom:none}
+.lb-table tr:nth-child(even) td{background:#fafafa}
+.rank-num{display:inline-flex;width:26px;height:26px;border-radius:50%;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:#e5e7eb;color:var(--dark)}
+.rank-1{background:var(--gold);color:#fff}.rank-2{background:#9ca3af;color:#fff}.rank-3{background:#cd7f32;color:#fff}
+.form-dot{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:2px;vertical-align:middle}
+.form-e{background:#1a7a4a}.form-c{background:#d97706}.form-w{background:#dc2626}.form-p{background:#e5e7eb}
+.player-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:#f3f4f6;color:var(--muted)}
+/* BONUS PREDICTIONS */
+.bonus-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.bonus-card h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--dark);letter-spacing:1px;margin-bottom:.75rem}
+.bonus-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:1rem}
+.bonus-item label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:5px}
+.bonus-item select,.bonus-item input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;background:#fff;outline:none;transition:border-color .2s}
+.bonus-item select:focus,.bonus-item input:focus{border-color:var(--red)}
+.bonus-pts{display:inline-block;background:var(--gold-l);color:#92400e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;margin-left:6px}
+.bonus-deadline{font-size:12px;color:var(--muted);margin-top:.5rem}
+/* RULES */
+.rules-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.rules-card h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--dark);letter-spacing:1px;margin-bottom:.75rem}
+.rules-card p,.rules-card li{font-size:14px;line-height:1.7;color:#374151}
+.rules-card ul{padding-left:1.25rem;margin-top:.4rem}
+.rules-card li{margin-bottom:.35rem}
+.scoring-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:.75rem}
+.score-box{background:var(--bg);border-radius:8px;padding:.9rem;text-align:center}
+.score-box .pts{font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;color:var(--red)}
+.score-box .lbl{font-size:12px;color:var(--muted);margin-top:3px}
+.rules-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+/* SETTINGS (change password) */
+.settings-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem;max-width:480px}
+.settings-card h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--dark);letter-spacing:1px;margin-bottom:.75rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:5px}
+.field input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--red)}
+.msg-ok{font-size:13px;color:var(--green);font-weight:600;margin-top:.5rem;display:none}
+.msg-ok.show{display:block}
+.msg-err{font-size:13px;color:var(--red);font-weight:600;margin-top:.5rem;display:none}
+.msg-err.show{display:block}
+/* ADMIN */
+.admin-warn{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:#92400e;margin-bottom:1.25rem;font-weight:500}
+.section-divider{margin:2rem 0;border:none;border-top:1.5px solid var(--border)}
+.admin-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--dark);letter-spacing:1px;margin-bottom:.25rem;margin-top:1.5rem}
+.admin-section-sub{font-size:13px;color:var(--muted);margin-bottom:1rem}
+/* DEADLINE MANAGER */
+.deadline-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:1rem}
+.deadline-table th{background:#f3f4f6;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left}
+.deadline-table td{padding:8px 12px;border-bottom:1px solid #f0ede5;font-size:13px;vertical-align:middle}
+.deadline-table tr:last-child td{border-bottom:none}
+.deadline-input{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:200px}
+.deadline-input:focus{border-color:var(--red)}
+/* PLAYER LIST MANAGER */
+.player-list-wrap{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.player-list-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:1rem}
+.player-entry{display:flex;gap:6px;align-items:center}
+.player-entry input{flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.player-entry input:focus{border-color:var(--red)}
+.player-entry .del-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--red);transition:all .2s;flex-shrink:0}
+.player-entry .del-btn:hover{background:#fee2e2;border-color:var(--red)}
+/* PREDICTIONS TABLE */
+.pred-table-wrap{overflow-x:auto;margin-bottom:2rem}
+.pred-table{border-collapse:collapse;min-width:900px;width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:12px;overflow:hidden}
+.pred-table th{background:var(--dark);color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:1px;padding:9px 10px;text-align:center;white-space:nowrap}
+.pred-table th.left{text-align:left;padding-left:12px}
+.pred-table td{padding:7px 10px;border-bottom:1px solid #f0ede5;font-size:12px;text-align:center;vertical-align:middle}
+.pred-table td.left{text-align:left;font-weight:600;padding-left:12px}
+.pred-table tr:last-child td{border-bottom:none}
+.pred-table tr:nth-child(even) td{background:#fafaf9}
+.pred-cell{font-size:12px;font-weight:600}
+.pred-cell.exact{color:#15803d;font-weight:700}
+.pred-cell.correct{color:#d97706;font-weight:700}
+.pred-cell.wrong{color:#dc2626}
+.pred-cell.none{color:var(--muted);font-style:italic;font-weight:400}
+.result-cell{font-weight:700;color:var(--dark)}
+.result-cell.unset{color:var(--muted);font-style:italic;font-weight:400}
+/* ACCOUNT MANAGER */
+.account-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:1rem}
+.account-table th{background:#f3f4f6;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left}
+.account-table td{padding:8px 12px;border-bottom:1px solid #f0ede5;font-size:13px;vertical-align:middle}
+.account-table tr:last-child td{border-bottom:none}
+.account-table input[type=text],.account-table input[type=password]{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:140px}
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:#e8f5e9;color:#1b5e20}
+.tag.admin-tag{background:#fff3e0;color:#92400e}
+@media(max-width:600px){
+  .team{font-size:13px}.tab{padding:9px 10px;font-size:12px}
+  main{padding:1rem .6rem}.rules-row{grid-template-columns:1fr}
+  .deadline-input{width:100%}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">WC<span>2026</span> ⚽</div>
+  <div class="nav-r">
+    <span class="nav-user">Tere, <b id="navUser">—</b></span>
+    <button class="btn-sm" onclick="showTab('settings',null)">⚙ Minu seaded</button>
+    <button class="btn-sm" onclick="logout()">Logi välja</button>
+  </div>
+</nav>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('predict',this)">Minu ennustused</div>
+  <div class="tab" onclick="showTab('bonus',this)">Boonusennustused</div>
+  <div class="tab" onclick="showTab('groups',this)">Alagrupitabelid</div>
+  <div class="tab" onclick="showTab('bracket',this)">Play-off tabel</div>
+  <div class="tab" onclick="showTab('leaderboard',this)">Edetabel</div>
+  <div class="tab" onclick="showTab('rules',this)">Reeglid</div>
+  <div class="tab" id="adminTab" style="display:none" onclick="showTab('admin',this)">Admin Panel</div>
+</div>
+
+<main>
+
+<!-- MY PREDICTIONS -->
+<section class="section active" id="predict">
+  <h2 class="sec-title">Minu ennustused</h2>
+  <p class="sec-sub">Sisesta iga mängu jaoks oma ennustatud tulemus. Ennustused lukustuvad automaatselt 30 minutit enne avavilet.</p>
+  <div class="filter-bar">
+    <span class="filter-lbl">Filter:</span>
+    <button class="filter-btn active" onclick="filterPred('all',this)">Kõik (104)</button>
+    <button class="filter-btn" onclick="filterPred('GS',this)">Alagrupiturniir</button>
+    <button class="filter-btn" onclick="filterPred('KO',this)">Play-off</button>
+    <button class="filter-btn" onclick="filterPred('open',this)">Veel avatud</button>
+    <button class="filter-btn" onclick="filterPred('done',this)">Lukus / Mängitud</button>
+  </div>
+  <div id="matchList"></div>
+  <div class="save-bar">
+    <button class="btn-primary" onclick="savePredictions()">Salvesta minu ennustused</button>
+    <span class="save-ok" id="saveOk">✓ Saved!</span>
+  </div>
+</section>
+
+<!-- BONUS PICKS -->
+<section class="section" id="bonus">
+  <h2 class="sec-title">Boonusennustused</h2>
+  <p class="sec-sub">Valikulised lisapanused, millega on võimalik teenida palju punkte. Tuleb lukku panna enne turniiri algust <b>11. juunil</b>.</p>
+  <div class="bonus-card">
+    <h3>🏆 Boonusennustused</h3>
+    <div class="bonus-grid">
+      <div class="bonus-item">
+        <label>Turniiri võitja <span class="bonus-pts">+20 punkti</span></label>
+        <select id="bonus_winner"><option value="">— Vali meeskond —</option></select>
+      </div>
+      <div class="bonus-item">
+        <label>Suurim väravakütt <span class="bonus-pts">+10 punkti</span></label>
+        <select id="bonus_topscorer"><option value="">— Vali mängija —</option></select>
+      </div>
+      <div class="bonus-item">
+        <label>Parim väravavaht <span class="bonus-pts">+10 punkti</span></label>
+        <select id="bonus_gk"><option value="">— Vali väravavaht —</option></select>
+      </div>
+      <div class="bonus-item">
+        <label>Suurim üllatus (alagrupiturniir) <span class="bonus-pts">+5 punkti</span></label>
+        <select id="bonus_upset"><option value="">— Vali mäng —</option></select>
+      </div>
+    </div>
+    <p class="bonus-deadline" id="bonusDeadlineText"></p>
+    <div class="save-bar" style="margin-top:1rem">
+      <button class="btn-primary" onclick="saveBonusPicks()">Salvesta boonusennustused</button>
+      <span class="save-ok" id="bonusSaveOk">✓ Saved!</span>
+    </div>
+  </div>
+  <div class="bonus-card" id="myBonusDisplay">
+    <h3>📋 Minu praegused valikud</h3>
+    <div id="myBonusContent" style="font-size:14px;color:var(--muted)">Ühtegi valikut pole veel salvestatud.</div>
+  </div>
+</section>
+
+<!-- GROUP STAGE -->
+<section class="section" id="groups">
+  <h2 class="sec-title">Alagrupitabelid</h2>
+  <p class="sec-sub">Reaalajas tabeliseis. Iga alagrupi 2 parimat pääsevad edasi ning lisaks ka 8 parimat kolmanda koha meeskonda.</p>
+  <div id="groupsContainer"></div>
+</section>
+
+<!-- BRACKET -->
+<section class="section" id="bracket">
+  <h2 class="sec-title">Play-off tabel</h2>
+  <p class="sec-sub">Uueneb automaatselt, kui tulemusi sisestatakse. Kõikide voorude nägemiseks keri paremale.</p>
+  <div class="bracket-wrap"><div class="bracket" id="bracketContainer"></div></div>
+</section>
+
+<!-- LEADERBOARD -->
+<section class="section" id="leaderboard">
+  <h2 class="sec-title">Edetabel</h2>
+  <p class="sec-sub">Üldine paremusjärjestus — uueneb, kui administraator sisestab mängude tulemused.</p>
+  <div class="stats-grid" id="statsGrid"></div>
+  <table class="lb-table">
+    <thead><tr>
+      <th>#</th><th>Player</th><th>GS Pts</th><th>KO Pts</th><th>Bonus Pts</th>
+      <th>Total</th><th>Exact</th><th>Correct</th><th>Form</th><th>Badge</th>
+    </tr></thead>
+    <tbody id="lbBody"></tbody>
+  </table>
+</section>
+
+<!-- RULES -->
+<section class="section" id="rules">
+  <h2 class="sec-title">Reeglid &amp; punktiarvestus</h2>
+  <p class="sec-sub">MM2026 ennustusvõistluse täielikud reeglid.</p>
+  <div class="rules-card">
+    <h3>⚽ Kuidas mäng käib</h3>
+    <ul>
+      <li><b>Ennustused lukustuvad automaatselt 30 minutit enne iga mängu avavilet.</b> Pärast seda neid enam muuta ei saa.</li>
+      <li>Sisesta oma ennustatud tulemus (näiteks 2–1) ja salvesta. Süsteem salvestab sinu viimase salvestamise aja.</li>
+      <li>Korraldaja sisestab pärast iga mängu tegelikud tulemused. Punktid uuenevad automaatselt.</li>
+      <li>Turniiri lõpus võidab kõige rohkem punkte kogunud mängija!</li>
+    </ul>
+  </div>
+  <div class="rules-row">
+    <div class="rules-card">
+      <h3>🏟 Alagrupiturniiri punktiarvestus</h3>
+      <div class="scoring-grid">
+        <div class="score-box"><div class="pts">5</div><div class="lbl">Exact scoreline</div></div>
+        <div class="score-box"><div class="pts">2</div><div class="lbl">Correct result</div></div>
+        <div class="score-box"><div class="pts">0</div><div class="lbl">Wrong prediction</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:.75rem">
+        <b>Täpselt → 5 punkti:</b> Ennustasid täpse lõppskoori õigesti (näiteks 2–1) ja mäng lõppeski 2–1.<br>
+        <b>Õige tulemus → 2 punkti:</b> Said õigesti pihta võitja või viigi, aga mitte täpsele skoorile.<br>
+        <b>Vale ennustus → 0 punkti:</b> Eksisid täiesti tulemuse suuna osas.
+      </p>
+    </div>
+    <div class="rules-card">
+      <h3>🏆 Play-off vooru punktiarvestus</h3>
+      <div class="scoring-grid">
+        <div class="score-box"><div class="pts">10</div><div class="lbl">Täpselt (90 min)</div></div>
+        <div class="score-box"><div class="pts">4</div><div class="lbl">Õige tulemus</div></div>
+        <div class="score-box"><div class="pts">0</div><div class="lbl">Vale ennustus</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:.75rem">
+        Arvesse läheb ainult 90 minuti tulemus. Lisaaeg ja penaltid punktiarvestust ei mõjuta.
+      </p>
+    </div>
+  </div>
+  <div class="rules-card">
+    <h3>🎁 Boonusennustused</h3>
+    <ul>
+      <li><b>Turniirivõitja → 20 punkti</b> — vali kogu turniiri võitja enne 11. juunit.</li>
+      <li><b>Suurim väravakütt → 10 punkti</b> — vali mängija, kes lööb kõige rohkem väravaid. Viigi korral saavad punktid kõik, kes õigesti ennustasid.</li>
+      <li><b>parim väravavaht → 10 punkti</b> — vali turniiri parim väravavaht (FIFA ametlik auhind).</li>
+      <li><b>Suurim üllatus → 5 punkti</b> — vali üks alagrupimäng, kus madalama asetusega meeskond võidab. Tuleb lukku panna enne turniiri algust.</li>
+    </ul>
+  </div>
+  <div class="rules-card">
+    <h3>⚖️ Viigimurdmise reeglid</h3>
+    <ul>
+      <li><b>1st:</b> Võrdse seisu korral võidab see, kellel on rohkem täpseid ennustusi (5 p või 10 p).</li>
+      <li><b>2nd:</b> Kui viik püsib, loeb rohkem õigesti ennustatud tulemuse suundi.</li>
+      <li><b>3rd:</b> Kui ka siis on viik, loeb rohkem õigesti ennustatud alagrupivõitjaid. Kui kõik jääb endiselt võrdseks — jagatakse auhind omavahel!</li>
+    </ul>
+  </div>
+  <div class="rules-card">
+    <h3>🎖 Mängijate märgid</h3>
+    <ul>
+      <li>🏆 <b>Legend</b> — 20+ täpset ennustust · 🎯 <b>Snaiper</b> — 12+ täpset ennustust · 💯 <b>Sajalised</b> — 100+ punkti</li>
+      <li>🔥 <b>Kuum seeria</b> — 6+ täpset · ⭐ <b>Tõusev täht</b> — 50+ punkti · ✨ <b>Terav silm</b> — 3+ täpset</li>
+      <li>🌱 <b>Esimene läbimurre</b> — 1+ täpne · 🤞 <b>Algaja</b> — Ootab veel!</li>
+    </ul>
+  </div>
+  <div class="rules-card">
+    <h3>📋 Ausa mängu reeglid</h3>
+    <ul>
+      <li><b>Tähtaeg:</b> Ennustused lukustuvad 30 minutit enne avavilet. Administraator ei tohi hilinenud ennustusi vastu võtta.</li>
+      <li><b>Korraldaja neutraalsus:</b> Administraator sisestab ainult tegelikud tulemused — mängijate ennustusi ta muuta ei saa.</li>
+      <li><b>Vaidlusalused tulemused:</b> Ametlik FIFA mänguraport on lõplik ja aluseks võetav allikas.</li>
+      <li><b>Mängurõõm ennekõike!</b> Leppige auhinnafond enne turniiri algust kokku. Mängige ausalt ja nautige jalgpalli!</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SETTINGS (change password) -->
+<section class="section" id="settings">
+  <h2 class="sec-title">Minu seaded</h2>
+  <p class="sec-sub">Muuda oma sisselogimisparooli.</p>
+  <div class="settings-card">
+    <h3>🔒 Muuda parooli</h3>
+    <div class="field">
+      <label>Praegune parool</label>
+      <input type="password" id="pwCurrent" placeholder="Sisesta praegune parool">
+    </div>
+    <div class="field">
+      <label>Uus parool</label>
+      <input type="password" id="pwNew" placeholder="Sisesta uus parool">
+    </div>
+    <div class="field">
+      <label>Kinnita uus parool</label>
+      <input type="password" id="pwConfirm" placeholder="Korda uut parooli">
+    </div>
+    <button class="btn-primary" onclick="changePassword()">Uuenda parool</button>
+    <div class="msg-ok" id="pwOk">✓ Parool uuendati edukalt!</div>
+    <div class="msg-err" id="pwErr"></div>
+  </div>
+</section>
+
+<!-- ADMIN PANEL -->
+<section class="section" id="admin">
+  <h2 class="sec-title">Administraatrori paneel</h2>
+  <p class="sec-sub">Nähtav ainult administraatorile.</p>
+  <div class="admin-warn">⚠️ Kõik siin tehtud muudatused jõustuvad kohe kõigi mängijate jaoks.</div>
+
+  <!-- DEADLINES -->
+  <div class="admin-section-title">⏰ Mängude tähtajad</div>
+  <div class="admin-section-sub">Määra iga mängu või vooru täpne algusaeg. Ennustused lukustuvad 30 minutit enne avavilet. Allpool saad muuta ka lukustumise ajavahemikku (vaikimisi 30 min).</div>
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
+    <label style="font-size:13px;font-weight:600">Lukustumise aeg (mitu minutit enne avavilet):</label>
+    <input type="number" id="lockWindow" min="0" max="120" value="30" style="width:80px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none" oninput="saveLockWindow()">
+  </div>
+  <table class="deadline-table">
+    <thead><tr><th>Voor</th><th>Avavile kuupäev &amp; kellaaeg (kohalik aeg)</th><th>Olek</th></tr></thead>
+    <tbody id="deadlineTableBody"></tbody>
+  </table>
+  <div class="save-bar"><button class="btn-primary" onclick="saveDeadlines()">Save Deadlines</button><span class="save-ok" id="dlSaveOk">✓ Saved!</span></div>
+
+  <hr class="section-divider">
+
+  <!-- RESULTS -->
+  <div class="admin-section-title">📋 Enter Match Results</div>
+  <div class="admin-section-sub">Enter actual final scores after each match is played.</div>
+  <div class="filter-bar" id="adminResultsFilterBar">
+    <span class="filter-lbl">Filter:</span>
+    <button class="filter-btn active" onclick="filterAdmin('all',this)">All</button>
+    <button class="filter-btn" onclick="filterAdmin('GS',this)">Group Stage</button>
+    <button class="filter-btn" onclick="filterAdmin('KO',this)">Knockout</button>
+  </div>
+  <div id="adminMatchList"></div>
+  <div class="save-bar">
+    <button class="btn-primary" onclick="saveResults()">Salvesta tulemused</button>
+    <span class="save-ok" id="adminSaveOk">✓ Salvestatud!</span>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- PLAYER LIST MANAGER -->
+  <div class="admin-section-title">👥 Turniiri mängijate nimekiri</div>
+  <div class="admin-section-sub">Halda mängijate nimekirja, mida kasutatakse Top Scoreri ja Golden Glove’i boonusennustuste jaoks. Saad seda igal ajal uuendada — muudatused ilmuvad kohe kõigile kasutajatele.</div>
+  <div class="player-list-wrap">
+    <div style="margin-bottom:.75rem;font-size:13px;font-weight:600;color:var(--muted)">Top Scoreri kandidaadid / väljakumängijad</div>
+    <div class="player-list-grid" id="scorerListGrid"></div>
+    <button class="btn-secondary" onclick="addPlayerToList('scorer')" style="margin-bottom:1.5rem">+ Lisa mängija</button>
+    <div style="margin-bottom:.75rem;font-size:13px;font-weight:600;color:var(--muted)">Väravavahid</div>
+    <div class="player-list-grid" id="gkListGrid"></div>
+    <button class="btn-secondary" onclick="addPlayerToList('gk')" style="margin-bottom:1rem">+ Lisa väravavaht</button>
+    <div class="save-bar"><button class="btn-primary" onclick="savePlayerLists()">Save Player Lists</button><span class="save-ok" id="plSaveOk">✓ Saved!</span></div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ACCOUNT MANAGER -->
+  <div class="admin-section-title">🔑 Kontode haldus</div>
+  <div class="admin-section-sub">Lisa mängijaid, lähtesta paroole või eemalda kontosid. Paroolid salvestatakse räsi kujul — neid ei saa hiljem algsel kujul tagasi vaadata.</div>
+  <table class="account-table" id="accountTable">
+    <thead><tr><th>Kasutajanimi</th><th>Määra uus parool</th><th>Roll</th><th>Tegevus</th></tr></thead>
+    <tbody id="accountTableBody"></tbody>
+  </table>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem">
+    <input type="text" id="newUsername" placeholder="Uus kasutaja" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;width:160px">
+    <input type="password" id="newPassword" placeholder="Parool" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;width:160px">
+    <button class="btn-primary" style="padding:8px 18px;font-size:13px" onclick="addAccount()">Lisa konto</button>
+    <span class="save-ok" id="acctSaveOk" style="margin:0">✓ Done!</span>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- FULL PREDICTIONS TABLE -->
+  <div class="admin-section-title">📊 Täielik ennustuste tabel</div>
+  <div class="admin-section-sub">Kõigi mängijate ennustused kõrvuti. <span style="color:#15803d;font-weight:600">Roheline=täpne</span> · <span style="color:#d97706;font-weight:600">Kollakas=õige tulemus</span> · <span style="color:#dc2626;font-weight:600">Punane=vale tulemus</span> · Hall=puudu/ootel.</div>
+  <div class="filter-bar" id="predTableFilterBar">
+    <span class="filter-lbl">Filter:</span>
+    <button class="filter-btn active" onclick="filterPredTable('all',this)">Kõik</button>
+    <button class="filter-btn" onclick="filterPredTable('GS',this)">Alagrupiturniir</button>
+    <button class="filter-btn" onclick="filterPredTable('KO',this)">Play-off</button>
+    <button class="filter-btn" onclick="filterPredTable('scored',this)">Tulemus olemas</button>
+  </div>
+  <div class="pred-table-wrap">
+    <table class="pred-table"><thead id="predTableHead"></thead><tbody id="predTableBody"></tbody></table>
+  </div>
+</section>
+
+</main>
+<script type="module">
+/* ── FIREBASE SETUP ──────────────────────────────────────
+   Accounts are stored in Firestore (Google Cloud).
+   All other game data stays in localStorage as before.
+──────────────────────────────────────────────────────── */
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
+import * as _fbFirestore from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
+
+const _fbApp = initializeApp({
+  apiKey: "AIzaSyCLxqwO811b7j4oNsw-z0Yxe365XhGOKw4",
+  authDomain: "mm2026-29834.firebaseapp.com",
+  projectId: "mm2026-29834",
+  storageBucket: "mm2026-29834.firebasestorage.app",
+  messagingSenderId: "64265076996",
+  appId: "1:64265076996:web:2ff8af4012b505c7e8d051"
+});
+window._fbApp = _fbApp;
+window._fbFirestore = _fbFirestore;
+
+/* ═══════════════════════════════════════════
+   104 MATCHES — official FIFA schedule
+═══════════════════════════════════════════ */
+const MATCHES=[
+  {id:1,date:"Jun 11",round:"GS R1",home:"🇲🇽 Mexico",away:"🇿🇦 South Africa"},
+  {id:2,date:"Jun 11",round:"GS R1",home:"🇰🇷 South Korea",away:"🇨🇿 Czechia"},
+  {id:3,date:"Jun 12",round:"GS R1",home:"🇨🇦 Canada",away:"🇧🇦 Bosnia & Herz."},
+  {id:4,date:"Jun 12",round:"GS R1",home:"🇺🇸 USA",away:"🇵🇾 Paraguay"},
+  {id:5,date:"Jun 13",round:"GS R1",home:"🇶🇦 Qatar",away:"🇨🇭 Switzerland"},
+  {id:6,date:"Jun 13",round:"GS R1",home:"🇧🇷 Brazil",away:"🇲🇦 Morocco"},
+  {id:7,date:"Jun 13",round:"GS R1",home:"🇭🇹 Haiti",away:"🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland"},
+  {id:8,date:"Jun 13",round:"GS R1",home:"🇦🇺 Australia",away:"🇹🇷 Türkiye"},
+  {id:9,date:"Jun 14",round:"GS R1",home:"🇩🇪 Germany",away:"🇨🇼 Curaçao"},
+  {id:10,date:"Jun 14",round:"GS R1",home:"🇳🇱 Netherlands",away:"🇯🇵 Japan"},
+  {id:11,date:"Jun 14",round:"GS R1",home:"🇨🇮 Ivory Coast",away:"🇪🇨 Ecuador"},
+  {id:12,date:"Jun 14",round:"GS R1",home:"🇹🇳 Tunisia",away:"🇸🇪 Sweden"},
+  {id:13,date:"Jun 15",round:"GS R1",home:"🇪🇸 Spain",away:"🇨🇻 Cape Verde"},
+  {id:14,date:"Jun 15",round:"GS R1",home:"🇧🇪 Belgium",away:"🇪🇬 Egypt"},
+  {id:15,date:"Jun 15",round:"GS R1",home:"🇸🇦 Saudi Arabia",away:"🇺🇾 Uruguay"},
+  {id:16,date:"Jun 15",round:"GS R1",home:"🇮🇷 Iran",away:"🇳🇿 New Zealand"},
+  {id:17,date:"Jun 16",round:"GS R1",home:"🇫🇷 France",away:"🇸🇳 Senegal"},
+  {id:18,date:"Jun 16",round:"GS R1",home:"🇮🇶 Iraq",away:"🇳🇴 Norway"},
+  {id:19,date:"Jun 16",round:"GS R1",home:"🇦🇷 Argentina",away:"🇩🇿 Algeria"},
+  {id:20,date:"Jun 16",round:"GS R1",home:"🇦🇹 Austria",away:"🇯🇴 Jordan"},
+  {id:21,date:"Jun 17",round:"GS R1",home:"🇵🇹 Portugal",away:"🇨🇩 DR Congo"},
+  {id:22,date:"Jun 17",round:"GS R1",home:"🏴󠁧󠁢󠁥󠁮󠁧󠁿 England",away:"🇭🇷 Croatia"},
+  {id:23,date:"Jun 17",round:"GS R1",home:"🇬🇭 Ghana",away:"🇵🇦 Panama"},
+  {id:24,date:"Jun 17",round:"GS R1",home:"🇺🇿 Uzbekistan",away:"🇨🇴 Colombia"},
+  {id:25,date:"Jun 18",round:"GS R2",home:"🇨🇿 Czechia",away:"🇿🇦 South Africa"},
+  {id:26,date:"Jun 18",round:"GS R2",home:"🇨🇭 Switzerland",away:"🇧🇦 Bosnia & Herz."},
+  {id:27,date:"Jun 18",round:"GS R2",home:"🇨🇦 Canada",away:"🇶🇦 Qatar"},
+  {id:28,date:"Jun 18",round:"GS R2",home:"🇲🇽 Mexico",away:"🇰🇷 South Korea"},
+  {id:29,date:"Jun 19",round:"GS R2",home:"🇺🇸 USA",away:"🇦🇺 Australia"},
+  {id:30,date:"Jun 19",round:"GS R2",home:"🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland",away:"🇲🇦 Morocco"},
+  {id:31,date:"Jun 19",round:"GS R2",home:"🇧🇷 Brazil",away:"🇭🇹 Haiti"},
+  {id:32,date:"Jun 19",round:"GS R2",home:"🇹🇷 Türkiye",away:"🇵🇾 Paraguay"},
+  {id:33,date:"Jun 20",round:"GS R2",home:"🇳🇱 Netherlands",away:"🇸🇪 Sweden"},
+  {id:34,date:"Jun 20",round:"GS R2",home:"🇩🇪 Germany",away:"🇨🇮 Ivory Coast"},
+  {id:35,date:"Jun 20",round:"GS R2",home:"🇪🇨 Ecuador",away:"🇨🇼 Curaçao"},
+  {id:36,date:"Jun 20",round:"GS R2",home:"🇹🇳 Tunisia",away:"🇯🇵 Japan"},
+  {id:37,date:"Jun 21",round:"GS R2",home:"🇪🇸 Spain",away:"🇸🇦 Saudi Arabia"},
+  {id:38,date:"Jun 21",round:"GS R2",home:"🇧🇪 Belgium",away:"🇮🇷 Iran"},
+  {id:39,date:"Jun 21",round:"GS R2",home:"🇺🇾 Uruguay",away:"🇨🇻 Cape Verde"},
+  {id:40,date:"Jun 21",round:"GS R2",home:"🇳🇿 New Zealand",away:"🇪🇬 Egypt"},
+  {id:41,date:"Jun 22",round:"GS R2",home:"🇦🇷 Argentina",away:"🇦🇹 Austria"},
+  {id:42,date:"Jun 22",round:"GS R2",home:"🇫🇷 France",away:"🇮🇶 Iraq"},
+  {id:43,date:"Jun 22",round:"GS R2",home:"🇳🇴 Norway",away:"🇸🇳 Senegal"},
+  {id:44,date:"Jun 22",round:"GS R2",home:"🇩🇿 Algeria",away:"🇯🇴 Jordan"},
+  {id:45,date:"Jun 23",round:"GS R2",home:"🇵🇹 Portugal",away:"🇺🇿 Uzbekistan"},
+  {id:46,date:"Jun 23",round:"GS R2",home:"🏴󠁧󠁢󠁥󠁮󠁧󠁿 England",away:"🇬🇭 Ghana"},
+  {id:47,date:"Jun 23",round:"GS R2",home:"🇵🇦 Panama",away:"🇭🇷 Croatia"},
+  {id:48,date:"Jun 23",round:"GS R2",home:"🇨🇴 Colombia",away:"🇨🇩 DR Congo"},
+  {id:49,date:"Jun 24",round:"GS R3",home:"🇨🇭 Switzerland",away:"🇨🇦 Canada"},
+  {id:50,date:"Jun 24",round:"GS R3",home:"🇧🇦 Bosnia & Herz.",away:"🇶🇦 Qatar"},
+  {id:51,date:"Jun 24",round:"GS R3",home:"🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland",away:"🇧🇷 Brazil"},
+  {id:52,date:"Jun 24",round:"GS R3",home:"🇲🇦 Morocco",away:"🇭🇹 Haiti"},
+  {id:53,date:"Jun 24",round:"GS R3",home:"🇿🇦 South Africa",away:"🇰🇷 South Korea"},
+  {id:54,date:"Jun 24",round:"GS R3",home:"🇲🇽 Mexico",away:"🇨🇿 Czechia"},
+  {id:55,date:"Jun 25",round:"GS R3",home:"🇪🇨 Ecuador",away:"🇩🇪 Germany"},
+  {id:56,date:"Jun 25",round:"GS R3",home:"🇨🇼 Curaçao",away:"🇨🇮 Ivory Coast"},
+  {id:57,date:"Jun 25",round:"GS R3",home:"🇯🇵 Japan",away:"🇸🇪 Sweden"},
+  {id:58,date:"Jun 25",round:"GS R3",home:"🇹🇳 Tunisia",away:"🇳🇱 Netherlands"},
+  {id:59,date:"Jun 25",round:"GS R3",home:"🇹🇷 Türkiye",away:"🇺🇸 USA"},
+  {id:60,date:"Jun 25",round:"GS R3",home:"🇵🇾 Paraguay",away:"🇦🇺 Australia"},
+  {id:61,date:"Jun 26",round:"GS R3",home:"🇳🇴 Norway",away:"🇫🇷 France"},
+  {id:62,date:"Jun 26",round:"GS R3",home:"🇸🇳 Senegal",away:"🇮🇶 Iraq"},
+  {id:63,date:"Jun 26",round:"GS R3",home:"🇨🇻 Cape Verde",away:"🇸🇦 Saudi Arabia"},
+  {id:64,date:"Jun 26",round:"GS R3",home:"🇺🇾 Uruguay",away:"🇪🇸 Spain"},
+  {id:65,date:"Jun 26",round:"GS R3",home:"🇪🇬 Egypt",away:"🇮🇷 Iran"},
+  {id:66,date:"Jun 26",round:"GS R3",home:"🇳🇿 New Zealand",away:"🇧🇪 Belgium"},
+  {id:67,date:"Jun 27",round:"GS R3",home:"🇵🇦 Panama",away:"🏴󠁧󠁢󠁥󠁮󠁧󠁿 England"},
+  {id:68,date:"Jun 27",round:"GS R3",home:"🇭🇷 Croatia",away:"🇬🇭 Ghana"},
+  {id:69,date:"Jun 27",round:"GS R3",home:"🇨🇴 Colombia",away:"🇵🇹 Portugal"},
+  {id:70,date:"Jun 27",round:"GS R3",home:"🇺🇿 Uzbekistan",away:"🇨🇩 DR Congo"},
+  {id:71,date:"Jun 27",round:"GS R3",home:"🇩🇿 Algeria",away:"🇦🇹 Austria"},
+  {id:72,date:"Jun 27",round:"GS R3",home:"🇯🇴 Jordan",away:"🇦🇷 Argentina"},
+  {id:73,date:"Jun 28",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:74,date:"Jun 29",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:75,date:"Jun 29",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:76,date:"Jun 29",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:77,date:"Jun 30",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:78,date:"Jun 30",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:79,date:"Jun 30",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:80,date:"Jul 1",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:81,date:"Jul 1",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:82,date:"Jul 1",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:83,date:"Jul 2",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:84,date:"Jul 2",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:85,date:"Jul 2",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:86,date:"Jul 3",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:87,date:"Jul 3",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:88,date:"Jul 3",round:"Round of 32",home:"TBD",away:"TBD"},
+  {id:89,date:"Jul 4",round:"Round of 16",home:"TBD",away:"TBD"},
+  {id:90,date:"Jul 4",round:"Round of 16",home:"TBD",away:"TBD"},
+  {id:91,date:"Jul 5",round:"Round of 16",home:"TBD",away:"TBD"},
+  {id:92,date:"Jul 5",round:"Round of 16",home:"TBD",away:"TBD"},
+  {id:93,date:"Jul 6",round:"Round of 16",home:"TBD",away:"TBD"},
+  {id:94,date:"Jul 6",round:"Round of 16",home:"TBD",away:"TBD"},
+  {id:95,date:"Jul 7",round:"Round of 16",home:"TBD",away:"TBD"},
+  {id:96,date:"Jul 7",round:"Round of 16",home:"TBD",away:"TBD"},
+  {id:97,date:"Jul 9",round:"Quarter-Final",home:"TBD",away:"TBD"},
+  {id:98,date:"Jul 10",round:"Quarter-Final",home:"TBD",away:"TBD"},
+  {id:99,date:"Jul 11",round:"Quarter-Final",home:"TBD",away:"TBD"},
+  {id:100,date:"Jul 11",round:"Quarter-Final",home:"TBD",away:"TBD"},
+  {id:101,date:"Jul 14",round:"Semi-Final",home:"TBD",away:"TBD"},
+  {id:102,date:"Jul 15",round:"Semi-Final",home:"TBD",away:"TBD"},
+  {id:103,date:"Jul 18",round:"3rd Place Final",home:"TBD",away:"TBD"},
+  {id:104,date:"Jul 19",round:"🏆 FINAL",home:"TBD",away:"TBD"}
+];
+
+const GROUPS={
+  A:{teams:['🇲🇽 Mexico','🇰🇷 South Korea','🇿🇦 South Africa','🇨🇿 Czechia'],matchIds:[1,2,25,28,53,54]},
+  B:{teams:['🇨🇦 Canada','🇧🇦 Bosnia & Herz.','🇶🇦 Qatar','🇨🇭 Switzerland'],matchIds:[3,5,27,26,49,50]},
+  C:{teams:['🇧🇷 Brazil','🇲🇦 Morocco','🇭🇹 Haiti','🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland'],matchIds:[6,7,31,30,51,52]},
+  D:{teams:['🇺🇸 USA','🇵🇾 Paraguay','🇦🇺 Australia','🇹🇷 Türkiye'],matchIds:[4,8,29,32,59,60]},
+  E:{teams:['🇩🇪 Germany','🇨🇼 Curaçao','🇨🇮 Ivory Coast','🇪🇨 Ecuador'],matchIds:[9,11,34,35,55,56]},
+  F:{teams:['🇳🇱 Netherlands','🇯🇵 Japan','🇹🇳 Tunisia','🇸🇪 Sweden'],matchIds:[10,12,33,36,57,58]},
+  G:{teams:['🇧🇪 Belgium','🇪🇬 Egypt','🇮🇷 Iran','🇳🇿 New Zealand'],matchIds:[14,16,38,40,65,66]},
+  H:{teams:['🇪🇸 Spain','🇨🇻 Cape Verde','🇸🇦 Saudi Arabia','🇺🇾 Uruguay'],matchIds:[13,15,37,39,63,64]},
+  I:{teams:['🇫🇷 France','🇸🇳 Senegal','🇮🇶 Iraq','🇳🇴 Norway'],matchIds:[17,18,42,43,61,62]},
+  J:{teams:['🇦🇷 Argentina','🇩🇿 Algeria','🇦🇹 Austria','🇯🇴 Jordan'],matchIds:[19,20,41,44,71,72]},
+  K:{teams:['🇵🇹 Portugal','🇨🇩 DR Congo','🇺🇿 Uzbekistan','🇨🇴 Colombia'],matchIds:[21,24,45,48,69,70]},
+  L:{teams:['🏴󠁧󠁢󠁥󠁮󠁧󠁿 England','🇭🇷 Croatia','🇬🇭 Ghana','🇵🇦 Panama'],matchIds:[22,23,46,47,67,68]}
+};
+
+/* ═══════════════════════════════════════════
+   DEFAULT PLAYER LISTS (pre-loaded for testing)
+   Admin can edit these at any time in the Admin Panel.
+   Source for official squads: https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/squads
+═══════════════════════════════════════════ */
+const DEFAULT_SCORERS=[
+  "Kylian Mbappé (FRA)","Erling Haaland (NOR)","Lamine Yamal (ESP)",
+  "Vinicius Jr. (BRA)","Lionel Messi (ARG)","Julián Álvarez (ARG)",
+  "Harry Kane (ENG)","Jude Bellingham (ENG)","Phil Foden (ENG)",
+  "Bukayo Saka (ENG)","Rodri (ESP)","Pedri (ESP)",
+  "Richarlison (BRA)","Rodrygo (BRA)","Neymar Jr. (BRA)",
+  "Leroy Sané (GER)","Florian Wirtz (GER)","Jamal Musiala (GER)",
+  "Rafael Leão (POR)","Bernardo Silva (POR)","Bruno Fernandes (POR)",
+  "Lautaro Martínez (ARG)","Paulo Dybala (ARG)","Heung-min Son (KOR)",
+  "Cody Gakpo (NED)","Memphis Depay (NED)","Robert Lewandowski (POL)",
+  "Achraf Hakimi (MAR)","Hakim Ziyech (MAR)","Sofyan Amrabat (MAR)",
+  "Christian Pulisic (USA)","Folarin Balogun (USA)","Timothy Weah (USA)",
+  "Jonathan David (CAN)","Alphonso Davies (CAN)","Antoine Griezmann (FRA)",
+  "Ousmane Dembélé (FRA)","Ivan Toney (ENG)","Rasmus Højlund (DEN)",
+  "Federico Valverde (URU)","Darwin Núñez (URU)","Hirving Lozano (MEX)",
+  "Santiago Giménez (MEX)","Victor Osimhen (NGR)","Mohamed Salah (EGY)"
+];
+const DEFAULT_GKS=[
+  "Manuel Neuer (GER)","Alisson Becker (BRA)","Ederson (BRA)",
+  "David Raya (ESP)","Unai Simón (ESP)","Mike Maignan (FRA)",
+  "Jordan Pickford (ENG)","Gianluigi Donnarumma (ITA)","Yann Sommer (SUI)",
+  "Diogo Costa (POR)","Andriy Lunin (UKR)","Gregor Kobel (SUI)",
+  "Matt Turner (USA)","Patrick Schulte (GER)","Jan Oblak (SVN)",
+  "Emiliano Martínez (ARG)","Dominik Livaković (CRO)","Bono (MAR)"
+];
+
+/* ═══════════════════════════════════════════
+   STORAGE KEYS
+═══════════════════════════════════════════ */
+const K={
+  results:'MM2026_results',
+  deadlines:'MM2026_deadlines',
+  lockWindow:'MM2026_lockWindow',
+  scorers:'MM2026_scorers',
+  gks:'MM2026_gks',
+  accounts:'MM2026_accounts',
+  bonusPrefix:'MM2026_bonus_',
+  predPrefix:'MM2026_p_'
+};
+function getR(){return JSON.parse(localStorage.getItem(K.results)||'{}');}
+function setR(d){localStorage.setItem(K.results,JSON.stringify(d));}
+function getP(u){return JSON.parse(localStorage.getItem(K.predPrefix+u)||'{}');}
+function setP(u,d){localStorage.setItem(K.predPrefix+u,JSON.stringify(d));}
+/* ── FIREBASE ACCOUNT FUNCTIONS ─────────────────────────
+   All account reads/writes go to Firestore.
+   localStorage is NOT used for accounts.
+─────────────────────────────────────────────────────── */
+async function getAccountFromDB(username){
+  try{
+    const {getFirestore,doc,getDoc}=window._fbFirestore;
+    const snap=await getDoc(doc(getFirestore(window._fbApp),'accounts',username));
+    return snap.exists()?snap.data():null;
+  }catch(e){console.error('Firestore read error',e);return null;}
+}
+async function getAllAccountsFromDB(){
+  try{
+    const {getFirestore,collection,getDocs}=window._fbFirestore;
+    const snap=await getDocs(collection(getFirestore(window._fbApp),'accounts'));
+    const obj={};
+    snap.forEach(d=>{obj[d.id]=d.data();});
+    return obj;
+  }catch(e){console.error('Firestore read error',e);return {};}
+}
+async function setAccountInDB(username,data){
+  try{
+    const {getFirestore,doc,setDoc}=window._fbFirestore;
+    await setDoc(doc(getFirestore(window._fbApp),'accounts',username),data);
+    return true;
+  }catch(e){console.error('Firestore write error',e);return false;}
+}
+async function deleteAccountFromDB(username){
+  try{
+    const {getFirestore,doc,deleteDoc}=window._fbFirestore;
+    await deleteDoc(doc(getFirestore(window._fbApp),'accounts',username));
+    return true;
+  }catch(e){console.error('Firestore delete error',e);return false;}
+}
+// Legacy stubs — not used for accounts anymore
+function getAccounts(){return {};}
+function setAccounts(d){}
+function getDeadlines(){return JSON.parse(localStorage.getItem(K.deadlines)||'{}');}
+function setDeadlines(d){localStorage.setItem(K.deadlines,JSON.stringify(d));}
+function getLockWindow(){return parseInt(localStorage.getItem(K.lockWindow)||'30');}
+function getScorerList(){
+  const s=localStorage.getItem(K.scorers);
+  return s?JSON.parse(s):[...DEFAULT_SCORERS];
+}
+function getGkList(){
+  const s=localStorage.getItem(K.gks);
+  return s?JSON.parse(s):[...DEFAULT_GKS];
+}
+function getBonus(u){return JSON.parse(localStorage.getItem(K.bonusPrefix+u)||'{}');}
+function setBonus(u,d){localStorage.setItem(K.bonusPrefix+u,JSON.stringify(d));}
+
+/* ═══════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════ */
+const ME=sessionStorage.getItem('MM2026_user');
+if(!ME) window.location.href='login.html';
+document.getElementById('navUser').textContent=ME;
+if(ME==='admin') document.getElementById('adminTab').style.display='inline-block';
+function logout(){sessionStorage.removeItem('MM2026_user');window.location.href='login.html';}
+
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ═══════════════════════════════════════════
+   DEADLINE ENGINE
+═══════════════════════════════════════════ */
+// Returns true if a match is locked (within lockWindow minutes of kick-off or past it)
+function isLocked(matchId){
+  const r=getR();
+  if(r[matchId]) return true; // result entered = always locked
+  const deadlines=getDeadlines();
+  const ko=deadlines[matchId];
+  if(!ko) return false; // no deadline set = open
+  const lockMs=getLockWindow()*60*1000;
+  return Date.now()>=(new Date(ko).getTime()-lockMs);
+}
+
+function deadlinePill(matchId){
+  const r=getR();
+  if(r[matchId]) return '<span class="deadline-pill deadline-locked">🔒 Result in</span>';
+  const deadlines=getDeadlines();
+  const ko=deadlines[matchId];
+  if(!ko) return '<span class="deadline-pill deadline-open">🟢 Open</span>';
+  const lockMs=getLockWindow()*60*1000;
+  const koTime=new Date(ko).getTime();
+  const now=Date.now();
+  if(now>=koTime) return '<span class="deadline-pill deadline-locked">🔒 Kicked off</span>';
+  if(now>=koTime-lockMs) return '<span class="deadline-pill deadline-locked">🔒 Locked</span>';
+  const mins=Math.round((koTime-lockMs-now)/60000);
+  if(mins<120) return '<span class="deadline-pill deadline-soon">⏰ Locks in '+mins+'m</span>';
+  const hrs=Math.round((koTime-lockMs-now)/3600000);
+  return '<span class="deadline-pill deadline-open">🟢 Open (~'+hrs+'h)</span>';
+}
+
+/* ═══════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════ */
+function showTab(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(el) el.classList.add('active');
+  if(id==='leaderboard') renderLeaderboard();
+  if(id==='groups')      renderGroups();
+  if(id==='bracket')     renderBracket();
+  if(id==='bonus')       renderBonusTab();
+  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderAccountTable();renderPredTable();}
+  if(id==='settings')    renderSettingsTab();
+}
+
+/* ═══════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════ */
+function isGS(m){return m.round.startsWith('GS');}
+function roundPill(m){
+  if(isGS(m)) return '<span class="round-pill gs">'+m.round+'</span>';
+  return '<span class="round-pill ko">'+m.round+'</span>';
+}
+function calcPts(pred,result,ko){
+  if(!pred||!result) return null;
+  const ph=parseInt(pred.h),pa=parseInt(pred.a),rh=parseInt(result.h),ra=parseInt(result.a);
+  if(isNaN(ph)||isNaN(pa)) return null;
+  if(ph===rh&&pa===ra) return ko?10:5;
+  if(Math.sign(ph-pa)===Math.sign(rh-ra)) return ko?4:2;
+  return 0;
+}
+function getBadge(exact,total){
+  if(exact>=20) return '🏆 Legend';
+  if(exact>=12) return '🎯 Sniper';
+  if(total>=100) return '💯 Century';
+  if(exact>=6)  return '🔥 Hot Streak';
+  if(total>=50) return '⭐ Rising Star';
+  if(exact>=3)  return '✨ Sharp Eye';
+  if(exact>=1)  return '🌱 First Blood';
+  return '🤞 Rookie';
+}
+async function getAllPlayers(){
+  const accounts = await getAllAccountsFromDB();
+  return Object.keys(accounts).filter(u=>u!=='admin');
+}
+
+/* ═══════════════════════════════════════════
+   MY PREDICTIONS
+═══════════════════════════════════════════ */
+let predFilter='all';
+function filterPred(f,btn){
+  predFilter=f;
+  document.querySelectorAll('#predict .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMatches();
+}
+function renderMatches(){
+  const preds=getP(ME),results=getR();
+  let html='',shown=0;
+  MATCHES.forEach(m=>{
+    const locked=isLocked(m.id);
+    if(predFilter==='GS'&&!isGS(m)) return;
+    if(predFilter==='KO'&&isGS(m)) return;
+    if(predFilter==='open'&&locked) return;
+    if(predFilter==='done'&&!locked) return;
+    shown++;
+    const p=preds[m.id]||{},r=results[m.id],ko=!isGS(m);
+    const pts=(r&&p.h!==undefined)?calcPts(p,r,ko):null;
+    let pb='<span class="pts-badge pts-pending">⏳ Pending</span>';
+    if(pts===null&&r)     pb='<span class="pts-badge pts-wrong">No prediction</span>';
+    else if(pts===(ko?10:5)) pb='<span class="pts-badge pts-exact">✅ Exact! +'+pts+'pts</span>';
+    else if(pts===(ko?4:2))  pb='<span class="pts-badge pts-correct">✔ Correct +'+pts+'pts</span>';
+    else if(pts===0)          pb='<span class="pts-badge pts-wrong">❌ Wrong — 0pts</span>';
+    const rb=r?'<span class="result-badge">Final: '+r.h+' – '+r.a+'</span>':'';
+    html+='<div class="match-card'+(locked?' locked':'')+'">'
+      +'<div class="match-meta"><span>Match #'+m.id+' · '+m.date+'</span><span style="display:flex;gap:6px;align-items:center">'+roundPill(m)+deadlinePill(m.id)+'</span></div>'
+      +'<div class="teams"><div class="team">'+m.home+'</div><div class="vs">VS</div><div class="team away">'+m.away+'</div></div>'
+      +'<div class="pred-row"><span class="pred-lbl">Your score:</span>'
+      +'<input class="score-inp" type="number" min="0" max="20" id="ph-'+m.id+'" value="'+(p.h!==undefined?p.h:'')+'" placeholder="0"'+(locked?' disabled':'')+'>'
+      +'<span class="score-sep">–</span>'
+      +'<input class="score-inp" type="number" min="0" max="20" id="pa-'+m.id+'" value="'+(p.a!==undefined?p.a:'')+'" placeholder="0"'+(locked?' disabled':'')+'>'
+      +'</div><div style="margin-top:4px">'+rb+' '+pb+'</div></div>';
+  });
+  if(!shown) html='<p style="color:var(--muted);font-size:14px;padding:.5rem 0">No matches in this filter.</p>';
+  document.getElementById('matchList').innerHTML=html;
+}
+function savePredictions(){
+  const preds=getP(ME);
+  MATCHES.forEach(m=>{
+    if(isLocked(m.id)) return;
+    const h=document.getElementById('ph-'+m.id),a=document.getElementById('pa-'+m.id);
+    if(h&&a&&h.value!==''&&a.value!=='') preds[m.id]={h:parseInt(h.value),a:parseInt(a.value)};
+  });
+  setP(ME,preds);
+  const ok=document.getElementById('saveOk');
+  ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
+}
+
+/* ═══════════════════════════════════════════
+   BONUS PREDICTIONS
+═══════════════════════════════════════════ */
+function renderBonusTab(){
+  const bonus=getBonus(ME);
+  const bonusDeadline=new Date('2026-06-11T14:00:00');
+  const locked=Date.now()>=bonusDeadline.getTime();
+  // Populate winner (teams)
+  const teams=Object.values(GROUPS).flatMap(g=>g.teams).sort();
+  const winnerSel=document.getElementById('bonus_winner');
+  winnerSel.innerHTML='<option value="">— Vali meeskond —</option>'+teams.map(t=>'<option value="'+t+'"'+(bonus.winner===t?' selected':'')+'>'+t+'</option>').join('');
+  winnerSel.disabled=locked;
+  // Populate top scorer
+  const scorers=getScorerList();
+  const scorerSel=document.getElementById('bonus_topscorer');
+  scorerSel.innerHTML='<option value="">— Vali mängija —</option>'+scorers.map(p=>'<option value="'+p+'"'+(bonus.topscorer===p?' selected':'')+'>'+p+'</option>').join('');
+  scorerSel.disabled=locked;
+  // Populate GK
+  const gks=getGkList();
+  const gkSel=document.getElementById('bonus_gk');
+  gkSel.innerHTML='<option value="">— Vali väravavaht —</option>'+gks.map(p=>'<option value="'+p+'"'+(bonus.gk===p?' selected':'')+'>'+p+'</option>').join('');
+  gkSel.disabled=locked;
+  // Populate upset (group stage matches)
+  const upsetSel=document.getElementById('bonus_upset');
+  const gsMat=MATCHES.filter(m=>isGS(m));
+  upsetSel.innerHTML='<option value="">— Vali mäng —</option>'+gsMat.map(m=>'<option value="'+m.id+'"'+(bonus.upset==m.id?' selected':'')+'>'+m.home+' v '+m.away+' ('+m.date+')</option>').join('');
+  upsetSel.disabled=locked;
+  document.getElementById('bonusDeadlineText').textContent=locked?'🔒 Bonus deadline has passed (Jun 11 14:00).':'🟢 Boonusennustused on avatud kuni 11. juunini kell 14.00.';
+  // Show current picks
+  const parts=[];
+  if(bonus.winner) parts.push('<b>🏆 Champion:</b> '+bonus.winner);
+  if(bonus.topscorer) parts.push('<b>⚽ Top Scorer:</b> '+bonus.topscorer);
+  if(bonus.gk) parts.push('<b>🧤 GK:</b> '+bonus.gk);
+  if(bonus.upset){const m=MATCHES.find(x=>x.id==bonus.upset);if(m)parts.push('<b>📊 Upset:</b> '+m.home+' v '+m.away);}
+  document.getElementById('myBonusContent').innerHTML=parts.length?parts.join(' &nbsp;·&nbsp; '):'Valikuid ei ole tehtud.';
+}
+function saveBonusPicks(){
+  const bonusDeadline=new Date('2026-06-11T14:00:00');
+  if(Date.now()>=bonusDeadline.getTime()){alert('Bonus deadline has passed!');return;}
+  const bonus={
+    winner:document.getElementById('bonus_winner').value,
+    topscorer:document.getElementById('bonus_topscorer').value,
+    gk:document.getElementById('bonus_gk').value,
+    upset:document.getElementById('bonus_upset').value
+  };
+  setBonus(ME,bonus);
+  const ok=document.getElementById('bonusSaveOk');
+  ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
+  renderBonusTab();
+}
+
+/* ═══════════════════════════════════════════
+   GROUP STAGE STANDINGS
+═══════════════════════════════════════════ */
+function calcGroupStandings(gk){
+  const g=GROUPS[gk],results=getR(),st={};
+  g.teams.forEach(t=>{st[t]={mp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};});
+  g.matchIds.forEach(id=>{
+    const m=MATCHES.find(x=>x.id===id),r=results[id];
+    if(!r||!m||m.home==='TBD') return;
+    const h=parseInt(r.h),a=parseInt(r.a);
+    if(isNaN(h)||isNaN(a)) return;
+    const sh=st[m.home],sa=st[m.away];
+    sh.mp++;sa.mp++;sh.gf+=h;sh.ga+=a;sa.gf+=a;sa.ga+=h;
+    if(h>a){sh.w++;sh.pts+=3;sa.l++;}
+    else if(h<a){sa.w++;sa.pts+=3;sh.l++;}
+    else{sh.d++;sh.pts++;sa.d++;sa.pts++;}
+  });
+  return g.teams.map(t=>({team:t,...st[t],gd:st[t].gf-st[t].ga}))
+    .sort((a,b)=>b.pts-a.pts||(b.gd-a.gd)||(b.gf-a.gf));
+}
+function renderGroups(){
+  let html='';
+  Object.keys(GROUPS).forEach(gk=>{
+    const rows=calcGroupStandings(gk);
+    html+='<div class="group-block"><span class="group-title">Group '+gk+'</span>'
+      +'<table class="gs-table"><thead><tr><th>Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th><th>Status</th></tr></thead><tbody>';
+    rows.forEach((r,i)=>{
+      const cls=i<2?'advance':i===2?'maybe':'';
+      const badge=i<2?'<span class="advance-badge">✅ Advance</span>':i===2?'<span class="maybe-badge">🟡 Maybe</span>':'<span class="out-badge">❌</span>';
+      html+='<tr class="'+cls+'"><td>'+r.team+'</td><td>'+r.mp+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td><td>'+r.gf+'</td><td>'+r.ga+'</td><td>'+(r.gd>0?'+'+r.gd:r.gd)+'</td><td style="font-weight:700">'+r.pts+'</td><td>'+badge+'</td></tr>';
+    });
+    html+='</tbody></table></div>';
+  });
+  document.getElementById('groupsContainer').innerHTML=html;
+}
+
+/* ═══════════════════════════════════════════
+   KNOCKOUT BRACKET
+═══════════════════════════════════════════ */
+function getWinner(id){
+  const r=getR()[id],m=MATCHES.find(x=>x.id===id);
+  if(!r||!m||m.home==='TBD') return null;
+  const h=parseInt(r.h),a=parseInt(r.a);
+  if(isNaN(h)||isNaN(a)) return null;
+  return h>a?m.home:a>h?m.away:'(Draw)';
+}
+function getGroupTop(gk,pos){
+  const rows=calcGroupStandings(gk);
+  return(rows[pos]&&rows[pos].mp>0)?rows[pos].team:'TBD';
+}
+function bkMatch(home,away,id){
+  const r=getR()[id];
+  const score=r?' ('+r.h+'-'+r.a+')':'';
+  return '<div class="bk-match">'
+    +'<div class="bk-team '+(!home||home==='TBD'?'tbd':'')+'">'+(home||'TBD')+'</div>'
+    +'<div class="bk-sep"></div>'
+    +'<div class="bk-team '+(!away||away==='TBD'?'tbd':'')+'">'+(away||'TBD')
+    +(score?'<span style="font-size:10px;color:var(--muted)"> '+score+'</span>':'')
+    +'</div></div>';
+}
+function renderBracket(){
+  const r32W=[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88].map(id=>getWinner(id)||'TBD');
+  const r16W=[89,90,91,92,93,94,95,96].map(id=>getWinner(id)||'TBD');
+  const qfW=[97,98,99,100].map(id=>getWinner(id)||'TBD');
+  const sfW=[101,102].map(id=>getWinner(id)||'TBD');
+  const finW=getWinner(104)||'⏳ TBD';
+  const r32p=[[getGroupTop('A',1),getGroupTop('B',1)],[getGroupTop('C',0),getGroupTop('F',1)],[getGroupTop('E',0),'Best 3rd'],[getGroupTop('F',0),getGroupTop('C',1)],[getGroupTop('E',1),getGroupTop('I',1)],[getGroupTop('I',0),'Best 3rd'],[getGroupTop('A',0),'Best 3rd'],[getGroupTop('L',0),'Best 3rd']];
+  let html='';
+  html+='<div class="bk-round" style="flex:2"><div class="bk-round-title">Round of 32</div><div class="bk-matches">';
+  r32p.forEach((p,i)=>{html+=bkMatch(p[0],p[1],73+i);});
+  html+='</div></div>';
+  html+='<div class="bk-round"><div class="bk-round-title">Round of 16</div><div class="bk-matches">';
+  [[0,1,89],[2,3,90],[4,5,91],[6,7,92]].forEach(([a,b,id])=>{html+=bkMatch(r32W[a],r32W[b],id);});
+  html+='</div></div>';
+  html+='<div class="bk-round"><div class="bk-round-title">Quarter-Finals</div><div class="bk-matches">';
+  [[0,1,97],[2,3,98],[4,5,99],[6,7,100]].forEach(([a,b,id])=>{html+=bkMatch(r16W[a],r16W[b],id);});
+  html+='</div></div>';
+  html+='<div class="bk-round"><div class="bk-round-title">Semi-Finals</div><div class="bk-matches">';
+  html+=bkMatch(qfW[0],qfW[1],101);html+=bkMatch(qfW[2],qfW[3],102);
+  html+='</div></div>';
+  html+='<div class="bk-round"><div class="bk-round-title">Final</div><div class="bk-matches">';
+  html+=bkMatch(sfW[0],sfW[1],104);
+  html+='<div class="bk-winner"><div class="bk-winner-lbl">🏆 Champion</div><div class="bk-winner-name">'+finW+'</div></div>';
+  html+='</div></div>';
+  document.getElementById('bracketContainer').innerHTML=html;
+}
+
+/* ═══════════════════════════════════════════
+   LEADERBOARD
+═══════════════════════════════════════════ */
+async function renderLeaderboard(){
+  const results=getR();
+  let totalWithResults=0;
+  MATCHES.forEach(m=>{if(results[m.id])totalWithResults++;});
+  const players=await getAllPlayers();
+  const rows=players.map(player=>{
+    const preds=getP(player);
+    let gsPts=0,koPts=0,exact=0,correct=0,form=[];
+    MATCHES.forEach(m=>{
+      const r=results[m.id],p=preds[m.id],ko=!isGS(m);
+      if(!r) return;
+      const pts=p?calcPts(p,r,ko):null;
+      if(pts===null){form.push('p');return;}
+      if(isGS(m)) gsPts+=pts; else koPts+=pts;
+      const ep=ko?10:5;
+      if(pts===ep){exact++;form.push('e');}
+      else if(pts>0){correct++;form.push('c');}
+      else form.push('w');
+    });
+    // bonus pts placeholder (admin can award manually in future)
+    const bonusPts=0;
+    return {player,gsPts,koPts,bonusPts,total:gsPts+koPts+bonusPts,exact,correct,form:form.slice(-5)};
+  });
+  rows.sort((a,b)=>b.total-a.total||(b.exact-a.exact));
+  let totalExact=0;rows.forEach(r=>{totalExact+=r.exact;});
+  document.getElementById('statsGrid').innerHTML=
+    '<div class="stat-card"><div class="stat-num">'+totalWithResults+'</div><div class="stat-lbl">Sisestatud tulemused</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+totalExact+'</div><div class="stat-lbl">Täpselt ennustatud skoore kokku</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+(rows.length?rows[0].total:0)+'</div><div class="stat-lbl">Liidri punktid</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+players.length+'</div><div class="stat-lbl">Mängijaid</div></div>';
+  document.getElementById('lbBody').innerHTML=rows.map((r,i)=>{
+    const fh=r.form.map(f=>'<span class="form-dot form-'+f+'"></span>').join('');
+    return '<tr>'
+      +'<td><span class="rank-num '+(i<3?'rank-'+(i+1):'')+'\">'+(i+1)+'</span></td>'
+      +'<td style="font-weight:600">'+r.player+'</td>'
+      +'<td>'+r.gsPts+'</td><td>'+r.koPts+'</td><td>'+r.bonusPts+'</td>'
+      +'<td style="font-weight:700;color:var(--red)">'+r.total+'</td>'
+      +'<td>'+r.exact+'</td><td>'+r.correct+'</td>'
+      +'<td>'+(fh||'—')+'</td>'
+      +'<td><span class="player-badge">'+getBadge(r.exact,r.total)+'</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════
+   SETTINGS — CHANGE PASSWORD
+═══════════════════════════════════════════ */
+function renderSettingsTab(){}
+async function changePassword(){
+  const cur=document.getElementById('pwCurrent').value;
+  const nw=document.getElementById('pwNew').value;
+  const cf=document.getElementById('pwConfirm').value;
+  const okEl=document.getElementById('pwOk'),errEl=document.getElementById('pwErr');
+  okEl.classList.remove('show');errEl.classList.remove('show');
+  if(!cur||!nw||!cf){errEl.textContent='Palun täida kõik väljad.';errEl.classList.add('show');return;}
+  if(nw!==cf){errEl.textContent='Uued paroolid ei kattu.';errEl.classList.add('show');return;}
+  if(nw.length<4){errEl.textContent='Parool peab olema vähemalt 4 tähemärki.';errEl.classList.add('show');return;}
+  const acct=await getAccountFromDB(ME);
+  if(!acct){errEl.textContent='Konto ei leitud.';errEl.classList.add('show');return;}
+  const curHash=await sha256(ME+':'+cur);
+  if(acct.hash!==curHash){errEl.textContent='Praegune parool on vale.';errEl.classList.add('show');return;}
+  const newHash=await sha256(ME+':'+nw);
+  const ok=await setAccountInDB(ME,{hash:newHash,role:acct.role||'player'});
+  if(ok){
+    document.getElementById('pwCurrent').value='';
+    document.getElementById('pwNew').value='';
+    document.getElementById('pwConfirm').value='';
+    okEl.classList.add('show');setTimeout(()=>okEl.classList.remove('show'),4000);
+  } else {
+    errEl.textContent='Viga salvestamisel. Kontrolli internetiühendust.';
+    errEl.classList.add('show');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN — DEADLINE MANAGER
+═══════════════════════════════════════════ */
+// Group matches into rounds for the deadline table
+const ROUND_GROUPS={
+  'GS Round 1 (Jun 11–17)':[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
+  'GS Round 2 (Jun 18–23)':[25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48],
+  'GS Round 3 (Jun 24–27)':[49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72],
+  'Round of 32 (Jun 28–Jul 3)':[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88],
+  'Round of 16 (Jul 4–7)':[89,90,91,92,93,94,95,96],
+  'Quarter-Finals (Jul 9–11)':[97,98,99,100],
+  'Semi-Finals (Jul 14–15)':[101,102],
+  '3rd Place & Final (Jul 18–19)':[103,104]
+};
+// Default kick-off times (one representative time per group — admin can override per-match)
+const DEFAULT_KO_TIMES={
+  1:'2026-06-11T19:00',2:'2026-06-12T02:00',
+  3:'2026-06-12T19:00',4:'2026-06-13T01:00',
+  5:'2026-06-13T19:00',6:'2026-06-14T01:00',7:'2026-06-14T01:00',8:'2026-06-14T01:00',
+  9:'2026-06-14T18:00',10:'2026-06-14T22:00',11:'2026-06-15T01:00',12:'2026-06-15T04:00',
+  13:'2026-06-15T18:00',14:'2026-06-15T22:00',15:'2026-06-16T01:00',16:'2026-06-16T04:00',
+  17:'2026-06-16T19:00',18:'2026-06-16T22:00',19:'2026-06-17T01:00',20:'2026-06-17T04:00',
+  21:'2026-06-17T18:00',22:'2026-06-17T21:00',23:'2026-06-18T00:00',24:'2026-06-18T02:00'
+};
+function renderDeadlineTable(){
+  const deadlines=getDeadlines();
+  document.getElementById('lockWindow').value=getLockWindow();
+  let html='';
+  Object.entries(ROUND_GROUPS).forEach(([label,ids])=>{
+    // Show first and last match of each round group as a range setting
+    html+='<tr style="background:#f8f7f3"><td colspan="3" style="font-weight:700;font-size:12px;letter-spacing:.5px;color:var(--muted);padding:8px 12px">'+label+'</td></tr>';
+    ids.forEach(id=>{
+      const m=MATCHES.find(x=>x.id===id);
+      const stored=deadlines[id]||DEFAULT_KO_TIMES[id]||'';
+      const status=isLocked(id)?'<span class="deadline-pill deadline-locked" style="font-size:11px">Locked</span>':'<span class="deadline-pill deadline-open" style="font-size:11px">Open</span>';
+      html+='<tr>'
+        +'<td style="font-size:12px">#'+id+' '+m.home+' v '+m.away+'</td>'
+        +'<td><input type="datetime-local" class="deadline-input" id="dl-'+id+'" value="'+stored+'"></td>'
+        +'<td>'+status+'</td></tr>';
+    });
+  });
+  document.getElementById('deadlineTableBody').innerHTML=html;
+}
+function saveLockWindow(){
+  const v=parseInt(document.getElementById('lockWindow').value)||30;
+  localStorage.setItem(K.lockWindow,v);
+}
+function saveDeadlines(){
+  const deadlines=getDeadlines();
+  MATCHES.forEach(m=>{
+    const el=document.getElementById('dl-'+m.id);
+    if(el&&el.value) deadlines[m.id]=el.value;
+  });
+  setDeadlines(deadlines);
+  const ok=document.getElementById('dlSaveOk');
+  ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
+  renderDeadlineTable();
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN — ENTER RESULTS
+═══════════════════════════════════════════ */
+let adminFilter='all';
+function filterAdmin(f,btn){
+  adminFilter=f;
+  document.querySelectorAll('#adminResultsFilterBar .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAdminMatches();
+}
+function renderAdminMatches(){
+  const results=getR();
+  let html='';
+  MATCHES.forEach(m=>{
+    if(adminFilter==='GS'&&!isGS(m)) return;
+    if(adminFilter==='KO'&&isGS(m)) return;
+    const r=results[m.id]||{},set=r.h!==undefined;
+    html+='<div class="match-card">'
+      +'<div class="match-meta"><span>Match #'+m.id+' · '+m.date+'</span>'+roundPill(m)+'</div>'
+      +'<div class="teams"><div class="team">'+m.home+'</div><div class="vs">VS</div><div class="team away">'+m.away+'</div></div>'
+      +'<div class="pred-row" style="margin-top:6px"><span class="pred-lbl">Actual score:</span>'
+      +'<input class="score-inp" type="number" min="0" max="30" id="rh-'+m.id+'" value="'+(r.h!==undefined?r.h:'')+'" placeholder="0">'
+      +'<span class="score-sep">–</span>'
+      +'<input class="score-inp" type="number" min="0" max="30" id="ra-'+m.id+'" value="'+(r.a!==undefined?r.a:'')+'" placeholder="0">'
+      +(set?'<span class="result-badge" style="margin:0">Saved: '+r.h+'–'+r.a+'</span>':'<span style="font-size:12px;color:var(--muted)">Not set</span>')
+      +'</div></div>';
+  });
+  document.getElementById('adminMatchList').innerHTML=html;
+}
+function saveResults(){
+  const results=getR();
+  MATCHES.forEach(m=>{
+    const h=document.getElementById('rh-'+m.id),a=document.getElementById('ra-'+m.id);
+    if(h&&a&&h.value!==''&&a.value!=='') results[m.id]={h:parseInt(h.value),a:parseInt(a.value)};
+  });
+  setR(results);
+  const ok=document.getElementById('adminSaveOk');
+  ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
+  renderAdminMatches();renderPredTable();
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN — PLAYER LIST MANAGER
+═══════════════════════════════════════════ */
+function renderPlayerListAdmin(){
+  const scorers=getScorerList(),gks=getGkList();
+  function buildGrid(list,type,containerId){
+    const c=document.getElementById(containerId);
+    c.innerHTML=list.map((p,i)=>'<div class="player-entry">'
+      +'<input type="text" value="'+p+'" id="pl-'+type+'-'+i+'" placeholder="Player name">'
+      +'<button class="del-btn" onclick="removePlayer(\''+type+'\','+i+')">✕</button>'
+      +'</div>').join('');
+  }
+  buildGrid(scorers,'scorer','scorerListGrid');
+  buildGrid(gks,'gk','gkListGrid');
+}
+function addPlayerToList(type){
+  const list=type==='scorer'?getScorerList():getGkList();
+  list.push('');
+  if(type==='scorer') localStorage.setItem(K.scorers,JSON.stringify(list));
+  else localStorage.setItem(K.gks,JSON.stringify(list));
+  renderPlayerListAdmin();
+  // Focus new field
+  const grid=document.getElementById(type==='scorer'?'scorerListGrid':'gkListGrid');
+  const inputs=grid.querySelectorAll('input');
+  if(inputs.length) inputs[inputs.length-1].focus();
+}
+function removePlayer(type,idx){
+  const list=type==='scorer'?getScorerList():getGkList();
+  list.splice(idx,1);
+  if(type==='scorer') localStorage.setItem(K.scorers,JSON.stringify(list));
+  else localStorage.setItem(K.gks,JSON.stringify(list));
+  renderPlayerListAdmin();
+}
+function savePlayerLists(){
+  const sGrid=document.getElementById('scorerListGrid').querySelectorAll('input');
+  const gGrid=document.getElementById('gkListGrid').querySelectorAll('input');
+  const scorers=[...sGrid].map(i=>i.value.trim()).filter(Boolean);
+  const gks=[...gGrid].map(i=>i.value.trim()).filter(Boolean);
+  localStorage.setItem(K.scorers,JSON.stringify(scorers));
+  localStorage.setItem(K.gks,JSON.stringify(gks));
+  const ok=document.getElementById('plSaveOk');
+  ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
+  renderPlayerListAdmin();
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN — ACCOUNT MANAGER
+═══════════════════════════════════════════ */
+async function renderAccountTable(){
+  const accounts=await getAllAccountsFromDB();
+  let html='';
+  Object.keys(accounts).forEach(u=>{
+    html+='<tr>'
+      +'<td><b>'+u+'</b></td>'
+      +'<td><input type="password" placeholder="New password" id="acct-pw-'+u+'" style="width:140px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none"></td>'
+      +'<td><span class="tag '+(u==='admin'?'admin-tag':'')+'">'+( u==='admin'?'Admin':'Player')+'</span></td>'
+      +'<td><button class="btn-secondary" style="padding:5px 12px;font-size:12px" onclick="resetPassword(\''+u+'\')">Reset PW</button>'
+      +(u!=='admin'?'&nbsp;<button class="btn-secondary" style="padding:5px 12px;font-size:12px;color:var(--red);border-color:var(--red)" onclick="deleteAccount(\''+u+'\')">Delete</button>':'')
+      +'</td></tr>';
+  });
+  document.getElementById('accountTableBody').innerHTML=html;
+}
+async function resetPassword(u){
+  const el=document.getElementById('acct-pw-'+u);
+  const pw=el.value.trim();
+  if(!pw){alert('Sisesta esmalt uus parool.');return;}
+  const hash=await sha256(u+':'+pw);
+  const ok=await setAccountInDB(u,{hash,role:u==='admin'?'admin':'player'});
+  if(ok){
+    el.value='';
+    document.getElementById('acctSaveOk').classList.add('show');
+    setTimeout(()=>document.getElementById('acctSaveOk').classList.remove('show'),3000);
+  } else {
+    alert('Viga parooli salvestamisel. Kontrolli internetiühendust.');
+  }
+}
+async function addAccount(){
+  const u=document.getElementById('newUsername').value.trim().toLowerCase();
+  const p=document.getElementById('newPassword').value;
+  if(!u||!p){alert('Sisesta kasutajanimi ja parool.');return;}
+  const existing=await getAccountFromDB(u);
+  if(existing){alert('Kasutajanimi on juba olemas.');return;}
+  const hash=await sha256(u+':'+p);
+  const ok=await setAccountInDB(u,{hash,role:'player'});
+  if(ok){
+    document.getElementById('newUsername').value='';
+    document.getElementById('newPassword').value='';
+    document.getElementById('acctSaveOk').classList.add('show');
+    setTimeout(()=>document.getElementById('acctSaveOk').classList.remove('show'),3000);
+    renderAccountTable();
+  } else {
+    alert('Viga konto loomisel. Kontrolli internetiühendust.');
+  }
+}
+async function deleteAccount(u){
+  if(!confirm('Kustuta konto "'+u+'"? Seda ei saa tagasi võtta.')) return;
+  const ok=await deleteAccountFromDB(u);
+  if(ok){
+    renderAccountTable();
+  } else {
+    alert('Viga konto kustutamisel.');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN — FULL PREDICTIONS TABLE
+═══════════════════════════════════════════ */
+let predTableFilter='all';
+function filterPredTable(f,btn){
+  predTableFilter=f;
+  document.querySelectorAll('#predTableFilterBar .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPredTable();
+}
+async function renderPredTable(){
+  const results=getR();
+  const players=await getAllPlayers();
+  let headHtml='<tr><th class="left">#</th><th class="left">Match</th><th>Date</th><th>Result</th>';
+  players.forEach(p=>{headHtml+='<th>'+p+'</th>';});
+  headHtml+='</tr>';
+  document.getElementById('predTableHead').innerHTML=headHtml;
+  let bodyHtml='';
+  MATCHES.forEach(m=>{
+    if(predTableFilter==='GS'&&!isGS(m)) return;
+    if(predTableFilter==='KO'&&isGS(m)) return;
+    const r=results[m.id];
+    if(predTableFilter==='scored'&&!r) return;
+    const ko=!isGS(m);
+    const resTd=r?'<span class="result-cell">'+r.h+' – '+r.a+'</span>':'<span class="result-cell unset">TBD</span>';
+    bodyHtml+='<tr>'
+      +'<td class="left" style="color:var(--muted);font-size:11px">#'+m.id+'</td>'
+      +'<td class="left">'+m.home+' v '+m.away+'</td>'
+      +'<td style="font-size:11px;color:var(--muted)">'+m.date+'</td>'
+      +'<td>'+resTd+'</td>';
+    players.forEach(player=>{
+      const preds=getP(player),p=preds[m.id];
+      if(!p||p.h===undefined){bodyHtml+='<td class="pred-cell none">—</td>';return;}
+      const predStr=p.h+'–'+p.a;
+      if(!r){bodyHtml+='<td class="pred-cell">'+predStr+'</td>';return;}
+      const pts=calcPts(p,r,ko);
+      const ep=ko?10:5,dp=ko?4:2;
+      const cls=pts===ep?'exact':pts===dp?'correct':pts===0?'wrong':'none';
+      const icon=pts===ep?' ✅':pts===dp?' ✔':pts===0?' ❌':'';
+      bodyHtml+='<td class="pred-cell '+cls+'">'+predStr+icon+'</td>';
+    });
+    bodyHtml+='</tr>';
+  });
+  document.getElementById('predTableBody').innerHTML=bodyHtml;
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+renderMatches();
+// Pre-populate deadline inputs with defaults if not yet set
+(function seedDefaultDeadlines(){
+  const dl=getDeadlines();
+  let changed=false;
+  Object.entries(DEFAULT_KO_TIMES).forEach(([id,t])=>{
+    if(!dl[id]){dl[id]=t;changed=true;}
+  });
+  if(changed) setDeadlines(dl);
+})();
+// Expose functions to global scope for onclick handlers
+window.showTab=showTab;
+window.filterPred=filterPred;
+window.savePredictions=savePredictions;
+window.filterPredTable=filterPredTable;
+window.renderPredTable=renderPredTable;
+window.saveBonusPicks=saveBonusPicks;
+window.filterAdmin=filterAdmin;
+window.saveResults=saveResults;
+window.saveDeadlines=saveDeadlines;
+window.saveLockWindow=saveLockWindow;
+window.addPlayerToList=addPlayerToList;
+window.removePlayer=removePlayer;
+window.savePlayerLists=savePlayerLists;
+window.renderAccountTable=renderAccountTable;
+window.resetPassword=resetPassword;
+window.addAccount=addAccount;
+window.deleteAccount=deleteAccount;
+window.changePassword=changePassword;
+window.logout=logout;
+</script>
+</body>
+</html>
