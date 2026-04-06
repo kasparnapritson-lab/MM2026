@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WC2026 Ennustused – Sisselogimine</title>
+<title>MM2026 Ennustused – Sisselogimine</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -65,7 +65,7 @@ h1 span{color:var(--red)}
  * the organiser can log in and set everything up immediately.
  */
 
-const ACCOUNTS_KEY = 'wc2026_accounts';
+const ACCOUNTS_KEY = 'MM2026_accounts';
 
 async function sha256(str){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -97,7 +97,7 @@ async function login(){
 
   const inputHash = await sha256(u + ':' + p);
   if(accounts[u] && accounts[u] === inputHash){
-    sessionStorage.setItem('wc2026_user', u);
+    sessionStorage.setItem('MM2026_user', u);
     window.location.href = 'game.html';
   } else {
     e.classList.add('show');
