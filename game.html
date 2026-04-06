@@ -238,6 +238,21 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 .accuracy-labels p{font-size:13px;color:var(--muted);margin-bottom:3px}
 .accuracy-labels b{color:var(--dark)}
 </style>
+<!-- Firebase (compat version — works without ES modules) -->
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore-compat.js"></script>
+<script>
+// Initialise Firebase immediately, synchronously, before any game code
+const _fbApp = firebase.initializeApp({
+  apiKey: "AIzaSyCLxqwO811b7j4oNsw-z0Yxe365XhGOKw4",
+  authDomain: "mm2026-29834.firebaseapp.com",
+  projectId: "mm2026-29834",
+  storageBucket: "mm2026-29834.firebasestorage.app",
+  messagingSenderId: "64265076996",
+  appId: "1:64265076996:web:2ff8af4012b505c7e8d051"
+});
+const _db = firebase.firestore();
+</script>
 </head>
 <body>
 
@@ -556,24 +571,11 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 </section>
 
 </main>
-<script type="module">
-/* ── FIREBASE SETUP ──────────────────────────────────────
-   Accounts are stored in Firestore (Google Cloud).
-   All other game data stays in localStorage as before.
-──────────────────────────────────────────────────────── */
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
-import * as _fbFirestore from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
-
-const _fbApp = initializeApp({
-  apiKey: "AIzaSyCLxqwO811b7j4oNsw-z0Yxe365XhGOKw4",
-  authDomain: "mm2026-29834.firebaseapp.com",
-  projectId: "mm2026-29834",
-  storageBucket: "mm2026-29834.firebasestorage.app",
-  messagingSenderId: "64265076996",
-  appId: "1:64265076996:web:2ff8af4012b505c7e8d051"
-});
-window._fbApp = _fbApp;
-window._fbFirestore = _fbFirestore;
+<script>
+/* ── FIREBASE SETUP (compat SDK)
+   _db is initialised in <head> before this script runs.
+   Accounts stored in Firestore; all other data in localStorage.
+───────────────────────────────────────────────────────────── */
 
 /* ═══════════════════════════════════════════
    104 MATCHES — official FIFA schedule
@@ -748,21 +750,18 @@ function getR(){return JSON.parse(localStorage.getItem(K.results)||'{}');}
 function setR(d){localStorage.setItem(K.results,JSON.stringify(d));}
 function getP(u){return JSON.parse(localStorage.getItem(K.predPrefix+u)||'{}');}
 function setP(u,d){localStorage.setItem(K.predPrefix+u,JSON.stringify(d));}
-/* ── FIREBASE ACCOUNT FUNCTIONS ─────────────────────────
-   All account reads/writes go to Firestore.
-   localStorage is NOT used for accounts.
+/* ── FIREBASE ACCOUNT FUNCTIONS (compat SDK) ────────────
+   Uses _db (firebase.firestore()) initialised in <head>.
 ─────────────────────────────────────────────────────── */
 async function getAccountFromDB(username){
   try{
-    const {getFirestore,doc,getDoc}=window._fbFirestore;
-    const snap=await getDoc(doc(getFirestore(window._fbApp),'accounts',username));
-    return snap.exists()?snap.data():null;
+    const snap=await _db.collection('accounts').doc(username).get();
+    return snap.exists?snap.data():null;
   }catch(e){console.error('Firestore read error',e);return null;}
 }
 async function getAllAccountsFromDB(){
   try{
-    const {getFirestore,collection,getDocs}=window._fbFirestore;
-    const snap=await getDocs(collection(getFirestore(window._fbApp),'accounts'));
+    const snap=await _db.collection('accounts').get();
     const obj={};
     snap.forEach(d=>{obj[d.id]=d.data();});
     return obj;
@@ -770,19 +769,16 @@ async function getAllAccountsFromDB(){
 }
 async function setAccountInDB(username,data){
   try{
-    const {getFirestore,doc,setDoc}=window._fbFirestore;
-    await setDoc(doc(getFirestore(window._fbApp),'accounts',username),data);
+    await _db.collection('accounts').doc(username).set(data);
     return true;
   }catch(e){console.error('Firestore write error',e);return false;}
 }
 async function deleteAccountFromDB(username){
   try{
-    const {getFirestore,doc,deleteDoc}=window._fbFirestore;
-    await deleteDoc(doc(getFirestore(window._fbApp),'accounts',username));
+    await _db.collection('accounts').doc(username).delete();
     return true;
   }catch(e){console.error('Firestore delete error',e);return false;}
 }
-// Legacy stubs — not used for accounts anymore
 function getAccounts(){return {};}
 function setAccounts(d){}
 function getDeadlines(){return JSON.parse(localStorage.getItem(K.deadlines)||'{}');}
@@ -1565,28 +1561,7 @@ function calcStreak(recent){
   return best;
 }
 
-// Expose functions to global scope for onclick handlers
-window.showTab=showTab;
-window.filterPred=filterPred;
-window.savePredictions=savePredictions;
-window.filterPredTable=filterPredTable;
-window.renderPredTable=renderPredTable;
-window.saveBonusPicks=saveBonusPicks;
-window.filterAdmin=filterAdmin;
-window.saveResults=saveResults;
-window.saveDeadlines=saveDeadlines;
-window.saveLockWindow=saveLockWindow;
-window.addPlayerToList=addPlayerToList;
-window.removePlayer=removePlayer;
-window.savePlayerLists=savePlayerLists;
-window.renderAccountTable=renderAccountTable;
-window.resetPassword=resetPassword;
-window.addAccount=addAccount;
-window.deleteAccount=deleteAccount;
-window.changePassword=changePassword;
-window.logout=logout;
-window.renderMyStats=renderMyStats;
-window.startCountdownTick=startCountdownTick;
+// All functions are globally accessible (plain script tag, no module scope)
 </script>
 </body>
 </html>
