@@ -887,6 +887,7 @@ function showTab(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if(el) el.classList.add('active');
+  if(id==='predict')     renderMatches(); // always re-render to show saved predictions
   if(id==='leaderboard') renderLeaderboard();
   if(id==='groups')      renderGroups();
   if(id==='bracket')     renderBracket();
