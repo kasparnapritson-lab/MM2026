@@ -131,6 +131,7 @@ h1 span{color:var(--red)}
       <button class="video-btn" onclick="window._openVideo&&window._openVideo()">
         <span class="video-btn-icon">▶</span> Vaata videot
       </button>
+      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:8px">📱 Mobiilil soovitame landscape vaates vaadata</div>
     </div>
 
     <!-- Dots -->
@@ -279,16 +280,9 @@ resetTimer();
 const LOOM_URL = 'https://www.loom.com/embed/08151ce193b646ab8a6d9fb191ca44ed?autoplay=1&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true';
 
 function openVideo(){
-  // On mobile: open in new tab (iframe videos unreliable on iOS/Android)
-  // On desktop: show overlay
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 640;
-  if(isMobile){
-    window.open('https://www.loom.com/share/08151ce193b646ab8a6d9fb191ca44ed', '_blank');
-  } else {
-    document.getElementById('videoFrame').src = LOOM_URL;
-    document.getElementById('videoOverlay').classList.add('show');
-    clearInterval(timer);
-  }
+  document.getElementById('videoFrame').src = LOOM_URL;
+  document.getElementById('videoOverlay').classList.add('show');
+  clearInterval(timer);
 }
 
 function closeVideoBtn(){
