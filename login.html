@@ -83,10 +83,10 @@ h1 span{color:var(--red)}
 <body>
 
 <!-- VIDEO OVERLAY -->
-<div class="overlay" id="videoOverlay" onclick="window._closeVideo&&window._closeVideo(event)">
+<div class="overlay" id="videoOverlay" onclick="window._closeVideo&&window._closeVideo(event)" style="padding:.5rem">
   <div class="overlay-inner">
     <button class="overlay-close" onclick="window._closeVideoBtn&&window._closeVideoBtn()">✕</button>
-    <iframe id="videoFrame" class="video-frame" src="" allowfullscreen allow="autoplay"></iframe>
+    <iframe id="videoFrame" class="video-frame" src="" allowfullscreen allow="autoplay; fullscreen" style="max-height:85vh"></iframe>
   </div>
 </div>
 
@@ -279,9 +279,16 @@ resetTimer();
 const LOOM_URL = 'https://www.loom.com/embed/08151ce193b646ab8a6d9fb191ca44ed?autoplay=1&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true';
 
 function openVideo(){
-  document.getElementById('videoFrame').src = LOOM_URL;
-  document.getElementById('videoOverlay').classList.add('show');
-  clearInterval(timer); // pause slideshow while video plays
+  // On mobile: open in new tab (iframe videos unreliable on iOS/Android)
+  // On desktop: show overlay
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 640;
+  if(isMobile){
+    window.open('https://www.loom.com/share/08151ce193b646ab8a6d9fb191ca44ed', '_blank');
+  } else {
+    document.getElementById('videoFrame').src = LOOM_URL;
+    document.getElementById('videoOverlay').classList.add('show');
+    clearInterval(timer);
+  }
 }
 
 function closeVideoBtn(){
