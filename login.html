@@ -8,61 +8,176 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--red:#c0392b;--red-d:#922b21;--gold:#d4ac0d;--gold-l:#f7dc6f;--dark:#1a1a2e;--cream:#fdfcf8;--muted:#6b7280;--border:#d1d5db;--radius:10px}
-body{font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--dark);background-image:radial-gradient(circle at 20% 20%,rgba(192,57,43,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(212,172,13,0.1) 0%,transparent 50%)}
-.card{background:var(--cream);border-radius:18px;width:100%;max-width:420px;padding:2.5rem 2rem;box-shadow:0 30px 80px rgba(0,0,0,0.5)}
-.trophy{font-size:2.5rem;display:block;text-align:center;margin-bottom:.5rem}
-.badge{display:inline-block;background:var(--red);color:var(--gold-l);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:.75rem}
-h1{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;color:var(--dark);line-height:1;letter-spacing:1px;margin-bottom:.2rem;text-align:center}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem 1rem;background:var(--dark);background-image:radial-gradient(circle at 20% 20%,rgba(192,57,43,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(212,172,13,0.1) 0%,transparent 50%)}
+
+/* ── WRAPPER ── */
+.wrap{width:100%;max-width:440px;display:flex;flex-direction:column;gap:1rem}
+
+/* ── SLIDESHOW ── */
+.slideshow{background:var(--dark);border-radius:16px;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.75rem;text-align:center;opacity:0;transition:opacity .7s ease}
+.slide.active{opacity:1;position:relative}
+.slide-icon{font-size:2.8rem;margin-bottom:.6rem;line-height:1}
+.slide-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;color:#fff;letter-spacing:1px;margin-bottom:.4rem}
+.slide-sub{font-size:14px;color:rgba(255,255,255,0.6);line-height:1.5;max-width:300px}
+.slide-pts{display:flex;gap:2rem;margin-bottom:.75rem}
+.slide-pts .pt{text-align:center}
+.slide-pts .pt-num{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold);line-height:1}
+.slide-pts .pt-lbl{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px}
+.video-btn{display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;border:none;border-radius:25px;padding:10px 22px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:.5rem;transition:background .2s,transform .1s;text-decoration:none}
+.video-btn:hover{background:var(--red-d)}
+.video-btn:active{transform:scale(.97)}
+.video-btn-icon{font-size:16px}
+.dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:10}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.25);cursor:pointer;transition:background .3s,transform .3s}
+.dot.active{background:var(--gold);transform:scale(1.3)}
+.slide-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:10}
+.slide-nav:hover{background:rgba(255,255,255,0.2)}
+.slide-nav.prev{left:10px}
+.slide-nav.next{right:10px}
+/* Gold top bar */
+.slideshow::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--red),var(--gold));width:100%}
+
+/* ── LOGIN CARD ── */
+.card{background:var(--cream);border-radius:18px;padding:2rem 2rem 1.75rem;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.card-header{text-align:center;margin-bottom:1.25rem}
+.trophy{font-size:2.2rem;display:block;margin-bottom:.4rem}
+.badge-pill{display:inline-block;background:var(--red);color:var(--gold-l);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:3px 12px;border-radius:20px;margin-bottom:.6rem}
+h1{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;color:var(--dark);line-height:1;letter-spacing:1px;margin-bottom:.15rem}
 h1 span{color:var(--red)}
-.sub{font-size:14px;color:var(--muted);margin-bottom:1.5rem;text-align:center}
-.divider{height:3px;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:2px;margin-bottom:1.75rem}
-.field{margin-bottom:1.1rem}
+.sub{font-size:13px;color:var(--muted)}
+.divider{height:3px;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:2px;margin:1.1rem 0 1.25rem}
+.field{margin-bottom:1rem}
 .field label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:5px;letter-spacing:.4px}
-.field input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:15px;background:#fff;color:var(--dark);transition:border-color .2s,box-shadow .2s;outline:none}
+.field input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:15px;background:#fff;color:var(--dark);transition:border-color .2s,box-shadow .2s;outline:none}
 .field input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,0.12)}
 .btn{width:100%;padding:13px;background:var(--red);color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:.5px;transition:background .2s,transform .1s;margin-top:.25rem}
 .btn:hover{background:var(--red-d)}
 .btn:active{transform:scale(.98)}
 .btn:disabled{background:#ccc;cursor:not-allowed}
-.err{background:#fdf2f2;border:1px solid #fca5a5;color:var(--red);border-radius:var(--radius);padding:10px 14px;font-size:13px;margin-bottom:1.1rem;display:none}
+.err{background:#fdf2f2;border:1px solid #fca5a5;color:var(--red);border-radius:var(--radius);padding:9px 13px;font-size:13px;margin-bottom:1rem;display:none}
 .err.show{display:block}
-.info{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:#92400e;margin-bottom:1.1rem;display:none;line-height:1.5}
+.info{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:var(--radius);padding:9px 13px;font-size:13px;color:#92400e;margin-bottom:1rem;display:none;line-height:1.5}
 .info.show{display:block}
-.note{text-align:center;font-size:12px;color:var(--muted);margin-top:1.25rem}
-.loading{text-align:center;font-size:13px;color:var(--muted);margin-bottom:1rem;display:none}
+.loading{text-align:center;font-size:13px;color:var(--muted);margin-bottom:.75rem;display:none}
 .loading.show{display:block}
+.note{text-align:center;font-size:12px;color:var(--muted);margin-top:1rem}
+
+/* ── VIDEO OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem}
+.overlay.show{display:flex}
+.overlay-inner{position:relative;width:100%;max-width:800px}
+.overlay-close{position:absolute;top:-36px;right:0;background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer;padding:4px 8px;line-height:1}
+.overlay-close:hover{color:var(--gold)}
+.video-frame{width:100%;aspect-ratio:16/9;border-radius:10px;border:none}
+
+@media(max-width:480px){
+  .slide-title{font-size:1.4rem}
+  .slide-sub{font-size:13px}
+  .card{padding:1.5rem 1.25rem}
+}
 </style>
-</head>
-<body>
-<div class="card">
-  <span class="trophy">🏆</span>
-  <div style="text-align:center;margin-bottom:.5rem"><span class="badge">Ainult sõpradele</span></div>
-  <h1>MM<span>2026</span></h1>
-  <p class="sub">FIFA maailmamestrivõistluste sõpradevaheline ennustusvõistlus</p>
-  <div class="divider"></div>
-
-  <div class="loading" id="loadingMsg">⏳ Ühendamine andmebaasiga...</div>
-  <div class="info" id="firstRunNote">
-    👋 <b>Tere tulemast, korraldaja!</b> Esmakordsel avamisel on loodud ajutine admin-konto. Logi sisse kasutajanimega <b>admin</b> ja parooliga <b>admin</b>, seejärel mine Admin Paneeli → Kontode haldus, et luua päris kontod ja muuta admin parool.
-  </div>
-  <div class="err" id="loginErr">Vale kasutajanimi või parool. Proovi uuesti.</div>
-  <div class="err" id="connErr">Andmebaasiga ühendamine ebaõnnestus. Kontrolli internetiühendust.</div>
-
-  <div class="field">
-    <label for="u">Kasutajanimi</label>
-    <input type="text" id="u" placeholder="Sisesta oma kasutajanimi" autocomplete="username">
-  </div>
-  <div class="field">
-    <label for="p">Parool</label>
-    <input type="password" id="p" placeholder="Sisesta oma parool" autocomplete="current-password">
-  </div>
-  <button class="btn" id="loginBtn" onclick="login()">Sisene ennustusvõistlusele</button>
-  <p class="note">Ligipääsuprobleemide korral võta ühendust korraldajaga.</p>
-</div>
-
 <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- VIDEO OVERLAY -->
+<div class="overlay" id="videoOverlay" onclick="closeVideo(event)">
+  <div class="overlay-inner">
+    <button class="overlay-close" onclick="closeVideoBtn()">✕</button>
+    <iframe id="videoFrame" class="video-frame" src="" allowfullscreen allow="autoplay"></iframe>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- SLIDESHOW -->
+  <div class="slideshow" id="slideshow">
+
+    <div class="slide active" id="slide-0">
+      <div class="slide-icon">⚽</div>
+      <div class="slide-title">MM2026 Ennustusvõistlus</div>
+      <div class="slide-sub">FIFA maailmamestrivõistluste sõpradevaheline ennustusmäng — 104 mängu, reaalajas edetabel</div>
+    </div>
+
+    <div class="slide" id="slide-1">
+      <div class="slide-icon">🎯</div>
+      <div class="slide-title">Ennusta iga mängu</div>
+      <div class="slide-sub">Sisesta oma ennustus enne iga mängu avavilet — täpne tulemus toob rohkem punkte</div>
+      <div class="slide-pts" style="margin-top:.9rem">
+        <div class="pt"><div class="pt-num">5</div><div class="pt-lbl">täpne tulemus</div></div>
+        <div class="pt"><div class="pt-num">2</div><div class="pt-lbl">õige tulemus</div></div>
+        <div class="pt"><div class="pt-num">10</div><div class="pt-lbl">play-off täpne</div></div>
+      </div>
+    </div>
+
+    <div class="slide" id="slide-2">
+      <div class="slide-icon">🏆</div>
+      <div class="slide-title">Boonusennustused</div>
+      <div class="slide-sub">Ennusta turniiri võitja, parim pealelöögimees ja parim väravavaht — kuni <strong style="color:var(--gold)">+40 boonuspunkti</strong> lisaks!</div>
+    </div>
+
+    <div class="slide" id="slide-3">
+      <div class="slide-icon">📊</div>
+      <div class="slide-title">Reaalajas edetabel</div>
+      <div class="slide-sub">Jälgi oma kohta edetabelis pärast iga mängu — kes on parim ennustaja?</div>
+    </div>
+
+    <div class="slide" id="slide-4">
+      <div class="slide-icon">🎬</div>
+      <div class="slide-title">Vaata tutvustavat videot</div>
+      <div class="slide-sub" style="margin-bottom:.9rem">Näe kuidas mäng töötab — 90 sekundit</div>
+      <button class="video-btn" onclick="openVideo()">
+        <span class="video-btn-icon">▶</span> Vaata videot
+      </button>
+    </div>
+
+    <!-- Dots -->
+    <div class="dots">
+      <span class="dot active" onclick="goTo(0)"></span>
+      <span class="dot" onclick="goTo(1)"></span>
+      <span class="dot" onclick="goTo(2)"></span>
+      <span class="dot" onclick="goTo(3)"></span>
+      <span class="dot" onclick="goTo(4)"></span>
+    </div>
+    <button class="slide-nav prev" onclick="goTo(cur-1)">‹</button>
+    <button class="slide-nav next" onclick="goTo(cur+1)">›</button>
+  </div>
+
+  <!-- LOGIN CARD -->
+  <div class="card">
+    <div class="card-header">
+      <span class="trophy">🏆</span>
+      <div><span class="badge-pill">Ainult sõpradele</span></div>
+      <h1>MM<span>2026</span></h1>
+      <p class="sub">FIFA maailmamestrivõistluste sõpradevaheline ennustusvõistlus</p>
+    </div>
+    <div class="divider"></div>
+
+    <div class="loading" id="loadingMsg">⏳ Ühendamine andmebaasiga...</div>
+    <div class="info" id="firstRunNote">
+      👋 <b>Tere tulemast, korraldaja!</b> Esmakordsel avamisel on loodud ajutine admin-konto. Logi sisse kasutajanimega <b>admin</b> ja parooliga <b>admin</b>, seejärel mine Admin Paneeli → Kontode haldus, et luua päris kontod ja muuta admin parool.
+    </div>
+    <div class="err" id="loginErr">Vale kasutajanimi või parool. Proovi uuesti.</div>
+    <div class="err" id="connErr">Andmebaasiga ühendamine ebaõnnestus. Kontrolli internetiühendust.</div>
+
+    <div class="field">
+      <label for="u">Kasutajanimi</label>
+      <input type="text" id="u" placeholder="Sisesta oma kasutajanimi" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="p">Parool</label>
+      <input type="password" id="p" placeholder="Sisesta oma parool" autocomplete="current-password">
+    </div>
+    <button class="btn" id="loginBtn" onclick="login()">Sisene ennustusvõistlusele</button>
+    <p class="note">Ligipääsuprobleemide korral võta ühendust korraldajaga.</p>
+  </div>
+
+</div>
+
 <script>
+/* ── FIREBASE ─────────────────────────────────── */
 firebase.initializeApp({
   apiKey: "AIzaSyCLxqwO811b7j4oNsw-z0Yxe365XhGOKw4",
   authDomain: "mm2026-29834.firebaseapp.com",
@@ -78,7 +193,6 @@ async function sha256(str){
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-// On page load — check if accounts exist, seed admin/admin if not
 async function init(){
   document.getElementById('loadingMsg').classList.add('show');
   document.getElementById('loginBtn').disabled = true;
@@ -103,12 +217,9 @@ async function login(){
   const connEl = document.getElementById('connErr');
   errEl.classList.remove('show');
   connEl.classList.remove('show');
-
   if(!u || !p){ errEl.classList.add('show'); return; }
-
   document.getElementById('loginBtn').disabled = true;
   document.getElementById('loginBtn').textContent = 'Kontrollin...';
-
   try {
     const snap = await db.collection('accounts').doc(u).get();
     if(snap.exists){
@@ -123,7 +234,6 @@ async function login(){
   } catch(e){
     connEl.classList.add('show');
   }
-
   document.getElementById('loginBtn').disabled = false;
   document.getElementById('loginBtn').textContent = 'Sisene ennustusvõistlusele';
   document.getElementById('p').value = '';
@@ -131,6 +241,56 @@ async function login(){
 
 document.addEventListener('keydown', ev => { if(ev.key === 'Enter') login(); });
 init();
+
+/* ── SLIDESHOW ─────────────────────────────────── */
+let cur = 0;
+const total = 5;
+let timer = null;
+
+function goTo(n){
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+  // Hide current
+  slides[cur].style.opacity = '0';
+  slides[cur].style.position = 'absolute';
+  dots[cur].classList.remove('active');
+  // Show new
+  cur = ((n % total) + total) % total;
+  slides[cur].style.opacity = '1';
+  slides[cur].style.position = 'relative';
+  dots[cur].classList.add('active');
+  resetTimer();
+}
+
+function resetTimer(){
+  clearInterval(timer);
+  timer = setInterval(() => goTo(cur + 1), 4000);
+}
+
+// Init slideshow
+document.querySelectorAll('.slide').forEach((s, i) => {
+  if(i !== 0){ s.style.opacity = '0'; s.style.position = 'absolute'; }
+});
+resetTimer();
+
+/* ── VIDEO OVERLAY ─────────────────────────────── */
+const LOOM_URL = 'https://www.loom.com/embed/1ebf4b9033a44ee490bce212ff8611ef?autoplay=1&hide_owner=true&hide_share=true&hide_title=true';
+
+function openVideo(){
+  document.getElementById('videoFrame').src = LOOM_URL;
+  document.getElementById('videoOverlay').classList.add('show');
+  clearInterval(timer); // pause slideshow while video plays
+}
+
+function closeVideoBtn(){
+  document.getElementById('videoFrame').src = '';
+  document.getElementById('videoOverlay').classList.remove('show');
+  resetTimer();
+}
+
+function closeVideo(e){
+  if(e.target === document.getElementById('videoOverlay')) closeVideoBtn();
+}
 </script>
 </body>
 </html>
