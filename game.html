@@ -960,9 +960,9 @@ function renderMatches(){
       +'<div class="match-meta"><span>Mäng #'+m.id+' · '+m.date+'</span><span style="display:flex;gap:6px;align-items:center">'+roundPill(m)+deadlinePill(m.id)+'</span></div>'
       +'<div class="teams"><div class="team">'+m.home+'</div><div class="vs">VS</div><div class="team away">'+m.away+'</div></div>'
       +'<div class="pred-row"><span class="pred-lbl">Sinu tulemus:</span>'
-      +'<input class="score-inp" type="number" min="0" max="20" id="ph-'+m.id+'" value="'+(p.h!==undefined?p.h:'')+'" placeholder="0"'+(locked?' disabled':'')+'>'
+      +'<input class="score-inp" type="number" min="0" max="20" id="ph-'+m.id+'" value="'+(p.h!==undefined?p.h:(locked?'':'0'))+'" placeholder="0"'+(locked?' disabled':'')+'>'
       +'<span class="score-sep">–</span>'
-      +'<input class="score-inp" type="number" min="0" max="20" id="pa-'+m.id+'" value="'+(p.a!==undefined?p.a:'')+'" placeholder="0"'+(locked?' disabled':'')+'>'
+      +'<input class="score-inp" type="number" min="0" max="20" id="pa-'+m.id+'" value="'+(p.a!==undefined?p.a:(locked?'':'0'))+'" placeholder="0"'+(locked?' disabled':'')+'>'
       +'</div><div style="margin-top:4px">'+rb+' '+pb+'</div></div>';
   });
   if(!shown) html='<p style="color:var(--muted);font-size:14px;padding:.5rem 0">Selles filtris mänge ei ole.</p>';
