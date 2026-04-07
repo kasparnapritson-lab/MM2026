@@ -736,20 +736,82 @@ const DEFAULT_GKS=[
 /* ═══════════════════════════════════════════
    STORAGE KEYS
 ═══════════════════════════════════════════ */
-const K={
-  results:'MM2026_results',
-  deadlines:'MM2026_deadlines',
-  lockWindow:'MM2026_lockWindow',
-  scorers:'MM2026_scorers',
-  gks:'MM2026_gks',
-  accounts:'MM2026_accounts',
-  bonusPrefix:'MM2026_bonus_',
-  predPrefix:'MM2026_p_'
-};
-function getR(){return JSON.parse(localStorage.getItem(K.results)||'{}');}
-function setR(d){localStorage.setItem(K.results,JSON.stringify(d));}
-function getP(u){return JSON.parse(localStorage.getItem(K.predPrefix+u)||'{}');}
-function setP(u,d){localStorage.setItem(K.predPrefix+u,JSON.stringify(d));}
+/* ═══════════════════════════════════════════
+   FIREBASE DATA LAYER
+   All game data stored in Firestore.
+   In-memory cache prevents excessive reads.
+═══════════════════════════════════════════ */
+const _cache = {};
+
+async function fbGet(collection, doc){
+  const key = collection+'/'+doc;
+  if(_cache[key]!==undefined) return _cache[key];
+  try{
+    const snap = await _db.collection(collection).doc(doc).get();
+    const data = snap.exists ? snap.data() : {};
+    _cache[key] = data;
+    return data;
+  }catch(e){console.error('fbGet error',e);return {};}
+}
+async function fbSet(collection, doc, data){
+  const key = collection+'/'+doc;
+  _cache[key] = data;
+  try{
+    await _db.collection(collection).doc(doc).set(data);
+    return true;
+  }catch(e){console.error('fbSet error',e);return false;}
+}
+function fbClearCache(collection, doc){
+  delete _cache[collection+'/'+doc];
+}
+
+// Results
+async function getR(){return await fbGet('results','main');}
+async function setR(d){await fbSet('results','main',d);}
+
+// Predictions
+async function getP(u){return await fbGet('predictions',u);}
+async function setP(u,d){await fbSet('predictions',u,d);}
+
+// Bonus predictions
+async function getBonus(u){return await fbGet('predictions_bonus',u);}
+async function setBonus(u,d){await fbSet('predictions_bonus',u,d);}
+
+// Deadlines
+async function getDeadlines(){
+  const d=await fbGet('settings','deadlines');
+  return d||{};
+}
+async function setDeadlines(d){await fbSet('settings','deadlines',d);}
+
+// Config (lockWindow)
+function getLockWindow(){
+  const cached=_cache['settings/config'];
+  if(cached&&cached.lockWindow) return cached.lockWindow;
+  return 30;
+}
+async function loadConfig(){
+  const c=await fbGet('settings','config');
+  if(!c.lockWindow){await fbSet('settings','config',{lockWindow:30});}
+}
+async function saveLockWindowFb(v){
+  const c=await fbGet('settings','config')||{};
+  c.lockWindow=v;
+  await fbSet('settings','config',c);
+}
+
+// Player lists (scorers/gks)
+async function getScorerList(){
+  const d=await fbGet('settings','players');
+  return d.scorers||[...DEFAULT_SCORERS];
+}
+async function getGkList(){
+  const d=await fbGet('settings','players');
+  return d.gks||[...DEFAULT_GKS];
+}
+async function savePlayerLists_fb(scorers,gks){
+  await fbSet('settings','players',{scorers,gks});
+}
 /* ── FIREBASE ACCOUNT FUNCTIONS (compat SDK) ────────────
    Uses _db (firebase.firestore()) initialised in <head>.
 ─────────────────────────────────────────────────────── */
@@ -781,19 +843,7 @@ async function deleteAccountFromDB(username){
 }
 function getAccounts(){return {};}
 function setAccounts(d){}
-function getDeadlines(){return JSON.parse(localStorage.getItem(K.deadlines)||'{}');}
-function setDeadlines(d){localStorage.setItem(K.deadlines,JSON.stringify(d));}
-function getLockWindow(){return parseInt(localStorage.getItem(K.lockWindow)||'30');}
-function getScorerList(){
-  const s=localStorage.getItem(K.scorers);
-  return s?JSON.parse(s):[...DEFAULT_SCORERS];
-}
-function getGkList(){
-  const s=localStorage.getItem(K.gks);
-  return s?JSON.parse(s):[...DEFAULT_GKS];
-}
-function getBonus(u){return JSON.parse(localStorage.getItem(K.bonusPrefix+u)||'{}');}
-function setBonus(u,d){localStorage.setItem(K.bonusPrefix+u,JSON.stringify(d));}
+// Storage functions moved to Firebase layer above
 
 /* ═══════════════════════════════════════════
    AUTH
@@ -813,20 +863,23 @@ async function sha256(str){
    DEADLINE ENGINE
 ═══════════════════════════════════════════ */
 // Returns true if a match is locked (within lockWindow minutes of kick-off or past it)
-function isLocked(matchId){
-  const r=getR();
-  if(r[matchId]) return true; // result entered = always locked
-  const deadlines=getDeadlines();
+// Sync isLocked using cached data only (called in loops)
+function isLockedSync(matchId, results, deadlines){
+  if(results[matchId]) return true;
   const ko=deadlines[matchId];
-  if(!ko) return false; // no deadline set = open
+  if(!ko) return false;
   const lockMs=getLockWindow()*60*1000;
   return Date.now()>=(new Date(ko).getTime()-lockMs);
 }
+// Async version for single checks
+async function isLocked(matchId){
+  const r=await getR();
+  const d=await getDeadlines();
+  return isLockedSync(matchId,r,d);
+}
 
-function deadlinePill(matchId){
-  const r=getR();
-  if(r[matchId]) return '<span class="deadline-pill deadline-locked">🔒 Tulemus sisestatud</span>';
-  const deadlines=getDeadlines();
+function deadlinePill(matchId, results, deadlines){
+  if(results[matchId]) return '<span class="deadline-pill deadline-locked">🔒 Tulemus sisestatud</span>';
   const ko=deadlines[matchId];
   if(!ko) return '<span class="deadline-pill deadline-open">🟢 Avatud</span>';
   const lockMs=getLockWindow()*60*1000;
@@ -938,11 +991,11 @@ function filterPred(f,btn){
   btn.classList.add('active');
   renderMatches();
 }
-function renderMatches(){
-  const preds=getP(ME),results=getR();
+async function renderMatches(){
+  const preds=await getP(ME),results=await getR(),deadlines=await getDeadlines();
   let html='',shown=0;
   MATCHES.forEach(m=>{
-    const locked=isLocked(m.id);
+    const locked=isLockedSync(m.id,results,deadlines);
     if(predFilter==='GS'&&!isGS(m)) return;
     if(predFilter==='KO'&&isGS(m)) return;
     if(predFilter==='open'&&locked) return;
@@ -957,7 +1010,7 @@ function renderMatches(){
     else if(pts===0)          pb='<span class="pts-badge pts-wrong">❌ Wrong — 0pts</span>';
     const rb=r?'<span class="result-badge">Final: '+r.h+' – '+r.a+'</span>':'';
     html+='<div class="match-card'+(locked?' locked':'')+'">'
-      +'<div class="match-meta"><span>Mäng #'+m.id+' · '+m.date+'</span><span style="display:flex;gap:6px;align-items:center">'+roundPill(m)+deadlinePill(m.id)+'</span></div>'
+      +'<div class="match-meta"><span>Mäng #'+m.id+' · '+m.date+'</span><span style="display:flex;gap:6px;align-items:center">'+roundPill(m)+deadlinePill(m.id,results,deadlines)+'</span></div>'
       +'<div class="teams"><div class="team">'+m.home+'</div><div class="vs">VS</div><div class="team away">'+m.away+'</div></div>'
       +'<div class="pred-row"><span class="pred-lbl">Sinu tulemus:</span>'
       +'<input class="score-inp" type="number" min="0" max="20" id="ph-'+m.id+'" value="'+(p.h!==undefined?p.h:(locked?'':'0'))+'" placeholder="0"'+(locked?' disabled':'')+'>'
@@ -969,14 +1022,21 @@ function renderMatches(){
   document.getElementById('matchList').innerHTML=html;
   startCountdownTick();
 }
-function savePredictions(){
-  const preds=getP(ME);
+async function savePredictions(){
+  const btn=document.getElementById('saveBtn');
+  if(btn){btn.disabled=true;btn.textContent='Salvestamine...';}
+  const preds=await getP(ME);
+  const now=new Date().toISOString();
+  const _res=await getR(), _dl=await getDeadlines();
   MATCHES.forEach(m=>{
-    if(isLocked(m.id)) return;
+    if(isLockedSync(m.id,_res,_dl)) return;
     const h=document.getElementById('ph-'+m.id),a=document.getElementById('pa-'+m.id);
-    if(h&&a&&h.value!==''&&a.value!=='') preds[m.id]={h:parseInt(h.value),a:parseInt(a.value)};
+    if(h&&a&&h.value!==''&&a.value!==''){
+      preds[m.id]={h:parseInt(h.value),a:parseInt(a.value),saved:now};
+    }
   });
-  setP(ME,preds);
+  const ok2=await setP(ME,preds);
+  if(btn){btn.disabled=false;btn.textContent='Salvesta minu ennustused';}
   const ok=document.getElementById('saveOk');
   ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
 }
@@ -984,8 +1044,8 @@ function savePredictions(){
 /* ═══════════════════════════════════════════
    BONUS PREDICTIONS
 ═══════════════════════════════════════════ */
-function renderBonusTab(){
-  const bonus=getBonus(ME);
+async function renderBonusTab(){
+  const bonus=await getBonus(ME);
   const bonusDeadline=new Date('2026-06-11T14:00:00');
   const locked=Date.now()>=bonusDeadline.getTime();
   // Populate winner (teams)
@@ -994,12 +1054,12 @@ function renderBonusTab(){
   winnerSel.innerHTML='<option value="">— Vali meeskond —</option>'+teams.map(t=>'<option value="'+t+'"'+(bonus.winner===t?' selected':'')+'>'+t+'</option>').join('');
   winnerSel.disabled=locked;
   // Populate top scorer
-  const scorers=getScorerList();
+  const scorers=await getScorerList();
   const scorerSel=document.getElementById('bonus_topscorer');
   scorerSel.innerHTML='<option value="">— Vali mängija —</option>'+scorers.map(p=>'<option value="'+p+'"'+(bonus.topscorer===p?' selected':'')+'>'+p+'</option>').join('');
   scorerSel.disabled=locked;
   // Populate GK
-  const gks=getGkList();
+  const gks=await getGkList();
   const gkSel=document.getElementById('bonus_gk');
   gkSel.innerHTML='<option value="">— Vali väravavaht —</option>'+gks.map(p=>'<option value="'+p+'"'+(bonus.gk===p?' selected':'')+'>'+p+'</option>').join('');
   gkSel.disabled=locked;
@@ -1017,16 +1077,16 @@ function renderBonusTab(){
   if(bonus.upset){const m=MATCHES.find(x=>x.id==bonus.upset);if(m)parts.push('<b>📊 Upset:</b> '+m.home+' v '+m.away);}
   document.getElementById('myBonusContent').innerHTML=parts.length?parts.join(' &nbsp;·&nbsp; '):'Valikuid ei ole tehtud.';
 }
-function saveBonusPicks(){
-  const bonusDeadline=new Date('2026-06-11T14:00:00');
-  if(Date.now()>=bonusDeadline.getTime()){alert('Bonus deadline has passed!');return;}
+async function saveBonusPicks(){
+  const bonusDeadline=new Date('2026-06-11T14:00:00+03:00');
+  if(Date.now()>=bonusDeadline.getTime()){alert('Boonusennustuste tähtaeg on möödas!');return;}
   const bonus={
     winner:document.getElementById('bonus_winner').value,
     topscorer:document.getElementById('bonus_topscorer').value,
     gk:document.getElementById('bonus_gk').value,
     upset:document.getElementById('bonus_upset').value
   };
-  setBonus(ME,bonus);
+  await setBonus(ME,bonus);
   const ok=document.getElementById('bonusSaveOk');
   ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
   renderBonusTab();
@@ -1035,8 +1095,9 @@ function saveBonusPicks(){
 /* ═══════════════════════════════════════════
    GROUP STAGE STANDINGS
 ═══════════════════════════════════════════ */
-function calcGroupStandings(gk){
-  const g=GROUPS[gk],results=getR(),st={};
+function calcGroupStandings(gk,results){
+  if(!results) results=window._cachedResults||{};
+  const g=GROUPS[gk],st={};
   g.teams.forEach(t=>{st[t]={mp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};});
   g.matchIds.forEach(id=>{
     const m=MATCHES.find(x=>x.id===id),r=results[id];
@@ -1052,10 +1113,11 @@ function calcGroupStandings(gk){
   return g.teams.map(t=>({team:t,...st[t],gd:st[t].gf-st[t].ga}))
     .sort((a,b)=>b.pts-a.pts||(b.gd-a.gd)||(b.gf-a.gf));
 }
-function renderGroups(){
+async function renderGroups(){
+  window._cachedResults=await getR();
   let html='';
   Object.keys(GROUPS).forEach(gk=>{
-    const rows=calcGroupStandings(gk);
+    const rows=calcGroupStandings(gk,window._cachedResults);
     html+='<div class="group-block"><span class="group-title">Grupp '+gk+'</span>'
       +'<table class="gs-table"><thead><tr><th>Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th><th>Status</th></tr></thead><tbody>';
     rows.forEach((r,i)=>{
@@ -1072,7 +1134,7 @@ function renderGroups(){
    KNOCKOUT BRACKET
 ═══════════════════════════════════════════ */
 function getWinner(id){
-  const r=getR()[id],m=MATCHES.find(x=>x.id===id);
+  const r=(window._cachedResults||{})[id],m=MATCHES.find(x=>x.id===id);
   if(!r||!m||m.home==='TBD') return null;
   const h=parseInt(r.h),a=parseInt(r.a);
   if(isNaN(h)||isNaN(a)) return null;
@@ -1083,7 +1145,7 @@ function getGroupTop(gk,pos){
   return(rows[pos]&&rows[pos].mp>0)?rows[pos].team:'TBD';
 }
 function bkMatch(home,away,id){
-  const r=getR()[id];
+  const r=(window._cachedResults||{})[id];
   const score=r?' ('+r.h+'-'+r.a+')':'';
   return '<div class="bk-match">'
     +'<div class="bk-team '+(!home||home==='TBD'?'tbd':'')+'">'+(home||'TBD')+'</div>'
@@ -1092,7 +1154,8 @@ function bkMatch(home,away,id){
     +(score?'<span style="font-size:10px;color:var(--muted)"> '+score+'</span>':'')
     +'</div></div>';
 }
-function renderBracket(){
+async function renderBracket(){
+  window._cachedResults=await getR();
   const r32W=[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88].map(id=>getWinner(id)||'TBD');
   const r16W=[89,90,91,92,93,94,95,96].map(id=>getWinner(id)||'TBD');
   const qfW=[97,98,99,100].map(id=>getWinner(id)||'TBD');
@@ -1123,12 +1186,16 @@ function renderBracket(){
    LEADERBOARD
 ═══════════════════════════════════════════ */
 async function renderLeaderboard(){
-  const results=getR();
+  fbClearCache('results','main');
+  const results=await getR();
   let totalWithResults=0;
   MATCHES.forEach(m=>{if(results[m.id])totalWithResults++;});
   const players=await getAllPlayers();
+  // Load all predictions in parallel for performance
+  const allPreds={};
+  await Promise.all(players.map(async p=>{allPreds[p]=await getP(p);}));
   const rows=players.map(player=>{
-    const preds=getP(player);
+    const preds=allPreds[player]||{};
     let gsPts=0,koPts=0,exact=0,correct=0,form=[];
     MATCHES.forEach(m=>{
       const r=results[m.id],p=preds[m.id],ko=!isGS(m);
@@ -1220,8 +1287,8 @@ const DEFAULT_KO_TIMES={
   17:'2026-06-16T19:00+03:00',18:'2026-06-16T22:00+03:00',19:'2026-06-17T01:00+03:00',20:'2026-06-17T04:00+03:00',
   21:'2026-06-17T18:00+03:00',22:'2026-06-17T21:00+03:00',23:'2026-06-18T00:00+03:00',24:'2026-06-18T02:00+03:00'
 };
-function renderDeadlineTable(){
-  const deadlines=getDeadlines();
+async function renderDeadlineTable(){
+  const deadlines=await getDeadlines();
   document.getElementById('lockWindow').value=getLockWindow();
   let html='';
   Object.entries(ROUND_GROUPS).forEach(([label,ids])=>{
@@ -1232,7 +1299,7 @@ function renderDeadlineTable(){
       // Strip +03:00 for display in datetime-local input (it only accepts YYYY-MM-DDTHH:MM)
   const rawStored=deadlines[id]||DEFAULT_KO_TIMES[id]||'';
   const stored=rawStored.replace(/([+-]\d{2}:\d{2}|Z)$/, '');
-      const status=isLocked(id)?'<span class="deadline-pill deadline-locked" style="font-size:11px">Locked</span>':'<span class="deadline-pill deadline-open" style="font-size:11px">Open</span>';
+      const status=isLockedSync(id,results,deadlines)?'<span class="deadline-pill deadline-locked" style="font-size:11px">Locked</span>':'<span class="deadline-pill deadline-open" style="font-size:11px">Open</span>';
       html+='<tr>'
         +'<td style="font-size:12px">#'+id+' '+m.home+' v '+m.away+'</td>'
         +'<td><input type="datetime-local" class="deadline-input" id="dl-'+id+'" value="'+stored+'"></td>'
@@ -1241,23 +1308,21 @@ function renderDeadlineTable(){
   });
   document.getElementById('deadlineTableBody').innerHTML=html;
 }
-function saveLockWindow(){
+async function saveLockWindow(){
   const v=parseInt(document.getElementById('lockWindow').value)||30;
-  localStorage.setItem(K.lockWindow,v);
+  await saveLockWindowFb(v);
 }
-function saveDeadlines(){
-  const deadlines=getDeadlines();
-  // Append Estonian summer time offset (+03:00 = EEST, covers Jun 11–Jul 19)
-  // This ensures countdowns are correct for all players regardless of their timezone
+async function saveDeadlines(){
+  fbClearCache('settings','deadlines');
+  const deadlines=await getDeadlines();
   MATCHES.forEach(m=>{
     const el=document.getElementById('dl-'+m.id);
     if(el&&el.value){
-      // Strip any existing offset and re-add +03:00
       const clean=el.value.replace(/([+-]\d{2}:\d{2}|Z)$/, '');
       deadlines[m.id]=clean+'+03:00';
     }
   });
-  setDeadlines(deadlines);
+  await setDeadlines(deadlines);
   const ok=document.getElementById('dlSaveOk');
   ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
   renderDeadlineTable();
@@ -1273,8 +1338,8 @@ function filterAdmin(f,btn){
   btn.classList.add('active');
   renderAdminMatches();
 }
-function renderAdminMatches(){
-  const results=getR();
+async function renderAdminMatches(){
+  const results=await getR(),deadlines=await getDeadlines();
   let html='';
   MATCHES.forEach(m=>{
     if(adminFilter==='GS'&&!isGS(m)) return;
@@ -1292,13 +1357,14 @@ function renderAdminMatches(){
   });
   document.getElementById('adminMatchList').innerHTML=html;
 }
-function saveResults(){
-  const results=getR();
+async function saveResults(){
+  fbClearCache('results','main');
+  const results=await getR();
   MATCHES.forEach(m=>{
     const h=document.getElementById('rh-'+m.id),a=document.getElementById('ra-'+m.id);
     if(h&&a&&h.value!==''&&a.value!=='') results[m.id]={h:parseInt(h.value),a:parseInt(a.value)};
   });
-  setR(results);
+  await setR(results);
   const ok=document.getElementById('adminSaveOk');
   ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
   renderAdminMatches();renderPredTable();
@@ -1307,8 +1373,8 @@ function saveResults(){
 /* ═══════════════════════════════════════════
    ADMIN — PLAYER LIST MANAGER
 ═══════════════════════════════════════════ */
-function renderPlayerListAdmin(){
-  const scorers=getScorerList(),gks=getGkList();
+async function renderPlayerListAdmin(){
+  const scorers=await getScorerList(),gks=await getGkList();
   function buildGrid(list,type,containerId){
     const c=document.getElementById(containerId);
     c.innerHTML=list.map((p,i)=>'<div class="player-entry">'
@@ -1319,31 +1385,35 @@ function renderPlayerListAdmin(){
   buildGrid(scorers,'scorer','scorerListGrid');
   buildGrid(gks,'gk','gkListGrid');
 }
-function addPlayerToList(type){
-  const list=type==='scorer'?getScorerList():getGkList();
-  list.push('');
-  if(type==='scorer') localStorage.setItem(K.scorers,JSON.stringify(list));
-  else localStorage.setItem(K.gks,JSON.stringify(list));
+async function addPlayerToList(type){
+  const scorers=await getScorerList();
+  const gks=await getGkList();
+  if(type==='scorer') scorers.push('');
+  else gks.push('');
+  fbClearCache('settings','players');
+  await savePlayerLists_fb(scorers,gks);
   renderPlayerListAdmin();
   // Focus new field
   const grid=document.getElementById(type==='scorer'?'scorerListGrid':'gkListGrid');
   const inputs=grid.querySelectorAll('input');
   if(inputs.length) inputs[inputs.length-1].focus();
 }
-function removePlayer(type,idx){
-  const list=type==='scorer'?getScorerList():getGkList();
-  list.splice(idx,1);
-  if(type==='scorer') localStorage.setItem(K.scorers,JSON.stringify(list));
-  else localStorage.setItem(K.gks,JSON.stringify(list));
+async function removePlayer(type,idx){
+  const scorers=await getScorerList();
+  const gks=await getGkList();
+  if(type==='scorer') scorers.splice(idx,1);
+  else gks.splice(idx,1);
+  fbClearCache('settings','players');
+  await savePlayerLists_fb(scorers,gks);
   renderPlayerListAdmin();
 }
-function savePlayerLists(){
+async function savePlayerLists(){
   const sGrid=document.getElementById('scorerListGrid').querySelectorAll('input');
   const gGrid=document.getElementById('gkListGrid').querySelectorAll('input');
   const scorers=[...sGrid].map(i=>i.value.trim()).filter(Boolean);
   const gks=[...gGrid].map(i=>i.value.trim()).filter(Boolean);
-  localStorage.setItem(K.scorers,JSON.stringify(scorers));
-  localStorage.setItem(K.gks,JSON.stringify(gks));
+  fbClearCache('settings','players');
+  await savePlayerLists_fb(scorers,gks);
   const ok=document.getElementById('plSaveOk');
   ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
   renderPlayerListAdmin();
@@ -1419,8 +1489,13 @@ function filterPredTable(f,btn){
   renderPredTable();
 }
 async function renderPredTable(){
-  const results=getR();
+  const results=await getR();
   const players=await getAllPlayers();
+  // Load all player predictions in parallel
+  const playerPreds={};
+  await Promise.all(players.map(async p=>{
+    playerPreds[p]=await getP(p);
+  }));
   let headHtml='<tr><th class="left">#</th><th class="left">Match</th><th>Date</th><th>Result</th>';
   players.forEach(p=>{headHtml+='<th>'+p+'</th>';});
   headHtml+='</tr>';
@@ -1439,15 +1514,16 @@ async function renderPredTable(){
       +'<td style="font-size:11px;color:var(--muted)">'+m.date+'</td>'
       +'<td>'+resTd+'</td>';
     players.forEach(player=>{
-      const preds=getP(player),p=preds[m.id];
+      const p=(playerPreds[player]||{})[m.id];
       if(!p||p.h===undefined){bodyHtml+='<td class="pred-cell none">—</td>';return;}
       const predStr=p.h+'–'+p.a;
-      if(!r){bodyHtml+='<td class="pred-cell">'+predStr+'</td>';return;}
+      const savedTime=p.saved?('<br><span style="font-size:10px;color:var(--muted)">'+p.saved.replace('T',' ').substring(0,16)+'</span>'):'';
+      if(!r){bodyHtml+='<td class="pred-cell">'+predStr+savedTime+'</td>';return;}
       const pts=calcPts(p,r,ko);
       const ep=ko?10:5,dp=ko?4:2;
       const cls=pts===ep?'exact':pts===dp?'correct':pts===0?'wrong':'none';
       const icon=pts===ep?' ✅':pts===dp?' ✔':pts===0?' ❌':'';
-      bodyHtml+='<td class="pred-cell '+cls+'">'+predStr+icon+'</td>';
+      bodyHtml+='<td class="pred-cell '+cls+'">'+predStr+icon+savedTime+'</td>';
     });
     bodyHtml+='</tr>';
   });
@@ -1459,20 +1535,20 @@ async function renderPredTable(){
 ═══════════════════════════════════════════ */
 renderMatches();
 // Pre-populate deadline inputs with defaults if not yet set
-(function seedDefaultDeadlines(){
-  const dl=getDeadlines();
+(async function seedDefaultDeadlines(){
+  const dl=await getDeadlines();
   let changed=false;
   Object.entries(DEFAULT_KO_TIMES).forEach(([id,t])=>{
     if(!dl[id]){dl[id]=t;changed=true;}
   });
-  if(changed) setDeadlines(dl);
+  if(changed) await setDeadlines(dl);
 })();
 
 /* ═══════════════════════════════════════════
    MINU STATISTIKA
 ═══════════════════════════════════════════ */
-function renderMyStats(){
-  const results=getR(), preds=getP(ME);
+async function renderMyStats(){
+  const results=await getR(), preds=await getP(ME);
   let exact=0,correct=0,wrong=0,noPred=0,gsPts=0,koPts=0;
   const recent=[];
 
