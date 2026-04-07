@@ -83,9 +83,9 @@ h1 span{color:var(--red)}
 <body>
 
 <!-- VIDEO OVERLAY -->
-<div class="overlay" id="videoOverlay" onclick="closeVideo(event)">
+<div class="overlay" id="videoOverlay" onclick="window._closeVideo&&window._closeVideo(event)">
   <div class="overlay-inner">
-    <button class="overlay-close" onclick="closeVideoBtn()">✕</button>
+    <button class="overlay-close" onclick="window._closeVideoBtn&&window._closeVideoBtn()">✕</button>
     <iframe id="videoFrame" class="video-frame" src="" allowfullscreen allow="autoplay"></iframe>
   </div>
 </div>
@@ -128,21 +128,21 @@ h1 span{color:var(--red)}
       <div class="slide-icon">🎬</div>
       <div class="slide-title">Vaata tutvustavat videot</div>
       <div class="slide-sub" style="margin-bottom:.9rem">Näe kuidas mäng töötab — 90 sekundit</div>
-      <button class="video-btn" onclick="openVideo()">
+      <button class="video-btn" onclick="window._openVideo&&window._openVideo()">
         <span class="video-btn-icon">▶</span> Vaata videot
       </button>
     </div>
 
     <!-- Dots -->
     <div class="dots">
-      <span class="dot active" onclick="goTo(0)"></span>
-      <span class="dot" onclick="goTo(1)"></span>
-      <span class="dot" onclick="goTo(2)"></span>
-      <span class="dot" onclick="goTo(3)"></span>
-      <span class="dot" onclick="goTo(4)"></span>
+      <span class="dot active" onclick="window._goTo&&window._goTo(0)"></span>
+      <span class="dot" onclick="window._goTo&&window._goTo(1)"></span>
+      <span class="dot" onclick="window._goTo&&window._goTo(2)"></span>
+      <span class="dot" onclick="window._goTo&&window._goTo(3)"></span>
+      <span class="dot" onclick="window._goTo&&window._goTo(4)"></span>
     </div>
-    <button class="slide-nav prev" onclick="goTo(cur-1)">‹</button>
-    <button class="slide-nav next" onclick="goTo(cur+1)">›</button>
+    <button class="slide-nav prev" onclick="window._goTo&&window._goTo(window._cur-1)">‹</button>
+    <button class="slide-nav next" onclick="window._goTo&&window._goTo(window._cur+1)">›</button>
   </div>
 
   <!-- LOGIN CARD -->
@@ -170,13 +170,15 @@ h1 span{color:var(--red)}
       <label for="p">Parool</label>
       <input type="password" id="p" placeholder="Sisesta oma parool" autocomplete="current-password">
     </div>
-    <button class="btn" id="loginBtn" onclick="login()">Sisene ennustusvõistlusele</button>
+    <button class="btn" id="loginBtn" onclick="window._login&&window._login()">Sisene ennustusvõistlusele</button>
     <p class="note">Ligipääsuprobleemide korral võta ühendust korraldajaga.</p>
   </div>
 
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+
 /* ── FIREBASE ─────────────────────────────────── */
 firebase.initializeApp({
   apiKey: "AIzaSyCLxqwO811b7j4oNsw-z0Yxe365XhGOKw4",
@@ -239,7 +241,7 @@ async function login(){
   document.getElementById('p').value = '';
 }
 
-document.addEventListener('keydown', ev => { if(ev.key === 'Enter') login(); });
+document.addEventListener('keydown', ev => { if(ev.key === 'Enter') _login(); });
 init();
 
 /* ── SLIDESHOW ─────────────────────────────────── */
@@ -274,7 +276,7 @@ document.querySelectorAll('.slide').forEach((s, i) => {
 resetTimer();
 
 /* ── VIDEO OVERLAY ─────────────────────────────── */
-const LOOM_URL = 'https://www.loom.com/embed/1ebf4b9033a44ee490bce212ff8611ef?autoplay=1&hide_owner=true&hide_share=true&hide_title=true';
+const LOOM_URL = 'https://www.loom.com/embed/1ebf4b9033a44ee490bce212ff8611ef?autoplay=1&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true&default_speed=1';
 
 function openVideo(){
   document.getElementById('videoFrame').src = LOOM_URL;
@@ -291,6 +293,16 @@ function closeVideoBtn(){
 function closeVideo(e){
   if(e.target === document.getElementById('videoOverlay')) closeVideoBtn();
 }
+
+/* Expose all functions to global scope for onclick handlers */
+window._login = login;
+window._goTo = goTo;
+window._openVideo = openVideo;
+window._closeVideoBtn = closeVideoBtn;
+window._closeVideo = closeVideo;
+Object.defineProperty(window, '_cur', { get: () => cur });
+
+}); // end DOMContentLoaded
 </script>
 </body>
 </html>
