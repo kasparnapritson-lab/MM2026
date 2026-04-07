@@ -909,8 +909,9 @@ function buildCountdown(secs, id, target){
 }
 function startCountdownTick(){
   clearInterval(window._cdTimer);
+  let anyUrgent=false;
   window._cdTimer=setInterval(()=>{
-    let anyUrgent=false;
+    anyUrgent=false;
     document.querySelectorAll('[id^="cd-"]').forEach(el=>{
       const target=parseInt(el.dataset.target);
       if(!target) return;
