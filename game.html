@@ -664,6 +664,19 @@ const _db = firebase.firestore();
     <h3>Viimased 10 tulemust</h3>
     <div id="recentResults"></div>
   </div>
+
+  <!-- BOONUSENNUSTUSTE SEIS -->
+  <div class="stats-chart-wrap" style="margin-top:1rem">
+    <h3>🎁 Boonusennustuste seis</h3>
+    <div id="myBonusStatus"></div>
+  </div>
+
+  <!-- TOP SCORER EDETABEL -->
+  <div class="stats-chart-wrap" style="margin-top:1rem">
+    <h3>⚽ Top Scorer edetabel</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:.75rem">Sinu ennustatud mängija on märgitud rohelisega. +1 punkt iga värava eest, +10 lõpliku võitja eest.</p>
+    <div id="myTopScorerView"></div>
+  </div>
 </section>
 
 </main>
@@ -1873,6 +1886,68 @@ async function renderMyStats(){
   }).join('')
   :'<p style="font-size:13px;color:var(--muted)">Tulemusi pole veel.</p>';
   document.getElementById('recentResults').innerHTML=recentHtml;
+
+  // Bonus status section
+  const bonus = await getBonus(ME);
+  const br = await getBonusResults();
+  const details = await getMatchDetails();
+  // Build scorer goals map
+  const scorerGoals = {};
+  Object.values(details).forEach(d=>{
+    (d.goals||[]).forEach(g=>{
+      scorerGoals[g.player] = (scorerGoals[g.player]||0) + (g.count||1);
+    });
+  });
+  // My bonus points breakdown
+  let bonusHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">';
+  // Top scorer
+  const myScorer = bonus.topscorer||'—';
+  const scorerGoalCount = scorerGoals[myScorer]||0;
+  const scorerBonus = scorerGoalCount + (br.topscorer&&bonus.topscorer===br.topscorer?10:0);
+  bonusHtml += '<div class="stats-big-card"><div class="stats-big-num" style="font-size:1.4rem">'+myScorer+'</div>'
+    +'<div class="stats-big-lbl">Top Scorer ennustus</div>'
+    +'<div style="font-size:12px;color:var(--green);margin-top:4px">+'+scorerGoalCount+' väravat · +'+(br.topscorer&&bonus.topscorer===br.topscorer?10:0)+' võitja = +'+scorerBonus+'pts</div></div>';
+  // Golden Glove
+  const myGK = bonus.gk||'—';
+  const ggPts = br.goldenglove&&bonus.gk===br.goldenglove?10:0;
+  bonusHtml += '<div class="stats-big-card"><div class="stats-big-num" style="font-size:1.4rem">'+myGK+'</div>'
+    +'<div class="stats-big-lbl">Golden Glove ennustus</div>'
+    +'<div style="font-size:12px;color:'+(ggPts?'var(--green)':'var(--muted)')+'margin-top:4px">'+(ggPts?'✅ +10pts':'⏳ Ootel')+'</div></div>';
+  // Winner
+  const myWinner = bonus.winner||'—';
+  bonusHtml += '<div class="stats-big-card"><div class="stats-big-num" style="font-size:1.4rem">'+myWinner+'</div>'
+    +'<div class="stats-big-lbl">Turniiri võitja ennustus</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-top:4px">⏳ Selgub turniiri lõpus</div></div>';
+  // Upset
+  const myUpset = bonus.upset ? MATCHES.find(x=>x.id==bonus.upset) : null;
+  const upsetPts = br.upset&&bonus.upset==br.upset?5:0;
+  bonusHtml += '<div class="stats-big-card"><div class="stats-big-num" style="font-size:1.2rem">'+(myUpset?myUpset.home+' v '+myUpset.away:'—')+'</div>'
+    +'<div class="stats-big-lbl">Suurim üllatus ennustus</div>'
+    +'<div style="font-size:12px;color:'+(upsetPts?'var(--green)':'var(--muted)')+'margin-top:4px">'+(upsetPts?'✅ +5pts':'⏳ Ootel')+'</div></div>';
+  bonusHtml += '</div>';
+  document.getElementById('myBonusStatus').innerHTML = bonusHtml;
+
+  // Top scorer leaderboard view
+  const allScorers = Object.entries(scorerGoals)
+    .map(([player,goals])=>({player,goals}))
+    .sort((a,b)=>b.goals-a.goals);
+  if(allScorers.length){
+    let tsHtml = '<table class="top-scorer-table"><thead><tr><th>#</th><th>Mängija</th><th>Väravad</th><th>Minu ennustus</th></tr></thead><tbody>';
+    allScorers.forEach((s,i)=>{
+      const isMyPick = bonus.topscorer === s.player;
+      const isWinner = br.topscorer === s.player;
+      tsHtml += '<tr'+(isMyPick?' style="background:var(--gold-l)"':'')+'>'+
+        '<td style="font-weight:700">'+(i+1)+'</td>'+
+        '<td style="font-weight:600">'+s.player+(isWinner?' 🏆':'')+'</td>'+
+        '<td style="font-weight:700;color:var(--red)">'+s.goals+'</td>'+
+        '<td>'+(isMyPick?'<span style="color:var(--green);font-weight:700">✅ Minu valik</span>':'—')+'</td>'+
+        '</tr>';
+    });
+    tsHtml += '</tbody></table>';
+    document.getElementById('myTopScorerView').innerHTML = tsHtml;
+  } else {
+    document.getElementById('myTopScorerView').innerHTML = '<p style="font-size:13px;color:var(--muted)">Väravaid pole veel sisestatud.</p>';
+  }
 }
 
 function calcStreak(recent){
@@ -1907,6 +1982,11 @@ function filterMatchDetails(f, btn){
 async function renderMatchDetailsList(){
   const results = await getR();
   const details = await getMatchDetails();
+  const scorerList = await getScorerList();
+  const gkList = await getGkList();
+  const allPlayerList = [...scorerList, ...gkList];
+  const scorerOpts = scorerList.map(p=>`<option value="${p}">${p}</option>`).join('');
+  const allOpts = allPlayerList.map(p=>`<option value="${p}">${p}</option>`).join('');
   let html = '';
   let shown = 0;
   MATCHES.forEach(m=>{
@@ -1925,7 +2005,10 @@ async function renderMatchDetailsList(){
           <option value="${m.home}"${g.team===m.home?' selected':''}>${m.home}</option>
           <option value="${m.away}"${g.team===m.away?' selected':''}>${m.away}</option>
         </select>
-        <input type="text" id="goal-player-${m.id}-${gi}" value="${g.player||''}" placeholder="Mängija nimi" style="width:160px">
+        <select id="goal-player-${m.id}-${gi}" style="width:200px">
+          <option value="">— Vali mängija —</option>
+          ${scorerList.map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p}</option>`).join('')}
+        </select>
         <input type="number" id="goal-count-${m.id}-${gi}" value="${g.count||1}" min="1" max="5" style="width:52px" title="Väravate arv">
         <span style="font-size:11px;color:var(--muted)">väravat</span>
         <button class="del-btn" onclick="removeGoalRow(${m.id},${gi})">✕</button>
@@ -1939,7 +2022,10 @@ async function renderMatchDetailsList(){
           <option value="${m.home}"${c.team===m.home?' selected':''}>${m.home}</option>
           <option value="${m.away}"${c.team===m.away?' selected':''}>${m.away}</option>
         </select>
-        <input type="text" id="card-player-${m.id}-${ci}" value="${c.player||''}" placeholder="Mängija nimi" style="width:160px">
+        <select id="card-player-${m.id}-${ci}" style="width:200px">
+          <option value="">— Vali mängija —</option>
+          ${allPlayerList.map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p}</option>`).join('')}
+        </select>
         <select id="card-type-${m.id}-${ci}" style="width:130px">
           <option value="y"${c.type==='y'?' selected':''}>🟨 Kollane (−1)</option>
           <option value="iy"${c.type==='iy'?' selected':''}>🟨🟥 Kaudne punane (−3)</option>
@@ -1976,41 +2062,55 @@ async function renderMatchDetailsList(){
   renderBonusResultSelects();
 }
 
-function addGoalRow(matchId){
+async function addGoalRow(matchId){
   const m = MATCHES.find(x=>x.id===matchId);
   const container = document.getElementById('goals-container-'+matchId);
   const idx = container.children.length;
+  // Build player dropdown from scorer list
+  const scorers = await getScorerList();
+  const playerOptions = scorers.map(p=>`<option value="${p}">${p}</option>`).join('');
   const div = document.createElement('div');
   div.className = 'md-entry-row';
   div.id = 'goal-row-'+matchId+'-'+idx;
   div.innerHTML = `
     <span style="font-size:11px;color:var(--muted);width:16px">${idx+1}.</span>
-    <select id="goal-team-${matchId}-${idx}" style="width:160px">
+    <select id="goal-team-${matchId}-${idx}" style="width:155px">
       <option value="${m.home}">${m.home}</option>
       <option value="${m.away}">${m.away}</option>
     </select>
-    <input type="text" id="goal-player-${matchId}-${idx}" placeholder="Mängija nimi" style="width:160px">
-    <input type="number" id="goal-count-${matchId}-${idx}" value="1" min="1" max="5" style="width:52px">
+    <select id="goal-player-${matchId}-${idx}" style="width:200px">
+      <option value="">— Vali mängija —</option>
+      ${playerOptions}
+    </select>
+    <input type="number" id="goal-count-${matchId}-${idx}" value="1" min="1" max="5" style="width:52px" title="Väravate arv">
     <span style="font-size:11px;color:var(--muted)">väravat</span>
     <button class="del-btn" onclick="removeGoalRow(${matchId},${idx})">✕</button>`;
   container.appendChild(div);
 }
 
-function addCardRow(matchId){
+async function addCardRow(matchId){
   const m = MATCHES.find(x=>x.id===matchId);
   const container = document.getElementById('cards-container-'+matchId);
   const idx = container.children.length;
+  // All players (scorers + gks) for card dropdown
+  const scorers = await getScorerList();
+  const gks = await getGkList();
+  const allPlayers = [...scorers, ...gks];
+  const playerOptions = allPlayers.map(p=>`<option value="${p}">${p}</option>`).join('');
   const div = document.createElement('div');
   div.className = 'md-entry-row';
   div.id = 'card-row-'+matchId+'-'+idx;
   div.innerHTML = `
     <span style="font-size:11px;color:var(--muted);width:16px">${idx+1}.</span>
-    <select id="card-team-${matchId}-${idx}" style="width:160px">
+    <select id="card-team-${matchId}-${idx}" style="width:155px">
       <option value="${m.home}">${m.home}</option>
       <option value="${m.away}">${m.away}</option>
     </select>
-    <input type="text" id="card-player-${matchId}-${idx}" placeholder="Mängija nimi" style="width:160px">
-    <select id="card-type-${matchId}-${idx}" style="width:130px">
+    <select id="card-player-${matchId}-${idx}" style="width:200px">
+      <option value="">— Vali mängija —</option>
+      ${playerOptions}
+    </select>
+    <select id="card-type-${matchId}-${idx}" style="width:140px">
       <option value="y">🟨 Kollane (−1)</option>
       <option value="iy">🟨🟥 Kaudne punane (−3)</option>
       <option value="r">🟥 Otse punane (−4)</option>
