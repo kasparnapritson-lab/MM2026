@@ -812,6 +812,36 @@ const GROUPS={
 };
 
 /* ═══════════════════════════════════════════
+   MEESKONNA KOODID — kasutatakse mängijate filtreerimisel
+═══════════════════════════════════════════ */
+const TEAM_CODES={
+  "🇲🇽 Mexico":"MEX","🇿🇦 South Africa":"RSA","🇰🇷 South Korea":"KOR","🇨🇿 Czechia":"CZE",
+  "🇨🇦 Canada":"CAN","🇧🇦 Bosnia & Herz.":"BIH","🇺🇸 USA":"USA","🇵🇾 Paraguay":"PAR",
+  "🇶🇦 Qatar":"QAT","🇨🇭 Switzerland":"SUI","🇧🇷 Brazil":"BRA","🇲🇦 Morocco":"MAR",
+  "🇭🇹 Haiti":"HAI","🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland":"SCO","🇦🇺 Australia":"AUS","🇹🇷 Türkiye":"TUR",
+  "🇩🇪 Germany":"GER","🇨🇼 Curaçao":"CUW","🇳🇱 Netherlands":"NED","🇯🇵 Japan":"JPN",
+  "🇨🇮 Ivory Coast":"CIV","🇪🇨 Ecuador":"ECU","🇹🇳 Tunisia":"TUN","🇸🇪 Sweden":"SWE",
+  "🇪🇸 Spain":"ESP","🇨🇻 Cape Verde":"CPV","🇧🇪 Belgium":"BEL","🇪🇬 Egypt":"EGY",
+  "🇸🇦 Saudi Arabia":"KSA","🇺🇾 Uruguay":"URU","🇮🇷 Iran":"IRN","🇳🇿 New Zealand":"NZL",
+  "🇫🇷 France":"FRA","🇸🇳 Senegal":"SEN","🇮🇶 Iraq":"IRQ","🇳🇴 Norway":"NOR",
+  "🇦🇷 Argentina":"ARG","🇩🇿 Algeria":"ALG","🇦🇹 Austria":"AUT","🇯🇴 Jordan":"JOR",
+  "🇵🇹 Portugal":"POR","🇨🇩 DR Congo":"COD","🏴󠁧󠁢󠁥󠁮󠁧󠁿 England":"ENG","🇭🇷 Croatia":"CRO",
+  "🇬🇭 Ghana":"GHA","🇵🇦 Panama":"PAN","🇺🇿 Uzbekistan":"UZB","🇨🇴 Colombia":"COL"
+};
+
+// Filter players by team — returns only players whose code matches the team
+function filterPlayersByTeam(players, teamName){
+  const code = TEAM_CODES[teamName];
+  if(!code) return players; // unknown team — show all
+  return players.filter(p=>{
+    const m = p.match(/\(([A-Z]+)\)$/);
+    return m && m[1] === code;
+  });
+}
+
+
+
+/* ═══════════════════════════════════════════
    DEFAULT PLAYER LISTS (pre-loaded for testing)
    Admin can edit these at any time in the Admin Panel.
    Source for official squads: https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/squads
@@ -2005,9 +2035,10 @@ async function renderMatchDetailsList(){
           <option value="${m.home}"${g.team===m.home?' selected':''}>${m.home}</option>
           <option value="${m.away}"${g.team===m.away?' selected':''}>${m.away}</option>
         </select>
-        <select id="goal-player-${m.id}-${gi}" style="width:200px">
+        <select id="goal-player-${m.id}-${gi}" style="width:220px">
           <option value="">— Vali mängija —</option>
-          ${scorerList.map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p}</option>`).join('')}
+          <optgroup label="${m.home}">${filterPlayersByTeam(scorerList,m.home).map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p}</option>`).join('')}</optgroup>
+          <optgroup label="${m.away}">${filterPlayersByTeam(scorerList,m.away).map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p}</option>`).join('')}</optgroup>
         </select>
         <input type="number" id="goal-count-${m.id}-${gi}" value="${g.count||1}" min="1" max="5" style="width:52px" title="Väravate arv">
         <span style="font-size:11px;color:var(--muted)">väravat</span>
@@ -2022,9 +2053,10 @@ async function renderMatchDetailsList(){
           <option value="${m.home}"${c.team===m.home?' selected':''}>${m.home}</option>
           <option value="${m.away}"${c.team===m.away?' selected':''}>${m.away}</option>
         </select>
-        <select id="card-player-${m.id}-${ci}" style="width:200px">
+        <select id="card-player-${m.id}-${ci}" style="width:220px">
           <option value="">— Vali mängija —</option>
-          ${allPlayerList.map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p}</option>`).join('')}
+          <optgroup label="${m.home}">${filterPlayersByTeam(allPlayerList,m.home).map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p}</option>`).join('')}</optgroup>
+          <optgroup label="${m.away}">${filterPlayersByTeam(allPlayerList,m.away).map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p}</option>`).join('')}</optgroup>
         </select>
         <select id="card-type-${m.id}-${ci}" style="width:130px">
           <option value="y"${c.type==='y'?' selected':''}>🟨 Kollane (−1)</option>
@@ -2068,7 +2100,9 @@ async function addGoalRow(matchId){
   const idx = container.children.length;
   // Build player dropdown from scorer list
   const scorers = await getScorerList();
-  const playerOptions = scorers.map(p=>`<option value="${p}">${p}</option>`).join('');
+  const homeScorers = filterPlayersByTeam(scorers, m.home);
+  const awayScorers = filterPlayersByTeam(scorers, m.away);
+  const playerOptions = `<optgroup label="${m.home}">${homeScorers.map(p=>`<option value="${p}">${p}</option>`).join('')}</optgroup><optgroup label="${m.away}">${awayScorers.map(p=>`<option value="${p}">${p}</option>`).join('')}</optgroup>`;
   const div = document.createElement('div');
   div.className = 'md-entry-row';
   div.id = 'goal-row-'+matchId+'-'+idx;
@@ -2096,7 +2130,9 @@ async function addCardRow(matchId){
   const scorers = await getScorerList();
   const gks = await getGkList();
   const allPlayers = [...scorers, ...gks];
-  const playerOptions = allPlayers.map(p=>`<option value="${p}">${p}</option>`).join('');
+  const homePlayers = filterPlayersByTeam(allPlayers, m.home);
+  const awayPlayers = filterPlayersByTeam(allPlayers, m.away);
+  const playerOptions = `<optgroup label="${m.home}">${homePlayers.map(p=>`<option value="${p}">${p}</option>`).join('')}</optgroup><optgroup label="${m.away}">${awayPlayers.map(p=>`<option value="${p}">${p}</option>`).join('')}</optgroup>`;
   const div = document.createElement('div');
   div.className = 'md-entry-row';
   div.id = 'card-row-'+matchId+'-'+idx;
