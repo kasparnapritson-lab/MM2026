@@ -488,6 +488,14 @@ const _db = firebase.firestore();
   <p class="sec-sub">Nähtav ainult administraatorile.</p>
   <div class="admin-warn">⚠️ Kõik siin tehtud muudatused jõustuvad kohe kõigi mängijate jaoks.</div>
 
+  <!-- LÄHTESTA ANDMED -->
+  <div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:#991b1b;letter-spacing:1px;margin-bottom:.4rem">🗑️ Lähtesta mänguandmed</div>
+    <p style="font-size:13px;color:#7f1d1d;margin-bottom:1rem;line-height:1.6">Kustutab kõik ennustused, tulemused, väravad, kaardid ja boonuspunktid. <b>Kontod, tähtajad ja mängijate nimekirjad jäävad alles.</b> Kasuta seda enne turniiri päris algust et testitulemused kustutada.</p>
+    <button class="btn-primary" style="background:#dc2626" onclick="resetGameData()">🗑️ Lähtesta kõik mänguandmed</button>
+    <span class="save-ok" id="resetOk" style="color:#dc2626">✓ Kõik mänguandmed kustutatud!</span>
+  </div>
+
   <!-- DEADLINES -->
   <div class="admin-section-title">⏰ Mängude tähtajad</div>
   <div class="admin-section-sub">Sisesta mängude algusajad <b>Eesti aja järgi (EEST, UTC+3)</b>. Ajavöönd lisatakse automaatselt — ennustused lukustuvad õigel ajal kõigi mängijate jaoks, olenemata nende asukohast. Lukustumise ajavahemik (vaikimisi 30 min) on muudetav allpool.</div>
@@ -2364,6 +2372,86 @@ async function saveManualOverride(){
 }
 
 function encodeTeam(team){ return team.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+/* ═══════════════════════════════════════════
+   LÄHTESTA MÄNGUANDMED
+═══════════════════════════════════════════ */
+async function resetGameData(){
+  // First confirmation
+  const first = confirm(
+    '⚠️ Kas oled kindel?\n\n' +
+    'Kustutada kõik:\n' +
+    '• Mängijate ennustused\n' +
+    '• Boonusennustused\n' +
+    '• Sisestatud tulemused\n' +
+    '• Väravad ja kaardid\n' +
+    '• Boonuspunktid\n' +
+    '• Fair play andmed\n\n' +
+    'Kontod, tähtajad ja mängijate nimekirjad jäävad alles.'
+  );
+  if(!first) return;
+
+  // Second confirmation
+  const second = confirm(
+    '🔴 VIIMANE HOIATUS\n\n' +
+    'Seda toimingut EI SAA tagasi võtta.\n\n' +
+    'Vajuta OK ainult siis kui oled 100% kindel.'
+  );
+  if(!second) return;
+
+  try {
+    // Show loading state
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '⏳ Kustutan...';
+
+    // Collections to delete
+    const toDelete = [
+      ['results', 'main'],
+      ['settings', 'fairplay'],
+      ['matchdetails', 'data'],
+    ];
+
+    // Delete fixed documents
+    for(const [col, doc] of toDelete){
+      try{
+        await _db.collection(col).doc(doc).delete();
+        fbClearCache(col, doc);
+      }catch(e){ console.log('Skip:', col, doc); }
+    }
+
+    // Delete all player prediction documents
+    const players = await getAllPlayers();
+    const allUsers = ['admin', ...players];
+    for(const user of allUsers){
+      try{ await _db.collection('predictions').doc(user).delete(); fbClearCache('predictions', user); }catch(e){}
+      try{ await _db.collection('predictions_bonus').doc(user).delete(); fbClearCache('predictions_bonus', user); }catch(e){}
+      try{ await _db.collection('bonuspoints').doc(user).delete(); fbClearCache('bonuspoints', user); }catch(e){}
+    }
+
+    // Clear bonus results
+    try{ await _db.collection('settings').doc('bonusresults').delete(); fbClearCache('settings','bonusresults'); }catch(e){}
+
+    // Reset cached data
+    window._cachedResults = {};
+    window._cachedFairPlay = {};
+    window._cachedManualOverride = {};
+
+    btn.disabled = false;
+    btn.textContent = '🗑️ Lähtesta kõik mänguandmed';
+    const ok = document.getElementById('resetOk');
+    ok.classList.add('show');
+    setTimeout(()=>ok.classList.remove('show'), 5000);
+
+    // Refresh admin view
+    renderAdminMatches();
+    renderPredTable();
+
+  } catch(e) {
+    console.error('Reset error:', e);
+    alert('Viga kustutamisel: ' + e.message);
+  }
+}
 
 // All functions are globally accessible (plain script tag, no module scope)
 </script>
