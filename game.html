@@ -530,6 +530,45 @@ const _db = firebase.firestore();
   <hr class="section-divider">
 
   <!-- FULL PREDICTIONS TABLE -->
+  <hr class="section-divider">
+
+  <div class="admin-section-title">🟨 Aus mäng (Fair Play) — kaardid</div>
+  <div class="admin-section-sub">Sisesta meeskondade kaardid alagrupimängudest. Kasutatakse kolmandate kohtade pingerea arvutamisel (kriteerium 5). Fair play skoor: kollane −1, kaudne punane −3, otse punane −4, kollane+punane −5.</div>
+  <div style="overflow-x:auto;margin-bottom:1rem">
+    <table class="deadline-table" id="fairPlayTable">
+      <thead><tr>
+        <th>Meeskond</th>
+        <th>Kollased</th>
+        <th>Kaudne punane</th>
+        <th>Otse punane</th>
+        <th>Koll+punane</th>
+        <th>FP skoor</th>
+      </tr></thead>
+      <tbody id="fairPlayBody"></tbody>
+    </table>
+  </div>
+  <div class="save-bar">
+    <button class="btn-primary" onclick="saveFairPlay()">Salvesta kaardid</button>
+    <span class="save-ok" id="fpSaveOk">✓ Salvestatud!</span>
+  </div>
+
+  <hr class="section-divider">
+
+  <div class="admin-section-title">🎲 Viigi lahendamine (Loos)</div>
+  <div class="admin-section-sub">Kui 3. koha meeskonnad on kõigi kriteeriumite järgi täpselt võrdsed, kasuta loosimist. Sisesta meeskonnale kõrgem number et ta saaks kõrgema koha.</div>
+  <div style="overflow-x:auto;margin-bottom:1rem">
+    <table class="deadline-table" id="overrideTable">
+      <thead><tr><th>Meeskond</th><th>Grupp</th><th>Loosi järjekord (suurem = parem)</th></tr></thead>
+      <tbody id="overrideBody"></tbody>
+    </table>
+  </div>
+  <div class="save-bar">
+    <button class="btn-primary" onclick="saveManualOverride()">Salvesta loos</button>
+    <span class="save-ok" id="moSaveOk">✓ Salvestatud!</span>
+  </div>
+
+  <hr class="section-divider">
+
   <div class="admin-section-title">📊 Täielik ennustuste tabel</div>
   <div class="admin-section-sub">Kõigi mängijate ennustused kõrvuti. <span style="color:#15803d;font-weight:600">Roheline=täpne</span> · <span style="color:#d97706;font-weight:600">Kollakas=õige tulemus</span> · <span style="color:#dc2626;font-weight:600">Punane=vale tulemus</span> · Hall=puudu/ootel.</div>
   <div class="filter-bar" id="predTableFilterBar">
@@ -946,7 +985,7 @@ function showTab(id,el){
   if(id==='groups')      renderGroups();
   if(id==='bracket')     renderBracket();
   if(id==='bonus')       renderBonusTab();
-  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderAccountTable();renderPredTable();}
+  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderAccountTable();renderFairPlayTable();renderOverrideTable();renderPredTable();}
   if(id==='mystats')     renderMyStats();
   if(id==='settings')    renderSettingsTab();
 }
@@ -1112,22 +1151,129 @@ function calcGroupStandings(gk,results){
     else{sh.d++;sh.pts++;sa.d++;sa.pts++;}
   });
   return g.teams.map(t=>({team:t,...st[t],gd:st[t].gf-st[t].ga}))
-    .sort((a,b)=>b.pts-a.pts||(b.gd-a.gd)||(b.gf-a.gf));
+    .sort((a,b)=>{
+      if(b.pts!==a.pts) return b.pts-a.pts;
+      if(b.gd!==a.gd) return b.gd-a.gd;
+      if(b.gf!==a.gf) return b.gf-a.gf;
+      return b.w-a.w; // criterion 4: more wins
+    });
 }
 async function renderGroups(){
   window._cachedResults=await getR();
+  // Load fair play data and manual overrides from Firebase
+  try{
+    const fp=await fbGet('settings','fairplay');
+    window._cachedFairPlay=fp||{};
+    const mo=await fbGet('settings','manualoverride');
+    window._cachedManualOverride=mo||{};
+  }catch(e){
+    window._cachedFairPlay={};
+    window._cachedManualOverride={};
+  }
+
+  // Collect all group standings
+  const allStandings={};
+  Object.keys(GROUPS).forEach(gk=>{
+    allStandings[gk]=calcGroupStandings(gk,window._cachedResults);
+  });
+
+  // Find best 8 third-place teams (FIFA rules)
+  // Only count groups where 3rd place team has played all 3 matches
+  const thirdPlaces=Object.keys(GROUPS).map(gk=>{
+    const rows=allStandings[gk];
+    if(rows.length<3) return null;
+    const t=rows[2]; // 3rd place team
+    if(t.mp<3) return null; // hasn't played all matches yet
+    return {...t, group:gk};
+  }).filter(Boolean);
+
+  // FIFA official sort: pts → gd → gf → wins → fair play → manual override
+  const fairPlay=window._cachedFairPlay||{};
+  const manualOverride=window._cachedManualOverride||{};
+  thirdPlaces.sort((a,b)=>{
+    if(b.pts!==a.pts) return b.pts-a.pts;
+    if(b.gd!==a.gd) return b.gd-a.gd;
+    if(b.gf!==a.gf) return b.gf-a.gf;
+    if(b.w!==a.w) return b.w-a.w;
+    const fpA=fairPlay[a.team]||0, fpB=fairPlay[b.team]||0;
+    if(fpA!==fpB) return fpB-fpA; // higher fp score = better (less cards)
+    // Manual override by admin (lottery)
+    const moA=manualOverride[a.team]||0, moB=manualOverride[b.team]||0;
+    return moB-moA;
+  });
+  const best8thirds=new Set(thirdPlaces.slice(0,8).map(t=>t.team));
+
+  // Also track if group stage is complete (all 3rd place teams have played 3 games)
+  const allGroupsDone=thirdPlaces.length===12;
+
   let html='';
   Object.keys(GROUPS).forEach(gk=>{
-    const rows=calcGroupStandings(gk,window._cachedResults);
+    const rows=allStandings[gk];
     html+='<div class="group-block"><span class="group-title">Grupp '+gk+'</span>'
-      +'<table class="gs-table"><thead><tr><th>Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th><th>Status</th></tr></thead><tbody>';
+      +'<table class="gs-table"><thead><tr><th>Meeskond</th><th>M</th><th>V</th><th>V</th><th>K</th><th>LV</th><th>LK</th><th>VV</th><th>Pts</th><th>Seis</th></tr></thead><tbody>';
     rows.forEach((r,i)=>{
-      const cls=i<2?'advance':i===2?'maybe':'';
-      const badge=i<2?'<span class="advance-badge">✅ Edasi</span>':i===2?'<span class="maybe-badge">🟡 Võib-olla</span>':'<span class="out-badge">❌</span>';
-      html+='<tr class="'+cls+'"><td>'+r.team+'</td><td>'+r.mp+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td><td>'+r.gf+'</td><td>'+r.ga+'</td><td>'+(r.gd>0?'+'+r.gd:r.gd)+'</td><td style="font-weight:700">'+r.pts+'</td><td>'+badge+'</td></tr>';
+      let cls='', badge='';
+      if(i<2){
+        cls='advance';
+        badge='<span class="advance-badge">✅ Edasi</span>';
+      } else if(i===2){
+        if(r.mp<3){
+          // Group stage not finished — show maybe
+          cls='maybe';
+          badge='<span class="maybe-badge">🟡 Võib-olla</span>';
+        } else if(best8thirds.has(r.team)){
+          // Confirmed best 3rd place
+          cls='advance';
+          badge='<span class="advance-badge">✅ Edasi (3.)</span>';
+        } else if(allGroupsDone){
+          // All groups done — this team didn't make it
+          badge='<span class="out-badge">❌</span>';
+        } else {
+          // Some groups not done yet — uncertain
+          cls='maybe';
+          badge='<span class="maybe-badge">🟡 Võib-olla</span>';
+        }
+      } else {
+        badge='<span class="out-badge">❌</span>';
+      }
+      html+='<tr class="'+cls+'">'
+        +'<td>'+r.team+'</td>'
+        +'<td>'+r.mp+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td>'
+        +'<td>'+r.gf+'</td><td>'+r.ga+'</td>'
+        +'<td>'+(r.gd>0?'+'+r.gd:r.gd)+'</td>'
+        +'<td style="font-weight:700">'+r.pts+'</td>'
+        +'<td>'+badge+'</td></tr>';
     });
     html+='</tbody></table></div>';
   });
+
+  // Show best 3rd place ranking if any groups are done
+  if(thirdPlaces.length>0){
+    html+='<div class="group-block">'
+      +'<span class="group-title">Parimad 3. kohad — edetabel</span>'
+      +'<table class="gs-table"><thead><tr>'
+      +'<th>#</th><th>Meeskond</th><th>Grupp</th><th>M</th><th>Pts</th><th>VV</th><th>LV</th><th>Seis</th>'
+      +'</tr></thead><tbody>';
+    thirdPlaces.forEach((t,i)=>{
+      const advancing=i<8;
+      const cls=advancing?'advance':'';
+      const badge=advancing
+        ?'<span class="advance-badge">✅ Edasi</span>'
+        :'<span class="out-badge">❌</span>';
+      html+='<tr class="'+cls+'">'
+        +'<td style="font-weight:700">'+(i+1)+'</td>'
+        +'<td>'+t.team+'</td>'
+        +'<td style="font-weight:600">'+t.group+'</td>'
+        +'<td>'+t.mp+'</td>'
+        +'<td style="font-weight:700">'+t.pts+'</td>'
+        +'<td>'+(t.gd>0?'+'+t.gd:t.gd)+'</td>'
+        +'<td>'+t.gf+'</td>'
+        +'<td>'+badge+'</td>'
+        +'</tr>';
+    });
+    html+='</tbody></table></div>';
+  }
+
   document.getElementById('groupsContainer').innerHTML=html;
 }
 
@@ -1645,6 +1791,89 @@ function calcStreak(recent){
     else cur=0;
   });
   return best;
+}
+
+/* ═══════════════════════════════════════════
+   FAIR PLAY & MANUAL OVERRIDE
+═══════════════════════════════════════════ */
+async function renderFairPlayTable(){
+  const allTeams=Object.values(GROUPS).flatMap(g=>g.teams);
+  const fp=await fbGet('settings','fairplay')||{};
+  let html='';
+  allTeams.forEach(team=>{
+    const d=fp[team]||{y:0,iy:0,r:0,yr:0};
+    const score=-(d.y||0)*1 -(d.iy||0)*3 -(d.r||0)*4 -(d.yr||0)*5;
+    html+='<tr>'
+      +'<td style="font-size:12px;font-weight:600">'+team+'</td>'
+      +'<td><input type="number" min="0" max="20" value="'+(d.y||0)+'" id="fp-y-'+encodeTeam(team)+'" style="width:60px;padding:4px;border:1.5px solid var(--border);border-radius:6px;text-align:center"></td>'
+      +'<td><input type="number" min="0" max="10" value="'+(d.iy||0)+'" id="fp-iy-'+encodeTeam(team)+'" style="width:60px;padding:4px;border:1.5px solid var(--border);border-radius:6px;text-align:center"></td>'
+      +'<td><input type="number" min="0" max="10" value="'+(d.r||0)+'" id="fp-r-'+encodeTeam(team)+'" style="width:60px;padding:4px;border:1.5px solid var(--border);border-radius:6px;text-align:center"></td>'
+      +'<td><input type="number" min="0" max="10" value="'+(d.yr||0)+'" id="fp-yr-'+encodeTeam(team)+'" style="width:60px;padding:4px;border:1.5px solid var(--border);border-radius:6px;text-align:center"></td>'
+      +'<td style="font-weight:700;color:'+(score<0?'#dc2626':'#1a7a4a')+'">'+score+'</td>'
+      +'</tr>';
+  });
+  document.getElementById('fairPlayBody').innerHTML=html;
+}
+
+function encodeTeam(team){
+  return team.replace(/[^a-zA-Z0-9]/g,'_');
+}
+
+async function saveFairPlay(){
+  const allTeams=Object.values(GROUPS).flatMap(g=>g.teams);
+  const fp={};
+  allTeams.forEach(team=>{
+    const key=encodeTeam(team);
+    const y=parseInt(document.getElementById('fp-y-'+key)?.value)||0;
+    const iy=parseInt(document.getElementById('fp-iy-'+key)?.value)||0;
+    const r=parseInt(document.getElementById('fp-r-'+key)?.value)||0;
+    const yr=parseInt(document.getElementById('fp-yr-'+key)?.value)||0;
+    if(y||iy||r||yr) fp[team]={y,iy,r,yr};
+  });
+  fbClearCache('settings','fairplay');
+  await fbSet('settings','fairplay',fp);
+  window._cachedFairPlay=fp;
+  const ok=document.getElementById('fpSaveOk');
+  ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
+  renderFairPlayTable();
+}
+
+async function renderOverrideTable(){
+  const mo=await fbGet('settings','manualoverride')||{};
+  // Only show 3rd place teams that have played all 3 matches
+  const results=window._cachedResults||await getR();
+  let html='';
+  Object.keys(GROUPS).forEach(gk=>{
+    const rows=calcGroupStandings(gk,results);
+    if(rows.length<3||rows[2].mp<3) return;
+    const team=rows[2].team;
+    html+='<tr>'
+      +'<td style="font-size:12px;font-weight:600">'+team+'</td>'
+      +'<td style="font-size:12px;color:var(--muted)">'+gk+'</td>'
+      +'<td><input type="number" min="0" max="100" value="'+(mo[team]||0)+'" id="mo-'+encodeTeam(team)+'" style="width:80px;padding:4px;border:1.5px solid var(--border);border-radius:6px;text-align:center" placeholder="0"></td>'
+      +'</tr>';
+  });
+  document.getElementById('overrideBody').innerHTML=html||'<tr><td colspan="3" style="color:var(--muted);font-size:13px;padding:1rem">Alagrupimängud pole veel lõpetanud.</td></tr>';
+}
+
+async function saveManualOverride(){
+  const results=window._cachedResults||await getR();
+  const mo={};
+  Object.keys(GROUPS).forEach(gk=>{
+    const rows=calcGroupStandings(gk,results);
+    if(rows.length<3) return;
+    const team=rows[2].team;
+    const el=document.getElementById('mo-'+encodeTeam(team));
+    if(el){
+      const val=parseInt(el.value)||0;
+      if(val>0) mo[team]=val;
+    }
+  });
+  fbClearCache('settings','manualoverride');
+  await fbSet('settings','manualoverride',mo);
+  window._cachedManualOverride=mo;
+  const ok=document.getElementById('moSaveOk');
+  ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),3000);
 }
 
 // All functions are globally accessible (plain script tag, no module scope)
