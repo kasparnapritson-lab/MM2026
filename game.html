@@ -424,12 +424,22 @@ const _db = firebase.firestore();
   </div>
   <div class="rules-card">
     <h3>🎁 Boonusennustused</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Kõik boonusennustused tuleb lukustada enne <b>11. juunit kell 14:00</b>.</p>
     <ul>
-      <li><b>Turniirivõitja → 20 punkti</b> — vali kogu turniiri võitja enne 11. juunit.</li>
-      <li><b>Suurim väravakütt → 10 punkti</b> — vali mängija, kes lööb kõige rohkem väravaid. Viigi korral saavad punktid kõik, kes õigesti ennustasid.</li>
-      <li><b>parim väravavaht → 10 punkti</b> — vali turniiri parim väravavaht (FIFA ametlik auhind).</li>
-      <li><b>Suurim üllatus → 5 punkti</b> — vali üks alagrupimäng, kus madalama asetusega meeskond võidab. Tuleb lukku panna enne turniiri algust.</li>
+      <li>
+        <b>⚽ Suurim väravakütt — kuni 50+ punkti</b>
+        <ul style="margin-top:.35rem;margin-bottom:.35rem">
+          <li><b>+1 punkt</b> iga värava eest, mille su ennustatud mängija lööb kogu turniiri vältel — punkte kogutakse automaatselt iga mängu järel</li>
+          <li><b>+10 punkti</b> lisaks kui su ennustatud mängija on turniiri ametlik Top Scorer (FIFA)</li>
+        </ul>
+      </li>
+      <li><b>🧤 Parim väravavaht → +10 punkti</b> — vali turniiri parim väravavaht. Punktid lisatakse kui FIFA annab välja ametliku Golden Glove auhinna.</li>
+      <li><b>🏆 Turniirivõitja → +20 punkti</b> — vali kogu turniiri võitja. Selgub automaatselt play-off tabelist.</li>
+      <li><b>😲 Suurim üllatus → +5 punkti</b> — vali üks alagrupimäng kus üllatustulemus juhtub. Admin määrab turniiri ajal mis mäng kvalifitseerub.</li>
     </ul>
+    <div style="background:#f0fdf4;border-radius:8px;padding:.75rem;margin-top:.75rem;font-size:13px;color:#14532d">
+      💡 <b>Näide:</b> Ennustasid Mbappé Top Scoreriks. Ta lööb turniiri jooksul 6 väravat ja võidab Top Scorer auhinna → saad <b>+6 + +10 = +16 boonuspunkti</b>.
+    </div>
   </div>
   <div class="rules-card">
     <h3>⚖️ Viigimurdmise reeglid</h3>
