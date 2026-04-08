@@ -1222,16 +1222,12 @@ async function renderGroups(){
           cls='maybe';
           badge='<span class="maybe-badge">🟡 Võib-olla</span>';
         } else if(best8thirds.has(r.team)){
-          // Confirmed best 3rd place
+          // In top 8 third places — advances
           cls='advance';
           badge='<span class="advance-badge">✅ Edasi (3.)</span>';
-        } else if(allGroupsDone){
-          // All groups done — this team didn't make it
-          badge='<span class="out-badge">❌</span>';
         } else {
-          // Some groups not done yet — uncertain
-          cls='maybe';
-          badge='<span class="maybe-badge">🟡 Võib-olla</span>';
+          // Played all 3 matches but not in top 8
+          badge='<span class="out-badge">❌</span>';
         }
       } else {
         badge='<span class="out-badge">❌</span>';
@@ -1303,12 +1299,47 @@ function bkMatch(home,away,id){
 }
 async function renderBracket(){
   window._cachedResults=await getR();
+
+  // Calculate best 3rd place teams for bracket slots
+  const fairPlay=window._cachedFairPlay||{};
+  const manualOverride=window._cachedManualOverride||{};
+  const thirdPlaces=Object.keys(GROUPS).map(gk=>{
+    const rows=calcGroupStandings(gk,window._cachedResults);
+    if(rows.length<3||rows[2].mp<3) return null;
+    return {...rows[2],group:gk};
+  }).filter(Boolean);
+  thirdPlaces.sort((a,b)=>{
+    if(b.pts!==a.pts) return b.pts-a.pts;
+    if(b.gd!==a.gd) return b.gd-a.gd;
+    if(b.gf!==a.gf) return b.gf-a.gf;
+    if(b.w!==a.w) return b.w-a.w;
+    const fpA=(fairPlay[a.team]||{y:0,iy:0,r:0,yr:0});
+    const fpB=(fairPlay[b.team]||{y:0,iy:0,r:0,yr:0});
+    const scoreA=-(fpA.y||0)-(fpA.iy||0)*3-(fpA.r||0)*4-(fpA.yr||0)*5;
+    const scoreB=-(fpB.y||0)-(fpB.iy||0)*3-(fpB.r||0)*4-(fpB.yr||0)*5;
+    if(scoreA!==scoreB) return scoreB-scoreA;
+    return (manualOverride[b.team]||0)-(manualOverride[a.team]||0);
+  });
+  // Get best 8 third place teams in order
+  const b3=thirdPlaces.slice(0,8).map(t=>t.team);
+  function get3rd(n){ return b3[n]||'Best 3rd'; }
+
   const r32W=[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88].map(id=>getWinner(id)||'TBD');
   const r16W=[89,90,91,92,93,94,95,96].map(id=>getWinner(id)||'TBD');
   const qfW=[97,98,99,100].map(id=>getWinner(id)||'TBD');
   const sfW=[101,102].map(id=>getWinner(id)||'TBD');
   const finW=getWinner(104)||'⏳ TBD';
-  const r32p=[[getGroupTop('A',1),getGroupTop('B',1)],[getGroupTop('C',0),getGroupTop('F',1)],[getGroupTop('E',0),'Best 3rd'],[getGroupTop('F',0),getGroupTop('C',1)],[getGroupTop('E',1),getGroupTop('I',1)],[getGroupTop('I',0),'Best 3rd'],[getGroupTop('A',0),'Best 3rd'],[getGroupTop('L',0),'Best 3rd']];
+  // R32 pairings — Best 3rd slots filled from sorted best8thirds list
+  const r32p=[
+    [getGroupTop('A',1), getGroupTop('B',1)],  // M73
+    [getGroupTop('C',0), getGroupTop('F',1)],  // M74
+    [getGroupTop('E',0), get3rd(0)],            // M75: Best 3rd A/B/C/D/F
+    [getGroupTop('F',0), getGroupTop('C',1)],  // M76
+    [getGroupTop('E',1), getGroupTop('I',1)],  // M77
+    [getGroupTop('I',0), get3rd(1)],            // M78: Best 3rd C/D/F/G/H
+    [getGroupTop('A',0), get3rd(2)],            // M79: Best 3rd C/E/F/H/I
+    [getGroupTop('L',0), get3rd(3)],            // M80: Best 3rd E/H/I/J/K
+  ];
   let html='';
   html+='<div class="bk-round" style="flex:2"><div class="bk-round-title">32 paremat</div><div class="bk-matches">';
   r32p.forEach((p,i)=>{html+=bkMatch(p[0],p[1],73+i);});
