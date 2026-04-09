@@ -164,6 +164,11 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 .player-entry input:focus{border-color:var(--red)}
 .player-entry .del-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--red);transition:all .2s;flex-shrink:0}
 .player-entry .del-btn:hover{background:#fee2e2;border-color:var(--red)}
+/* FIFA RANK BADGE */
+.rank-badge{display:inline-block;background:var(--dark);color:var(--gold);font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle;letter-spacing:.3px}
+.upset-val{display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:4px}
+.upset-val.big{background:#fee2e2;color:#991b1b}
+
 /* MATCH DETAILS */
 .match-detail-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.85rem}
 .match-detail-card .md-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:6px}
@@ -539,6 +544,28 @@ const _db = firebase.firestore();
   <hr class="section-divider">
 
   <!-- PLAYER LIST MANAGER -->
+  <div class="admin-section-title">📊 FIFA edetabeli kohad</div>
+  <div class="admin-section-sub">Sisesta iga meeskonna FIFA edetabeli koht (fikseeri 1. juuni 2026 seisuga). Kasutatakse üllatuse suuruse automaatseks arvutamiseks ja mängijatele kuvatakse mängukaardil. Uuenda ainult vajaduse korral.</div>
+  <div style="overflow-x:auto;margin-bottom:1rem">
+    <table class="deadline-table">
+      <thead><tr>
+        <th style="text-align:left">Meeskond</th>
+        <th>FIFA koht</th>
+        <th style="text-align:left">Meeskond</th>
+        <th>FIFA koht</th>
+        <th style="text-align:left">Meeskond</th>
+        <th>FIFA koht</th>
+      </tr></thead>
+      <tbody id="rankingsBody"></tbody>
+    </table>
+  </div>
+  <div class="save-bar">
+    <button class="btn-primary" onclick="saveRankings()">Salvesta edetabeli kohad</button>
+    <span class="save-ok" id="rankSaveOk">✓ Salvestatud!</span>
+  </div>
+
+  <hr class="section-divider">
+
   <div class="admin-section-title">👥 Turniiri mängijate nimekiri</div>
   <div class="admin-section-sub">Halda mängijate nimekirja, mida kasutatakse Top Scoreri ja Golden Glove’i boonusennustuste jaoks. Saad seda igal ajal uuendada — muudatused ilmuvad kohe kõigile kasutajatele.</div>
   <div class="player-list-wrap">
@@ -847,6 +874,33 @@ const TEAM_CODES={
   "🇬🇭 Ghana":"GHA","🇵🇦 Panama":"PAN","🇺🇿 Uzbekistan":"UZB","🇨🇴 Colombia":"COL"
 };
 
+// FIFA Rankings — loaded from Firebase settings/rankings
+async function getFifaRankings(){
+  const d = await fbGet('settings','rankings');
+  return d && Object.keys(d).length > 0 ? d : {};
+}
+async function saveFifaRankings(data){
+  fbClearCache('settings','rankings');
+  await fbSet('settings','rankings', data);
+}
+function getRankForTeam(rankings, teamName){
+  return rankings[teamName] || null;
+}
+function getUpsetValue(rankings, homeTeam, awayTeam, homeScore, awayScore){
+  const hRank = rankings[homeTeam];
+  const aRank = rankings[awayTeam];
+  if(!hRank || !aRank) return 0;
+  if(homeScore > awayScore){
+    return hRank > aRank ? hRank - aRank : 0; // home wins: upset if home worse
+  } else if(awayScore > homeScore){
+    return aRank > hRank ? aRank - hRank : 0; // away wins: upset if away worse
+  } else {
+    // Draw: half value if diff >= 10
+    const diff = Math.abs(hRank - aRank);
+    return diff >= 10 ? Math.round(diff / 2) : 0;
+  }
+}
+
 // Filter players by team — returns only players whose code matches the team
 function filterPlayersByTeam(players, teamName){
   const code = TEAM_CODES[teamName];
@@ -1103,7 +1157,7 @@ function showTab(id,el){
   if(id==='groups')      renderGroups();
   if(id==='bracket')     renderBracket();
   if(id==='bonus')       renderBonusTab();
-  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderAccountTable();renderMatchDetailsList();renderOverrideTable();renderPredTable();}
+  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderOverrideTable();renderPredTable();}
   if(id==='mystats')     renderMyStats();
   if(id==='settings')    renderSettingsTab();
 }
@@ -1151,6 +1205,7 @@ function filterPred(f,btn){
 }
 async function renderMatches(){
   const preds=await getP(ME),results=await getR(),deadlines=await getDeadlines();
+  const rankings=await getFifaRankings();
   let html='',shown=0;
   MATCHES.forEach(m=>{
     const locked=isLockedSync(m.id,results,deadlines);
@@ -1166,10 +1221,15 @@ async function renderMatches(){
     else if(pts===(ko?10:5)) pb='<span class="pts-badge pts-exact">✅ Exact! +'+pts+'pts</span>';
     else if(pts===(ko?4:2))  pb='<span class="pts-badge pts-correct">✔ Correct +'+pts+'pts</span>';
     else if(pts===0)          pb='<span class="pts-badge pts-wrong">❌ Wrong — 0pts</span>';
-    const rb=r?'<span class="result-badge">Final: '+r.h+' – '+r.a+'</span>':'';
+    const upBadge=r&&r.upset&&r.upset>0?'<span class="upset-val'+(r.upset>=25?' big':'')+'">⚡'+r.upset+'</span>':'';
+    const rb=r?'<span class="result-badge">Final: '+r.h+' – '+r.a+'</span>'+upBadge:''
     html+='<div class="match-card'+(locked?' locked':'')+'">'
       +'<div class="match-meta"><span>Mäng #'+m.id+' · '+m.date+'</span><span style="display:flex;gap:6px;align-items:center">'+roundPill(m)+deadlinePill(m.id,results,deadlines)+'</span></div>'
-      +'<div class="teams"><div class="team">'+m.home+'</div><div class="vs">VS</div><div class="team away">'+m.away+'</div></div>'
+      +'<div class="teams">'
+        +'<div class="team">'+m.home+(rankings[m.home]?'<span class="rank-badge">#'+rankings[m.home]+'</span>':'')+' </div>'
+        +'<div class="vs">VS</div>'
+        +'<div class="team away">'+m.away+(rankings[m.away]?'<span class="rank-badge">#'+rankings[m.away]+'</span>':'')+' </div>'
+        +'</div>'
       +'<div class="pred-row"><span class="pred-lbl">Sinu tulemus:</span>'
       +'<input class="score-inp" type="number" min="0" max="20" id="ph-'+m.id+'" value="'+(p.h!==undefined?p.h:(locked?'':'0'))+'" placeholder="0"'+(locked?' disabled':'')+'>'
       +'<span class="score-sep">–</span>'
@@ -1223,8 +1283,15 @@ async function renderBonusTab(){
   gkSel.disabled=locked;
   // Populate upset (group stage matches)
   const upsetSel=document.getElementById('bonus_upset');
+  const rankings_u=await getFifaRankings();
   const gsMat=MATCHES.filter(m=>isGS(m));
-  upsetSel.innerHTML='<option value="">— Vali mäng —</option>'+gsMat.map(m=>'<option value="'+m.id+'"'+(bonus.upset==m.id?' selected':'')+'>'+m.home+' v '+m.away+' ('+m.date+')</option>').join('');
+  upsetSel.innerHTML='<option value="">— Vali mäng —</option>'+gsMat.map(m=>{
+    const hR=rankings_u[m.home], aR=rankings_u[m.away];
+    const diff=hR&&aR?Math.abs(hR-aR):null;
+    const upsetInfo=diff&&diff>=10?' 🔥 (vahe '+diff+')':diff?'':' ';
+    return '<option value="'+m.id+'"'+(bonus.upset==m.id?' selected':'')+'>'+
+      (hR?'#'+hR+' ':'')+m.home+' v '+m.away+(aR?' #'+aR:'')+upsetInfo+' ('+m.date+')</option>';
+  }).join('');
   upsetSel.disabled=locked;
   document.getElementById('bonusDeadlineText').textContent=locked?'🔒 Bonus deadline has passed (Jun 11 14:00).':'🟢 Boonusennustused on avatud kuni 11. juunini kell 14.00.';
   // Show current picks
@@ -1648,7 +1715,11 @@ async function renderAdminMatches(){
     const r=results[m.id]||{},set=r.h!==undefined;
     html+='<div class="match-card">'
       +'<div class="match-meta"><span>Mäng #'+m.id+' · '+m.date+'</span>'+roundPill(m)+'</div>'
-      +'<div class="teams"><div class="team">'+m.home+'</div><div class="vs">VS</div><div class="team away">'+m.away+'</div></div>'
+      +'<div class="teams">'
+        +'<div class="team">'+m.home+(rankings[m.home]?'<span class="rank-badge">#'+rankings[m.home]+'</span>':'')+' </div>'
+        +'<div class="vs">VS</div>'
+        +'<div class="team away">'+m.away+(rankings[m.away]?'<span class="rank-badge">#'+rankings[m.away]+'</span>':'')+' </div>'
+        +'</div>'
       +'<div class="pred-row" style="margin-top:6px"><span class="pred-lbl">Actual score:</span>'
       +'<input class="score-inp" type="number" min="0" max="30" id="rh-'+m.id+'" value="'+(r.h!==undefined?r.h:'')+'" placeholder="0">'
       +'<span class="score-sep">–</span>'
@@ -1661,9 +1732,14 @@ async function renderAdminMatches(){
 async function saveResults(){
   fbClearCache('results','main');
   const results=await getR();
+  const rankings_r=await getFifaRankings();
   MATCHES.forEach(m=>{
     const h=document.getElementById('rh-'+m.id),a=document.getElementById('ra-'+m.id);
-    if(h&&a&&h.value!==''&&a.value!=='') results[m.id]={h:parseInt(h.value),a:parseInt(a.value)};
+    if(h&&a&&h.value!==''&&a.value!==''){
+      const hv=parseInt(h.value), av=parseInt(a.value);
+      const upsetVal=getUpsetValue(rankings_r,m.home,m.away,hv,av);
+      results[m.id]={h:hv,a:av,upset:upsetVal};
+    }
   });
   await setR(results);
   const ok=document.getElementById('adminSaveOk');
@@ -1969,9 +2045,21 @@ async function renderMyStats(){
   // Upset
   const myUpset = bonus.upset ? MATCHES.find(x=>x.id==bonus.upset) : null;
   const upsetPts = br.upset&&bonus.upset==br.upset?5:0;
+  // Find current biggest upset from results
+  const rankings_ms = await getFifaRankings();
+  let biggestUpset = null, biggestVal = 0;
+  Object.entries(results).forEach(([id,r])=>{
+    const m = MATCHES.find(x=>x.id==id);
+    if(!m||!isGS(m)) return;
+    const val = r.upset||getUpsetValue(rankings_ms,m.home,m.away,r.h,r.a);
+    if(val > biggestVal){biggestVal=val; biggestUpset={m,r,val};}
+  });
+  const upsetHint = biggestUpset
+    ? '<br><span style="font-size:11px;color:var(--muted)">Hetke suurim: '+biggestUpset.m.home+' v '+biggestUpset.m.away+' (⚡'+biggestUpset.val+')</span>'
+    : '';
   bonusHtml += '<div class="stats-big-card"><div class="stats-big-num" style="font-size:1.2rem">'+(myUpset?myUpset.home+' v '+myUpset.away:'—')+'</div>'
     +'<div class="stats-big-lbl">Suurim üllatus ennustus</div>'
-    +'<div style="font-size:12px;color:'+(upsetPts?'var(--green)':'var(--muted)')+'margin-top:4px">'+(upsetPts?'✅ +5pts':'⏳ Ootel')+'</div></div>';
+    +'<div style="font-size:12px;color:'+(upsetPts?'var(--green)':'var(--muted)')+';margin-top:4px">'+(upsetPts?'✅ +5pts':'⏳ Ootel')+upsetHint+'</div></div>';
   bonusHtml += '</div>';
   document.getElementById('myBonusStatus').innerHTML = bonusHtml;
 
@@ -2382,6 +2470,77 @@ async function saveManualOverride(){
 }
 
 function encodeTeam(team){ return team.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+/* ═══════════════════════════════════════════
+   FIFA RANKINGS ADMIN
+═══════════════════════════════════════════ */
+
+// Default FIFA rankings (approximate pre-tournament values — update before Jun 1 2026)
+const DEFAULT_FIFA_RANKINGS = {
+  "🇦🇷 Argentina":1,"🇫🇷 France":2,"🇧🇪 Belgium":3,"🏴󠁧󠁢󠁥󠁮󠁧󠁿 England":4,
+  "🇧🇷 Brazil":5,"🇵🇹 Portugal":6,"🇳🇱 Netherlands":7,"🇪🇸 Spain":8,
+  "🇺🇸 USA":13,"🇲🇦 Morocco":14,"🇲🇽 Mexico":15,"🇩🇪 Germany":16,
+  "🇺🇾 Uruguay":17,"🇯🇵 Japan":18,"🇨🇭 Switzerland":19,"🇸🇳 Senegal":20,
+  "🇩🇰 Denmark":21,"🇳🇴 Norway":22,"🇰🇷 South Korea":23,"🇸🇪 Sweden":24,
+  "🇦🇹 Austria":25,"🇪🇨 Ecuador":30,"🇶🇦 Qatar":37,"🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland":39,
+  "🇨🇿 Czechia":40,"🇨🇲 Cameroon":41,"🇪🇬 Egypt":43,"🇨🇮 Ivory Coast":45,
+  "🇷🇸 Serbia":33,"🇩🇿 Algeria":52,"🇺🇿 Uzbekistan":68,"🇸🇦 Saudi Arabia":56,
+  "🇬🇭 Ghana":60,"🇨🇩 DR Congo":62,"🇿🇦 South Africa":65,"🇦🇺 Australia":23,
+  "🇨🇴 Colombia":11,"🇵🇾 Paraguay":53,"🇵🇦 Panama":77,"🇨🇻 Cape Verde":71,
+  "🇮🇷 Iran":22,"🇳🇿 New Zealand":95,"🇹🇳 Tunisia":35,"🇧🇦 Bosnia & Herz.":61,
+  "🇯🇴 Jordan":87,"🇭🇷 Croatia":10,"🇨🇼 Curaçao":88,"🇭🇹 Haiti":100,
+  "🇵🇬 Papua New Guinea":157,"🇸🇰 Slovakia":48
+};
+
+async function renderRankingsAdmin(){
+  const saved = await getFifaRankings();
+  const rankings = Object.keys(saved).length > 0 ? saved : DEFAULT_FIFA_RANKINGS;
+  // Get all unique teams from MATCHES
+  const allTeams = [...new Set(MATCHES.flatMap(m=>[m.home,m.away]))].sort();
+  let rows = [];
+  allTeams.forEach((team,i) => {
+    rows.push({team, rank: rankings[team]||''});
+  });
+  // Display in 3 columns
+  const perCol = Math.ceil(rows.length / 3);
+  let html = '';
+  for(let r = 0; r < perCol; r++){
+    html += '<tr>';
+    for(let col = 0; col < 3; col++){
+      const idx = col * perCol + r;
+      if(idx < rows.length){
+        const {team, rank} = rows[idx];
+        const enc = team.replace(/[^a-zA-Z0-9]/g,'_');
+        html += '<td style="font-size:12px;padding:5px 8px;font-weight:600">'+team+'</td>'
+          + '<td style="padding:3px 8px"><input type="number" min="1" max="210" value="'+(rank||'')+'" '
+          + 'id="rank-'+enc+'" style="width:60px;padding:4px;border:1.5px solid var(--border);'
+          + 'border-radius:6px;text-align:center;font-size:13px;color:#0000ff"></td>';
+      } else {
+        html += '<td></td><td></td>';
+      }
+    }
+    html += '</tr>';
+  }
+  document.getElementById('rankingsBody').innerHTML = html;
+}
+
+async function saveRankings(){
+  const allTeams = [...new Set(MATCHES.flatMap(m=>[m.home,m.away]))];
+  const rankings = {};
+  allTeams.forEach(team => {
+    const enc = team.replace(/[^a-zA-Z0-9]/g,'_');
+    const el = document.getElementById('rank-'+enc);
+    const val = el ? parseInt(el.value) : null;
+    if(val && val > 0) rankings[team] = val;
+  });
+  await saveFifaRankings(rankings);
+  // Clear results cache so upset values get recalculated on next save
+  fbClearCache('results','main');
+  const ok = document.getElementById('rankSaveOk');
+  ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'),3000);
+  // Refresh match cards to show new ranks
+  renderMatches();
+}
 
 /* ═══════════════════════════════════════════
    LÄHTESTA MÄNGUANDMED
