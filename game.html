@@ -2765,15 +2765,27 @@ async function buildPlayerOptions(posType){
   }
 }
 
+// Cached player options for squad picker (set during renderSquadPicker)
+let _squadGkOpts = '';
+let _squadOutfieldOpts = '';
+
 async function renderSquadPicker(){
   const locked = isSquadLocked();
   const saved = await getSquad(ME);
+
+  // Pre-load and cache player options
+  const scorers = await getScorerList();
+  const gks = await getGkList();
+  _squadGkOpts = '<option value="">— Vali väravavaht —</option>' +
+    gks.map(p => `<option value="${p}">${p}</option>`).join('');
+  _squadOutfieldOpts = '<option value="">— Vali mängija —</option>' +
+    scorers.map(p => `<option value="${p}">${p}</option>`).join('');
 
   // Render each position group
   for(const pos of ['gk','def','mid','fwd']){
     const container = document.getElementById('squad-'+pos);
     if(!container) continue;
-    const opts = await buildPlayerOptions(pos);
+    const opts = pos === 'gk' ? _squadGkOpts : _squadOutfieldOpts;
     const players = saved[pos] || [];
     const limit = SQUAD_LIMITS[pos];
 
@@ -2782,10 +2794,9 @@ async function renderSquadPicker(){
     let html = '';
     for(let i = 0; i < slots; i++){
       const val = players[i] || '';
-      const selectedOpts = opts.replace(
-        `value="${val}"`,
-        `value="${val}" selected`
-      );
+      const selectedOpts = val
+        ? opts.replace(`value="${val}"`, `value="${val}" selected`)
+        : opts;
       html += `<div class="squad-slot" id="squad-slot-${pos}-${i}" data-pos="${pos}">
         <select class="squad-sel-${pos}" onchange="updateSquadCounter()"
           style="${val?'border-color:var(--green);background:#f0fdf4':''}" ${locked?'disabled':''}>
@@ -2811,19 +2822,20 @@ async function renderSquadPicker(){
   if(locked && saveBtn) saveBtn.textContent = '🔒 Sümboolne koosseis lukustatud';
 }
 
-async function addSquadSlot(pos){
+function addSquadSlot(pos){
   if(isSquadLocked()) return;
   const container = document.getElementById('squad-'+pos);
+  if(!container) return;
   const limit = SQUAD_LIMITS[pos];
   const current = container.querySelectorAll('.squad-slot').length;
   if(current >= limit.max) return;
 
-  const opts = await buildPlayerOptions(pos);
-  // Use timestamp-based unique ID to avoid conflicts
-  const uid = Date.now();
+  // Use cached options (set during renderSquadPicker)
+  const opts = pos === 'gk' ? _squadGkOpts : _squadOutfieldOpts;
+  if(!opts) { console.warn('Squad options not loaded yet'); return; }
+
   const div = document.createElement('div');
   div.className = 'squad-slot';
-  div.dataset.pos = pos;
   div.innerHTML = `<select class="squad-sel-${pos}" onchange="updateSquadCounter()">
     ${opts}
   </select>
