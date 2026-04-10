@@ -2804,7 +2804,7 @@ async function buildPlayerOptions(posType){
     
     // Filter by position tag if present, otherwise show all
     const filtered = posTag
-      ? scorers.filter(p => p.includes('['+posTag+']') || !p.match(/\[(K|PK|R)\]/))
+      ? scorers.filter(p => p.endsWith('['+posTag+']') || !p.match(/\[(K|PK|R)\]$/))
       : scorers;
     
     // Clean display name (remove position tag)
@@ -2839,19 +2839,27 @@ async function renderSquadPicker(){
   const locked = isSquadLocked();
   const saved = await getSquad(ME);
 
-  // Pre-load and cache player options
+  // Pre-load and cache player options per position
   const scorers = await getScorerList();
   const gks = await getGkList();
-  _squadGkOpts = '<option value="">— Vali väravavaht —</option>' +
-    gks.map(p => `<option value="${p}">${p}</option>`).join('');
-  _squadOutfieldOpts = '<option value="">— Vali mängija —</option>' +
-    scorers.map(p => `<option value="${p}">${p}</option>`).join('');
+
+  // GK options grouped by team
+  _squadGkOpts = await buildPlayerOptions('gk');
+
+  // Position-specific outfield options (filtered + grouped)
+  window._squadDefOpts = await buildPlayerOptions('def');
+  window._squadMidOpts = await buildPlayerOptions('mid');
+  window._squadFwdOpts = await buildPlayerOptions('fwd');
+  _squadOutfieldOpts = await buildPlayerOptions('fwd'); // fallback
 
   // Render each position group
   for(const pos of ['gk','def','mid','fwd']){
     const container = document.getElementById('squad-'+pos);
     if(!container) continue;
-    const opts = pos === 'gk' ? _squadGkOpts : _squadOutfieldOpts;
+    const opts = pos === 'gk' ? _squadGkOpts
+      : pos === 'def' ? (window._squadDefOpts || _squadOutfieldOpts)
+      : pos === 'mid' ? (window._squadMidOpts || _squadOutfieldOpts)
+      : (window._squadFwdOpts || _squadOutfieldOpts);
     const players = saved[pos] || [];
     const limit = SQUAD_LIMITS[pos];
 
@@ -2896,8 +2904,12 @@ function addSquadSlot(pos){
   const current = container.querySelectorAll('.squad-slot').length;
   if(current >= limit.max) return;
 
-  // Use cached options (set during renderSquadPicker)
-  const opts = pos === 'gk' ? _squadGkOpts : _squadOutfieldOpts;
+  // Use position-specific cached options
+  const opts = pos === 'gk' ? _squadGkOpts
+    : pos === 'def' ? (window._squadDefOpts || _squadOutfieldOpts)
+    : pos === 'mid' ? (window._squadMidOpts || _squadOutfieldOpts)
+    : pos === 'fwd' ? (window._squadFwdOpts || _squadOutfieldOpts)
+    : _squadOutfieldOpts;
   if(!opts) { console.warn('Squad options not loaded yet'); return; }
 
   const div = document.createElement('div');
