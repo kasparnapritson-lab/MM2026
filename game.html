@@ -2786,12 +2786,12 @@ async function renderSquadPicker(){
         `value="${val}"`,
         `value="${val}" selected`
       );
-      html += `<div class="squad-slot" id="squad-slot-${pos}-${i}">
-        <select id="squad-sel-${pos}-${i}" onchange="updateSquadCounter()"
-          class="${val?'filled':''}" ${locked?'disabled':''}>
+      html += `<div class="squad-slot" id="squad-slot-${pos}-${i}" data-pos="${pos}">
+        <select class="squad-sel-${pos}" onchange="updateSquadCounter()"
+          style="${val?'border-color:var(--green);background:#f0fdf4':''}" ${locked?'disabled':''}>
           ${selectedOpts}
         </select>
-        ${!locked && i >= limit.min ? `<button class="remove-slot" onclick="removeSquadSlot('${pos}',${i})">✕</button>` : ''}
+        ${!locked && i >= limit.min ? `<button class="remove-slot" onclick="const c=document.getElementById('squad-${pos}');if(c.querySelectorAll('.squad-slot').length>SQUAD_LIMITS['${pos}'].min){this.closest('.squad-slot').remove();updateAddBtns();updateSquadCounter();}">✕</button>` : ''}
       </div>`;
     }
     container.innerHTML = html;
@@ -2803,6 +2803,7 @@ async function renderSquadPicker(){
     }
   }
   updateSquadCounter();
+  updateAddBtns();
 
   // Lock save button
   const saveBtn = document.getElementById('squadSaveBtn');
@@ -2818,37 +2819,40 @@ async function addSquadSlot(pos){
   if(current >= limit.max) return;
 
   const opts = await buildPlayerOptions(pos);
-  const idx = current;
+  // Use timestamp-based unique ID to avoid conflicts
+  const uid = Date.now();
   const div = document.createElement('div');
   div.className = 'squad-slot';
-  div.id = `squad-slot-${pos}-${idx}`;
-  div.innerHTML = `<select id="squad-sel-${pos}-${idx}" onchange="updateSquadCounter()">
+  div.dataset.pos = pos;
+  div.innerHTML = `<select class="squad-sel-${pos}" onchange="updateSquadCounter()">
     ${opts}
   </select>
-  <button class="remove-slot" onclick="removeSquadSlot('${pos}',${idx})">✕</button>`;
+  <button class="remove-slot" onclick="this.closest('.squad-slot').remove();updateAddBtns();updateSquadCounter();">✕</button>`;
   container.appendChild(div);
 
-  // Hide add button if at max
-  if(current + 1 >= limit.max){
-    const addBtn = document.getElementById(`squad-${pos}-add`);
-    if(addBtn) addBtn.style.display = 'none';
-  }
+  updateAddBtns();
   updateSquadCounter();
+}
+
+function updateAddBtns(){
+  for(const pos of ['gk','def','mid','fwd']){
+    const container = document.getElementById('squad-'+pos);
+    if(!container) continue;
+    const count = container.querySelectorAll('.squad-slot').length;
+    const limit = SQUAD_LIMITS[pos];
+    const addBtn = document.getElementById(`squad-${pos}-add`);
+    if(addBtn) addBtn.style.display = (!isSquadLocked() && count < limit.max) ? 'inline-block' : 'none';
+  }
 }
 
 function removeSquadSlot(pos, idx){
   if(isSquadLocked()) return;
-  const limit = SQUAD_LIMITS[pos];
   const container = document.getElementById('squad-'+pos);
   const slots = container.querySelectorAll('.squad-slot');
-  if(slots.length <= limit.min) return; // can't go below min
-
+  if(slots.length <= SQUAD_LIMITS[pos].min) return;
   const el = document.getElementById(`squad-slot-${pos}-${idx}`);
   if(el) el.remove();
-
-  // Show add button again
-  const addBtn = document.getElementById(`squad-${pos}-add`);
-  if(addBtn) addBtn.style.display = 'inline-block';
+  updateAddBtns();
   updateSquadCounter();
 }
 
