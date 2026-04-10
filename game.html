@@ -1828,10 +1828,28 @@ async function renderPlayerListAdmin(){
   const scorers=await getScorerList(),gks=await getGkList();
   function buildGrid(list,type,containerId){
     const c=document.getElementById(containerId);
-    c.innerHTML=list.map((p,i)=>'<div class="player-entry">'
-      +'<input type="text" value="'+p+'" id="pl-'+type+'-'+i+'" placeholder="Player name">'
-      +'<button class="del-btn" onclick="removePlayer(\''+type+'\','+i+')">✕</button>'
-      +'</div>').join('');
+    if(type==='gk'){
+      c.innerHTML=list.map((p,i)=>'<div class="player-entry">'
+        +'<input type="text" value="'+p+'" id="pl-'+type+'-'+i+'" placeholder="Mängija nimi (KOD)" style="flex:1">'
+        +'<button class="del-btn" onclick="removePlayer(\''+type+'\','+i+')">✕</button>'
+        +'</div>').join('');
+    } else {
+      c.innerHTML=list.map((p,i)=>{
+        const posMatch = p.match(/\[(K|PK|R)\]$/);
+        const pos = posMatch ? posMatch[1] : '';
+        const name = p.replace(/\s*\[(K|PK|R)\]$/, '').trim();
+        return '<div class="player-entry">'
+          +'<input type="text" value="'+name+'" id="pl-'+type+'-'+i+'" placeholder="Mängija nimi (KOD)" style="flex:1">'
+          +'<select id="plpos-'+type+'-'+i+'" style="width:80px;padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;flex-shrink:0">'
+          +'<option value="">Pos</option>'
+          +'<option value="K"'+(pos==='K'?' selected':'')+'>🛡️ K</option>'
+          +'<option value="PK"'+(pos==='PK'?' selected':'')+'>⚙️ PK</option>'
+          +'<option value="R"'+(pos==='R'?' selected':'')+'>⚡ R</option>'
+          +'</select>'
+          +'<button class="del-btn" onclick="removePlayer(\''+type+'\','+i+')">✕</button>'
+          +'</div>';
+      }).join('');
+    }
   }
   buildGrid(scorers,'scorer','scorerListGrid');
   buildGrid(gks,'gk','gkListGrid');
@@ -1839,7 +1857,7 @@ async function renderPlayerListAdmin(){
 async function addPlayerToList(type){
   const scorers=await getScorerList();
   const gks=await getGkList();
-  if(type==='scorer') scorers.push('');
+  if(type==='scorer') scorers.push(' ');
   else gks.push('');
   fbClearCache('settings','players');
   await savePlayerLists_fb(scorers,gks);
@@ -1859,9 +1877,17 @@ async function removePlayer(type,idx){
   renderPlayerListAdmin();
 }
 async function savePlayerLists(){
-  const sGrid=document.getElementById('scorerListGrid').querySelectorAll('input');
+  // Save scorers with position tags
+  const sContainer=document.getElementById('scorerListGrid');
+  const scorers=[...sContainer.querySelectorAll('.player-entry')].map((entry,i)=>{
+    const nameEl=entry.querySelector('input');
+    const posEl=entry.querySelector('select');
+    const name=(nameEl?nameEl.value.trim():'');
+    const pos=(posEl?posEl.value:'');
+    if(!name) return null;
+    return pos ? name+' ['+pos+']' : name;
+  }).filter(Boolean);
   const gGrid=document.getElementById('gkListGrid').querySelectorAll('input');
-  const scorers=[...sGrid].map(i=>i.value.trim()).filter(Boolean);
   const gks=[...gGrid].map(i=>i.value.trim()).filter(Boolean);
   fbClearCache('settings','players');
   await savePlayerLists_fb(scorers,gks);
@@ -2757,11 +2783,51 @@ async function buildPlayerOptions(posType){
   const scorers = await getScorerList();
   const gks = await getGkList();
   if(posType === 'gk'){
+    // Group GKs by team
+    const groups = {};
+    gks.forEach(p=>{
+      const m = p.match(/\(([A-Z]+)\)/);
+      const team = m ? m[1] : 'Muu';
+      if(!groups[team]) groups[team] = [];
+      groups[team].push(p);
+    });
+    const keys = Object.keys(groups).sort();
+    if(keys.length <= 1){
+      return '<option value="">— Vali väravavaht —</option>' +
+        gks.map(p=>`<option value="${p}">${p}</option>`).join('');
+    }
     return '<option value="">— Vali väravavaht —</option>' +
-      gks.map(p => `<option value="${p}">${p}</option>`).join('');
+      keys.map(team=>`<optgroup label="${team}">${groups[team].map(p=>`<option value="${p}">${p}</option>`).join('')}</optgroup>`).join('');
   } else {
+    // Map posType to position tag
+    const posTag = posType === 'def' ? 'K' : posType === 'mid' ? 'PK' : posType === 'fwd' ? 'R' : null;
+    
+    // Filter by position tag if present, otherwise show all
+    const filtered = posTag
+      ? scorers.filter(p => p.includes('['+posTag+']') || !p.match(/\[(K|PK|R)\]/))
+      : scorers;
+    
+    // Clean display name (remove position tag)
+    const clean = filtered.map(p=>({
+      value: p,
+      label: p.replace(/\s*\[(K|PK|R)\]$/, ''),
+      team: (p.match(/\(([A-Z]+)\)/)||[])[1]||'Muu'
+    }));
+    
+    // Group by team code
+    const groups = {};
+    clean.forEach(({value, label, team})=>{
+      if(!groups[team]) groups[team] = [];
+      groups[team].push({value, label});
+    });
+    
+    const keys = Object.keys(groups).sort();
+    if(keys.length <= 1){
+      return '<option value="">— Vali mängija —</option>' +
+        clean.map(({value,label})=>`<option value="${value}">${label}</option>`).join('');
+    }
     return '<option value="">— Vali mängija —</option>' +
-      scorers.map(p => `<option value="${p}">${p}</option>`).join('');
+      keys.map(team=>`<optgroup label="🏳️ ${team}">${groups[team].map(({value,label})=>`<option value="${value}">${label}</option>`).join('')}</optgroup>`).join('');
   }
 }
 
