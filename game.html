@@ -164,6 +164,30 @@ main{max-width:1000px;margin:0 auto;padding:1.75rem 1rem}
 .player-entry input:focus{border-color:var(--red)}
 .player-entry .del-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--red);transition:all .2s;flex-shrink:0}
 .player-entry .del-btn:hover{background:#fee2e2;border-color:var(--red)}
+/* SÜMBOOLNE KOOSSEIS */
+.squad-section{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-top:1.25rem}
+.squad-section h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px;color:var(--dark);margin-bottom:.3rem}
+.squad-section .squad-sub{font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.5}
+.squad-pos-group{margin-bottom:1rem}
+.squad-pos-title{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
+.squad-pos-title .pos-count{font-size:11px;background:var(--dark);color:var(--gold);padding:1px 6px;border-radius:8px;font-family:'Bebas Neue',sans-serif;letter-spacing:.5px}
+.squad-slots{display:flex;flex-wrap:wrap;gap:.4rem}
+.squad-slot{position:relative}
+.squad-slot select{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:#fff;min-width:200px;max-width:240px}
+.squad-slot select:focus{border-color:var(--red)}
+.squad-slot select.filled{border-color:var(--green);background:#f0fdf4}
+.squad-slot .remove-slot{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;line-height:1}
+.squad-add-btn{background:transparent;border:1.5px dashed var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s}
+.squad-add-btn:hover{border-color:var(--red);color:var(--red)}
+.squad-counter{display:flex;align-items:center;gap:.5rem;margin:.75rem 0;font-size:13px;font-weight:600}
+.squad-counter .cnt{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--red);line-height:1}
+.squad-counter .cnt.ok{color:var(--green)}
+.squad-validation{font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-bottom:.75rem;display:none}
+.squad-validation.show{display:block}
+.squad-validation.error{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5}
+.squad-validation.success{background:#f0fdf4;color:#166534;border:1px solid #86efac}
+.squad-pts-preview{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:.6rem .9rem;font-size:13px;color:#92400e;margin:.5rem 0}
+
 /* FIFA RANK BADGE */
 .rank-badge{display:inline-block;background:var(--dark);color:var(--gold);font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle;letter-spacing:.3px}
 .upset-val{display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:4px}
@@ -354,6 +378,42 @@ const _db = firebase.firestore();
       <span class="save-ok" id="bonusSaveOk">✓ Saved!</span>
     </div>
   </div>
+  <!-- SÜMBOOLNE KOOSSEIS -->
+  <div class="squad-section">
+    <h3>🌟 Sümboolne koosseis</h3>
+    <p class="squad-sub">Vali 11 parimat mängijat turniirilt. Peab sisaldama täpselt 1 väravavaht, 3–6 kaitsjat, 2–6 poolkaitsjat ja 1–4 ründajat. Lukustub sama tähtajaga — <b>11. juuni kell 14:00</b>.</p>
+    <div class="squad-pos-group">
+      <div class="squad-pos-title">🧤 Väravavaht <span class="pos-count">1/1</span></div>
+      <div class="squad-slots" id="squad-gk"></div>
+    </div>
+    <div class="squad-pos-group">
+      <div class="squad-pos-title">🛡️ Kaitsjad <span class="pos-count" id="squad-def-count">0/3–6</span></div>
+      <div class="squad-slots" id="squad-def"></div>
+      <button class="squad-add-btn" onclick="addSquadSlot('def')" id="squad-def-add">+ Lisa kaitsja</button>
+    </div>
+    <div class="squad-pos-group">
+      <div class="squad-pos-title">⚙️ Poolkaitsjad <span class="pos-count" id="squad-mid-count">0/2–6</span></div>
+      <div class="squad-slots" id="squad-mid"></div>
+      <button class="squad-add-btn" onclick="addSquadSlot('mid')" id="squad-mid-add">+ Lisa poolkaitsja</button>
+    </div>
+    <div class="squad-pos-group">
+      <div class="squad-pos-title">⚡ Ründajad <span class="pos-count" id="squad-fwd-count">0/1–4</span></div>
+      <div class="squad-slots" id="squad-fwd"></div>
+      <button class="squad-add-btn" onclick="addSquadSlot('fwd')" id="squad-fwd-add">+ Lisa ründaja</button>
+    </div>
+    <div class="squad-counter">
+      <span>Kokku:</span>
+      <span class="cnt" id="squad-total">0</span>
+      <span style="font-weight:400;color:var(--muted)">/11 mängijat</span>
+    </div>
+    <div class="squad-pts-preview">+2 punkti iga õige mängija eest · +5 boonus 5+ õige · +10 boonus 8+ õige · +20 boonus kõik 11 õiged</div>
+    <div class="squad-validation" id="squad-validation"></div>
+    <div class="save-bar">
+      <button class="btn-primary" onclick="saveSquadPicks()" id="squadSaveBtn">Salvesta sümboolne koosseis</button>
+      <span class="save-ok" id="squadSaveOk">✓ Salvestatud!</span>
+    </div>
+  </div>
+
   <div class="bonus-card" id="myBonusDisplay">
     <h3>📋 Minu praegused valikud</h3>
     <div id="myBonusContent" style="font-size:14px;color:var(--muted)">Ühtegi valikut pole veel salvestatud.</div>
@@ -638,6 +698,18 @@ const _db = firebase.firestore();
       <button class="btn-primary" style="padding:8px 18px;font-size:13px" onclick="saveOfficialGoldenGlove()">Salvesta (+10 pts)</button>
       <span class="save-ok" id="ggSaveOk">✓ Salvestatud!</span>
     </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <div class="admin-section-title">🌟 Sümboolne koosseis — ametlik tulemus</div>
+  <div class="admin-section-sub">Sisesta turniiri lõpus FIFA ametlik sümboolne koosseis. Mängijad kes valisid õigesti saavad +2 punkti iga õige mängija eest ja boonuspunktid (5+→+5, 8+→+10, 11→+20).</div>
+  <div id="squadResultAdmin" style="margin-bottom:1rem">
+    <p style="font-size:13px;color:var(--muted)">⏳ Täidetakse turniiri lõpus (pärast 19. juulit).</p>
+  </div>
+  <div class="save-bar">
+    <button class="btn-primary" onclick="saveSquadResult()">Salvesta sümboolne koosseis (+pts)</button>
+    <span class="save-ok" id="squadResultOk">✓ Salvestatud!</span>
   </div>
 
   <hr class="section-divider">
@@ -1157,7 +1229,7 @@ function showTab(id,el){
   if(id==='groups')      renderGroups();
   if(id==='bracket')     renderBracket();
   if(id==='bonus')       renderBonusTab();
-  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderOverrideTable();renderPredTable();}
+  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderOverrideTable();renderSquadResultAdmin();renderPredTable();}
   if(id==='mystats')     renderMyStats();
   if(id==='settings')    renderSettingsTab();
 }
@@ -1264,6 +1336,8 @@ async function savePredictions(){
 ═══════════════════════════════════════════ */
 async function renderBonusTab(){
   const bonus=await getBonus(ME);
+  // Also render squad picker
+  renderSquadPicker();
   const bonusDeadline=new Date('2026-06-11T14:00:00');
   const locked=Date.now()>=bonusDeadline.getTime();
   // Populate winner (teams)
@@ -2061,7 +2135,29 @@ async function renderMyStats(){
     +'<div class="stats-big-lbl">Suurim üllatus ennustus</div>'
     +'<div style="font-size:12px;color:'+(upsetPts?'var(--green)':'var(--muted)')+';margin-top:4px">'+(upsetPts?'✅ +5pts':'⏳ Ootel')+upsetHint+'</div></div>';
   bonusHtml += '</div>';
-  document.getElementById('myBonusStatus').innerHTML = bonusHtml;
+
+  // Squad bonus
+  const mySquad = await getSquad(ME);
+  const squadResult = await getSquadResult();
+  const hasSquad = (mySquad.gk||[]).length + (mySquad.def||[]).length + (mySquad.mid||[]).length + (mySquad.fwd||[]).length > 0;
+  const squadBonus = calcSquadBonus(mySquad, squadResult && Object.keys(squadResult).length > 0 ? squadResult : null);
+  const squadTotal = (mySquad.gk||[]).length + (mySquad.def||[]).length + (mySquad.mid||[]).length + (mySquad.fwd||[]).length;
+
+  let squadHtml = '<div class="stats-big-card" style="grid-column:1/-1">'
+    + '<div class="stats-big-num" style="font-size:1.2rem">🌟 Sümboolne koosseis</div>'
+    + '<div class="stats-big-lbl" style="margin:4px 0">Sinu valik: '
+    + (hasSquad ? `1 VV · ${(mySquad.def||[]).length} K · ${(mySquad.mid||[]).length} PK · ${(mySquad.fwd||[]).length} R = ${squadTotal} mängijat` : 'Pole valitud')
+    + '</div>';
+
+  if(squadBonus.correct > 0){
+    squadHtml += `<div style="font-size:12px;color:var(--green);font-weight:600">`
+      + `✅ ${squadBonus.correct}/11 õiget → +${squadBonus.base}pts + +${squadBonus.bonus} boonus = +${squadBonus.pts}pts</div>`;
+  } else if(hasSquad && Object.keys(squadResult).length === 0){
+    squadHtml += '<div style="font-size:12px;color:var(--muted)">⏳ Ametlik koosseis pole veel välja kuulutatud</div>';
+  }
+  squadHtml += '</div>';
+
+  document.getElementById('myBonusStatus').innerHTML = bonusHtml + squadHtml;
 
   // Top scorer leaderboard view
   const allScorers = Object.entries(scorerGoals)
@@ -2371,6 +2467,96 @@ async function renderBonusResultSelects(){
   }
 }
 
+async function renderSquadResultAdmin(){
+  const scorers = await getScorerList();
+  const gks = await getGkList();
+  const saved = await getSquadResult();
+  const locked = false; // admin can always edit
+
+  const gkOpts = '<option value="">— Vali —</option>' + gks.map(p=>`<option value="${p}"${(saved.gk||[]).includes(p)?' selected':''}>${p}</option>`).join('');
+
+  const scorerOpts = (pos) => '<option value="">— Vali —</option>' +
+    scorers.map(p=>`<option value="${p}"${(saved[pos]||[]).includes(p)?' selected':''}>${p}</option>`).join('');
+
+  const defSlots = Math.max((saved.def||[]).length, 4);
+  const midSlots = Math.max((saved.mid||[]).length, 4);
+  const fwdSlots = Math.max((saved.fwd||[]).length, 3);
+
+  let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem">
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:.4rem">🧤 VÄRAVAVAHT (1)</div>
+      <select id="sr-gk-0" style="width:100%;padding:6px;border:1.5px solid var(--border);border-radius:8px;font-size:13px">${gkOpts}</select>
+    </div>
+  </div>
+  <div style="margin-bottom:.5rem">
+    <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:.4rem">🛡️ KAITSJAD</div>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem">`;
+
+  for(let i=0;i<defSlots;i++){
+    const val = (saved.def||[])[i]||'';
+    html += `<select id="sr-def-${i}" style="padding:6px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;min-width:180px">
+      <option value="">— Vali —</option>
+      ${scorers.map(p=>`<option value="${p}"${p===val?' selected':''}>${p}</option>`).join('')}
+    </select>`;
+  }
+  html += `</div></div>
+  <div style="margin-bottom:.5rem">
+    <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:.4rem">⚙️ POOLKAITSJAD</div>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem">`;
+  for(let i=0;i<midSlots;i++){
+    const val = (saved.mid||[])[i]||'';
+    html += `<select id="sr-mid-${i}" style="padding:6px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;min-width:180px">
+      <option value="">— Vali —</option>
+      ${scorers.map(p=>`<option value="${p}"${p===val?' selected':''}>${p}</option>`).join('')}
+    </select>`;
+  }
+  html += `</div></div>
+  <div style="margin-bottom:.5rem">
+    <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:.4rem">⚡ RÜNDAJAD</div>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem">`;
+  for(let i=0;i<fwdSlots;i++){
+    const val = (saved.fwd||[])[i]||'';
+    html += `<select id="sr-fwd-${i}" style="padding:6px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;min-width:180px">
+      <option value="">— Vali —</option>
+      ${scorers.map(p=>`<option value="${p}"${p===val?' selected':''}>${p}</option>`).join('')}
+    </select>`;
+  }
+  html += '</div></div>';
+
+  document.getElementById('squadResultAdmin').innerHTML = html;
+}
+
+async function saveSquadResult(){
+  const scorers = await getScorerList();
+  const gks = await getGkList();
+
+  const gk = [document.getElementById('sr-gk-0')?.value].filter(Boolean);
+  const def = [0,1,2,3,4,5].map(i=>document.getElementById(`sr-def-${i}`)?.value).filter(Boolean);
+  const mid = [0,1,2,3,4,5].map(i=>document.getElementById(`sr-mid-${i}`)?.value).filter(Boolean);
+  const fwd = [0,1,2,3].map(i=>document.getElementById(`sr-fwd-${i}`)?.value).filter(Boolean);
+
+  const result = {gk, def, mid, fwd};
+  await setSquadResult(result);
+
+  // Calculate squad bonus points for all players
+  const players = await getAllPlayers();
+  await Promise.all(players.map(async player => {
+    const mySquad = await getSquad(player);
+    const {pts, correct} = calcSquadBonus(mySquad, result);
+    if(pts > 0){
+      // Add to existing bonus points
+      const existing = await fbGet('bonuspoints', player) || {pts:0, breakdown:{}};
+      existing.pts = (existing.pts||0) + pts;
+      existing.breakdown = existing.breakdown||{};
+      existing.breakdown.squad = {pts, correct};
+      await fbSet('bonuspoints', player, existing);
+    }
+  }));
+
+  const ok = document.getElementById('squadResultOk');
+  ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'), 3000);
+}
+
 async function saveOfficialTopScorer(){
   const val = document.getElementById('officialTopScorer').value;
   if(!val){ alert('Vali esmalt võitja.'); return; }
@@ -2540,6 +2726,233 @@ async function saveRankings(){
   ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'),3000);
   // Refresh match cards to show new ranks
   renderMatches();
+}
+
+/* ═══════════════════════════════════════════
+   SÜMBOOLNE KOOSSEIS
+═══════════════════════════════════════════ */
+
+// Position limits
+const SQUAD_LIMITS = {
+  gk:  {min:1, max:1,  label:'Väravavaht'},
+  def: {min:3, max:6,  label:'Kaitsja'},
+  mid: {min:2, max:6,  label:'Poolkaitsja'},
+  fwd: {min:1, max:4,  label:'Ründaja'}
+};
+const SQUAD_TOTAL = 11;
+
+// Storage
+async function getSquad(u){ return await fbGet('squad_picks', u) || {gk:[], def:[], mid:[], fwd:[]}; }
+async function setSquad(u, d){ fbClearCache('squad_picks', u); await fbSet('squad_picks', u, d); }
+async function getSquadResult(){ return await fbGet('settings','squadresult') || {}; }
+async function setSquadResult(d){ fbClearCache('settings','squadresult'); await fbSet('settings','squadresult', d); }
+
+function isSquadLocked(){
+  const d = new Date('2026-06-11T14:00:00+03:00');
+  return Date.now() >= d.getTime();
+}
+
+// Build player dropdown options grouped by position type
+async function buildPlayerOptions(posType){
+  const scorers = await getScorerList();
+  const gks = await getGkList();
+  if(posType === 'gk'){
+    return '<option value="">— Vali väravavaht —</option>' +
+      gks.map(p => `<option value="${p}">${p}</option>`).join('');
+  } else {
+    return '<option value="">— Vali mängija —</option>' +
+      scorers.map(p => `<option value="${p}">${p}</option>`).join('');
+  }
+}
+
+async function renderSquadPicker(){
+  const locked = isSquadLocked();
+  const saved = await getSquad(ME);
+
+  // Render each position group
+  for(const pos of ['gk','def','mid','fwd']){
+    const container = document.getElementById('squad-'+pos);
+    if(!container) continue;
+    const opts = await buildPlayerOptions(pos);
+    const players = saved[pos] || [];
+    const limit = SQUAD_LIMITS[pos];
+
+    // Ensure at least min slots shown
+    const slots = Math.max(players.length, limit.min);
+    let html = '';
+    for(let i = 0; i < slots; i++){
+      const val = players[i] || '';
+      const selectedOpts = opts.replace(
+        `value="${val}"`,
+        `value="${val}" selected`
+      );
+      html += `<div class="squad-slot" id="squad-slot-${pos}-${i}">
+        <select id="squad-sel-${pos}-${i}" onchange="updateSquadCounter()"
+          class="${val?'filled':''}" ${locked?'disabled':''}>
+          ${selectedOpts}
+        </select>
+        ${!locked && i >= limit.min ? `<button class="remove-slot" onclick="removeSquadSlot('${pos}',${i})">✕</button>` : ''}
+      </div>`;
+    }
+    container.innerHTML = html;
+
+    // Show/hide add button
+    const addBtn = document.getElementById(`squad-${pos}-add`);
+    if(addBtn){
+      addBtn.style.display = (locked || slots >= limit.max) ? 'none' : 'inline-block';
+    }
+  }
+  updateSquadCounter();
+
+  // Lock save button
+  const saveBtn = document.getElementById('squadSaveBtn');
+  if(saveBtn) saveBtn.disabled = locked;
+  if(locked && saveBtn) saveBtn.textContent = '🔒 Sümboolne koosseis lukustatud';
+}
+
+async function addSquadSlot(pos){
+  if(isSquadLocked()) return;
+  const container = document.getElementById('squad-'+pos);
+  const limit = SQUAD_LIMITS[pos];
+  const current = container.querySelectorAll('.squad-slot').length;
+  if(current >= limit.max) return;
+
+  const opts = await buildPlayerOptions(pos);
+  const idx = current;
+  const div = document.createElement('div');
+  div.className = 'squad-slot';
+  div.id = `squad-slot-${pos}-${idx}`;
+  div.innerHTML = `<select id="squad-sel-${pos}-${idx}" onchange="updateSquadCounter()">
+    ${opts}
+  </select>
+  <button class="remove-slot" onclick="removeSquadSlot('${pos}',${idx})">✕</button>`;
+  container.appendChild(div);
+
+  // Hide add button if at max
+  if(current + 1 >= limit.max){
+    const addBtn = document.getElementById(`squad-${pos}-add`);
+    if(addBtn) addBtn.style.display = 'none';
+  }
+  updateSquadCounter();
+}
+
+function removeSquadSlot(pos, idx){
+  if(isSquadLocked()) return;
+  const limit = SQUAD_LIMITS[pos];
+  const container = document.getElementById('squad-'+pos);
+  const slots = container.querySelectorAll('.squad-slot');
+  if(slots.length <= limit.min) return; // can't go below min
+
+  const el = document.getElementById(`squad-slot-${pos}-${idx}`);
+  if(el) el.remove();
+
+  // Show add button again
+  const addBtn = document.getElementById(`squad-${pos}-add`);
+  if(addBtn) addBtn.style.display = 'inline-block';
+  updateSquadCounter();
+}
+
+function updateSquadCounter(){
+  let total = 0;
+  let defCount = 0, midCount = 0, fwdCount = 0;
+
+  for(const pos of ['gk','def','mid','fwd']){
+    const container = document.getElementById('squad-'+pos);
+    if(!container) continue;
+    const filled = [...container.querySelectorAll('select')].filter(s => s.value).length;
+    total += filled;
+    if(pos==='def') defCount = filled;
+    if(pos==='mid') midCount = filled;
+    if(pos==='fwd') fwdCount = filled;
+  }
+
+  // Update counter
+  const cntEl = document.getElementById('squad-total');
+  if(cntEl){
+    cntEl.textContent = total;
+    cntEl.className = 'cnt' + (total === SQUAD_TOTAL ? ' ok' : '');
+  }
+
+  // Update position counts
+  const dc = document.getElementById('squad-def-count');
+  const mc = document.getElementById('squad-mid-count');
+  const fc = document.getElementById('squad-fwd-count');
+  if(dc) dc.textContent = defCount+'/3–6';
+  if(mc) mc.textContent = midCount+'/2–6';
+  if(fc) fc.textContent = fwdCount+'/1–4';
+}
+
+function validateSquad(){
+  const vals = {gk:[], def:[], mid:[], fwd:[]};
+  for(const pos of ['gk','def','mid','fwd']){
+    const container = document.getElementById('squad-'+pos);
+    if(!container) continue;
+    container.querySelectorAll('select').forEach(s => {
+      if(s.value) vals[pos].push(s.value);
+    });
+  }
+
+  const total = vals.gk.length + vals.def.length + vals.mid.length + vals.fwd.length;
+  const errors = [];
+
+  if(vals.gk.length !== 1) errors.push('Peab olema täpselt 1 väravavaht');
+  if(vals.def.length < 3 || vals.def.length > 6) errors.push('Kaitsjaid peab olema 3–6');
+  if(vals.mid.length < 2 || vals.mid.length > 6) errors.push('Poolkaitsjaid peab olema 2–6');
+  if(vals.fwd.length < 1 || vals.fwd.length > 4) errors.push('Ründajaid peab olema 1–4');
+  if(total !== SQUAD_TOTAL) errors.push(`Kokku peab olema täpselt 11 mängijat (praegu ${total})`);
+
+  // Check duplicates
+  const all = [...vals.gk, ...vals.def, ...vals.mid, ...vals.fwd];
+  const unique = new Set(all);
+  if(unique.size !== all.length) errors.push('Sama mängijat ei saa kaks korda valida');
+
+  return {valid: errors.length === 0, errors, vals};
+}
+
+async function saveSquadPicks(){
+  if(isSquadLocked()){ alert('Sümboolne koosseis on lukustatud.'); return; }
+
+  const {valid, errors, vals} = validateSquad();
+  const valEl = document.getElementById('squad-validation');
+
+  if(!valid){
+    valEl.className = 'squad-validation show error';
+    valEl.innerHTML = '⚠️ ' + errors.join(' · ');
+    return;
+  }
+
+  valEl.className = 'squad-validation';
+  await setSquad(ME, vals);
+
+  const ok = document.getElementById('squadSaveOk');
+  ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'), 3000);
+  valEl.className = 'squad-validation show success';
+  valEl.textContent = '✅ Sümboolne koosseis salvestatud!';
+  setTimeout(()=>{ valEl.className = 'squad-validation'; }, 3000);
+}
+
+// Calculate squad bonus points
+function calcSquadBonus(mySquad, officialSquad){
+  if(!officialSquad || !mySquad) return {pts:0, correct:0, breakdown:{}};
+  const official = [
+    ...(officialSquad.gk||[]),
+    ...(officialSquad.def||[]),
+    ...(officialSquad.mid||[]),
+    ...(officialSquad.fwd||[])
+  ];
+  const mine = [
+    ...(mySquad.gk||[]),
+    ...(mySquad.def||[]),
+    ...(mySquad.mid||[]),
+    ...(mySquad.fwd||[])
+  ];
+  const correct = mine.filter(p => official.includes(p)).length;
+  let base = correct * 2;
+  let bonus = 0;
+  if(correct >= 11) bonus = 20;
+  else if(correct >= 8) bonus = 10;
+  else if(correct >= 5) bonus = 5;
+  return {pts: base + bonus, correct, base, bonus};
 }
 
 /* ═══════════════════════════════════════════
