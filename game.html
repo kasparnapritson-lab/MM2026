@@ -597,7 +597,7 @@ const _db = firebase.firestore();
   <hr class="section-divider">
 
   <!-- RESULTS -->
-  <div class="admin-section-title">📋 Enter Match Results</div>
+  <div class="admin-section-title">📋 Sisesta mängu tulemused</div>
   <div class="admin-section-sub">Enter actual final scores after each match is played.</div>
   <div class="filter-bar" id="adminResultsFilterBar">
     <span class="filter-lbl">Filter:</span>
@@ -1798,6 +1798,7 @@ function filterAdmin(f,btn){
 }
 async function renderAdminMatches(){
   const results=await getR(),deadlines=await getDeadlines();
+  const rankings=await getFifaRankings();
   let html='';
   MATCHES.forEach(m=>{
     if(adminFilter==='GS'&&!isGS(m)) return;
