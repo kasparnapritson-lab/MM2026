@@ -674,8 +674,8 @@ const _db = firebase.firestore();
 
   <div class="filter-bar" id="matchDetailsFilterBar">
     <span class="filter-lbl">Filter:</span>
-    <button class="filter-btn active" onclick="filterMatchDetails('played',this)">Mängitud</button>
-    <button class="filter-btn" onclick="filterMatchDetails('all',this)">Kõik</button>
+    <button class="filter-btn" onclick="filterMatchDetails('played',this)">Mängitud</button>
+    <button class="filter-btn active" onclick="filterMatchDetails('all',this)">Kõik</button>
   </div>
 
   <div id="matchDetailsList"></div>
@@ -2261,7 +2261,7 @@ async function setMatchDetails(d){ fbClearCache('matchdetails','data'); await fb
 async function getBonusResults(){ return await fbGet('settings','bonusresults')||{}; }
 async function setBonusResults(d){ fbClearCache('settings','bonusresults'); await fbSet('settings','bonusresults',d); }
 
-let _mdFilter = 'played';
+let _mdFilter = 'all';
 function filterMatchDetails(f, btn){
   _mdFilter = f;
   document.querySelectorAll('#matchDetailsFilterBar .filter-btn').forEach(b=>b.classList.remove('active'));
