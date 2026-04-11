@@ -1304,7 +1304,9 @@ async function renderMatches(){
     else if(pts===(ko?4:2))  pb='<span class="pts-badge pts-correct">✔ Correct +'+pts+'pts</span>';
     else if(pts===0)          pb='<span class="pts-badge pts-wrong">❌ Wrong — 0pts</span>';
     const upBadge=r&&r.upset&&r.upset>0?'<span class="upset-val'+(r.upset>=25?' big':'')+'">⚡'+r.upset+'</span>':'';
-    const rb=r?'<span class="result-badge">Final: '+r.h+' – '+r.a+'</span>'+upBadge:''
+    const winnerNote=r&&!isGS(m)&&r.h===r.a&&r.winner
+        ?'<span class="result-badge" style="background:#e0f2fe;color:#0369a1">⚡ '+r.winner.split(' ').pop()+'</span>':''
+      const rb=r?'<span class="result-badge">'+r.h+' – '+r.a+'</span>'+winnerNote+upBadge:''
     html+='<div class="match-card'+(locked?' locked':'')+'">'
       +'<div class="match-meta"><span>Mäng #'+m.id+' · '+m.date+'</span><span style="display:flex;gap:6px;align-items:center">'+roundPill(m)+deadlinePill(m.id,results,deadlines)+'</span></div>'
       +'<div class="teams">'
@@ -1550,7 +1552,11 @@ function getWinner(id){
   if(!r||!m||m.home==='TBD') return null;
   const h=parseInt(r.h),a=parseInt(r.a);
   if(isNaN(h)||isNaN(a)) return null;
-  return h>a?m.home:a>h?m.away:'(Draw)';
+  if(h>a) return m.home;
+  if(a>h) return m.away;
+  // Draw after 90 min — use stored winner (extra time / penalties)
+  if(r.winner) return r.winner;
+  return null; // Draw but no winner set yet
 }
 function getGroupTop(gk,pos){
   const rows=calcGroupStandings(gk);
@@ -1804,12 +1810,23 @@ async function renderAdminMatches(){
         +'<div class="vs">VS</div>'
         +'<div class="team away">'+m.away+(rankings[m.away]?'<span class="rank-badge">#'+rankings[m.away]+'</span>':'')+' </div>'
         +'</div>'
-      +'<div class="pred-row" style="margin-top:6px"><span class="pred-lbl">Actual score:</span>'
+      +'<div class="pred-row" style="margin-top:6px"><span class="pred-lbl">Tulemus (90 min):</span>'
       +'<input class="score-inp" type="number" min="0" max="30" id="rh-'+m.id+'" value="'+(r.h!==undefined?r.h:'')+'" placeholder="0">'
       +'<span class="score-sep">–</span>'
       +'<input class="score-inp" type="number" min="0" max="30" id="ra-'+m.id+'" value="'+(r.a!==undefined?r.a:'')+'" placeholder="0">'
-      +(set?'<span class="result-badge" style="margin:0">Saved: '+r.h+'–'+r.a+'</span>':'<span style="font-size:12px;color:var(--muted)">Not set</span>')
-      +'</div></div>';
+      +(set?'<span class="result-badge" style="margin:0">'+r.h+'–'+r.a+'</span>':'<span style="font-size:12px;color:var(--muted)">Pole sisestatud</span>')
+      +'</div>'
+      +(!isGS(m)?
+        '<div class="pred-row" style="margin-top:4px">'
+        +'<span class="pred-lbl" style="font-size:12px;color:var(--muted)">Edasipääseja (viigi korral):</span>'
+        +'<select id="rw-'+m.id+'" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px">'
+        +'<option value="">— Automaatne (kui pole viik) —</option>'
+        +'<option value="'+m.home+'"'+(r.winner===m.home?' selected':'')+'>'+m.home+'</option>'
+        +'<option value="'+m.away+'"'+(r.winner===m.away?' selected':'')+'>'+m.away+'</option>'
+        +'</select>'
+        +'</div>'
+        :'')
+      +'</div>';
   });
   document.getElementById('adminMatchList').innerHTML=html;
 }
@@ -1822,7 +1839,11 @@ async function saveResults(){
     if(h&&a&&h.value!==''&&a.value!==''){
       const hv=parseInt(h.value), av=parseInt(a.value);
       const upsetVal=getUpsetValue(rankings_r,m.home,m.away,hv,av);
+      const winnerEl=document.getElementById('rw-'+m.id);
+      const winner=winnerEl&&winnerEl.value?winnerEl.value:null;
       results[m.id]={h:hv,a:av,upset:upsetVal};
+      // For KO matches: save explicit winner if set (for draw/extra time/penalties)
+      if(!isGS(m)&&winner) results[m.id].winner=winner;
     }
   });
   await setR(results);
