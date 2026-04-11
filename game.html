@@ -2291,14 +2291,13 @@ async function renderMatchDetailsList(){
     let goalsHtml = (d.goals||[]).map((g,gi)=>`
       <div class="md-entry-row" id="goal-row-${m.id}-${gi}">
         <span style="font-size:11px;color:var(--muted);width:16px">${gi+1}.</span>
-        <select id="goal-team-${m.id}-${gi}" style="width:160px">
+        <select id="goal-team-${m.id}-${gi}" style="width:160px" onchange="updateGoalPlayers(${m.id},${gi})">
           <option value="${m.home}"${g.team===m.home?' selected':''}>${m.home}</option>
           <option value="${m.away}"${g.team===m.away?' selected':''}>${m.away}</option>
         </select>
         <select id="goal-player-${m.id}-${gi}" style="width:220px">
           <option value="">— Vali mängija —</option>
-          <optgroup label="${m.home}">${filterPlayersByTeam(scorerList,m.home).map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p}</option>`).join('')}</optgroup>
-          <optgroup label="${m.away}">${filterPlayersByTeam(scorerList,m.away).map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p}</option>`).join('')}</optgroup>
+          ${filterPlayersByTeam(scorerList, g.team||m.home).map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('')}
         </select>
         <input type="number" id="goal-count-${m.id}-${gi}" value="${g.count||1}" min="1" max="5" style="width:52px" title="Väravate arv">
         <span style="font-size:11px;color:var(--muted)">väravat</span>
@@ -2309,14 +2308,13 @@ async function renderMatchDetailsList(){
     let cardsHtml = (d.cards||[]).map((c,ci)=>`
       <div class="md-entry-row" id="card-row-${m.id}-${ci}">
         <span style="font-size:11px;color:var(--muted);width:16px">${ci+1}.</span>
-        <select id="card-team-${m.id}-${ci}" style="width:160px">
+        <select id="card-team-${m.id}-${ci}" style="width:160px" onchange="updateCardPlayers(${m.id},${ci})">
           <option value="${m.home}"${c.team===m.home?' selected':''}>${m.home}</option>
           <option value="${m.away}"${c.team===m.away?' selected':''}>${m.away}</option>
         </select>
         <select id="card-player-${m.id}-${ci}" style="width:220px">
           <option value="">— Vali mängija —</option>
-          <optgroup label="${m.home}">${filterPlayersByTeam(allPlayerList,m.home).map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p}</option>`).join('')}</optgroup>
-          <optgroup label="${m.away}">${filterPlayersByTeam(allPlayerList,m.away).map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p}</option>`).join('')}</optgroup>
+          ${filterPlayersByTeam(allPlayerList, c.team||m.home).map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('')}
         </select>
         <select id="card-type-${m.id}-${ci}" style="width:130px">
           <option value="y"${c.type==='y'?' selected':''}>🟨 Kollane (−1)</option>
@@ -2354,6 +2352,32 @@ async function renderMatchDetailsList(){
   renderBonusResultSelects();
 }
 
+async function updateGoalPlayers(matchId, idx){
+  const m = MATCHES.find(x=>x.id===matchId);
+  const teamSel = document.getElementById('goal-team-'+matchId+'-'+idx);
+  const playerSel = document.getElementById('goal-player-'+matchId+'-'+idx);
+  if(!teamSel||!playerSel) return;
+  const selectedTeam = teamSel.value;
+  const scorers = await getScorerList();
+  const filtered = filterPlayersByTeam(scorers, selectedTeam);
+  playerSel.innerHTML = '<option value="">— Vali mängija —</option>'
+    + filtered.map(p=>`<option value="${p}">${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('');
+}
+
+async function updateCardPlayers(matchId, idx){
+  const m = MATCHES.find(x=>x.id===matchId);
+  const teamSel = document.getElementById('card-team-'+matchId+'-'+idx);
+  const playerSel = document.getElementById('card-player-'+matchId+'-'+idx);
+  if(!teamSel||!playerSel) return;
+  const selectedTeam = teamSel.value;
+  const scorers = await getScorerList();
+  const gks = await getGkList();
+  const allPlayers = [...scorers, ...gks];
+  const filtered = filterPlayersByTeam(allPlayers, selectedTeam);
+  playerSel.innerHTML = '<option value="">— Vali mängija —</option>'
+    + filtered.map(p=>`<option value="${p}">${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('');
+}
+
 async function addGoalRow(matchId){
   const m = MATCHES.find(x=>x.id===matchId);
   const container = document.getElementById('goals-container-'+matchId);
@@ -2368,7 +2392,7 @@ async function addGoalRow(matchId){
   div.id = 'goal-row-'+matchId+'-'+idx;
   div.innerHTML = `
     <span style="font-size:11px;color:var(--muted);width:16px">${idx+1}.</span>
-    <select id="goal-team-${matchId}-${idx}" style="width:155px">
+    <select id="goal-team-${matchId}-${idx}" style="width:155px" onchange="updateGoalPlayers(${matchId},${idx})">
       <option value="${m.home}">${m.home}</option>
       <option value="${m.away}">${m.away}</option>
     </select>
@@ -2398,7 +2422,7 @@ async function addCardRow(matchId){
   div.id = 'card-row-'+matchId+'-'+idx;
   div.innerHTML = `
     <span style="font-size:11px;color:var(--muted);width:16px">${idx+1}.</span>
-    <select id="card-team-${matchId}-${idx}" style="width:155px">
+    <select id="card-team-${matchId}-${idx}" style="width:155px" onchange="updateCardPlayers(${matchId},${idx})">
       <option value="${m.home}">${m.home}</option>
       <option value="${m.away}">${m.away}</option>
     </select>
