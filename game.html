@@ -988,7 +988,7 @@ function filterPlayersByTeam(players, teamName){
   const code = TEAM_CODES[teamName];
   if(!code) return players; // unknown team — show all
   return players.filter(p=>{
-    const m = p.match(/\(([A-Z]+)\)$/);
+    const m = p.match(/\(([A-Z]+)\)/);
     return m && m[1] === code;
   });
 }
