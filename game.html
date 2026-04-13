@@ -2696,8 +2696,25 @@ async function renderBonusResultSelects(){
   // Upset select
   const upSel = document.getElementById('officialUpset');
   if(upSel){
-    upSel.innerHTML = '<option value="">— Vali mäng —</option>'+
-      MATCHES.filter(m=>isGS(m)).map(m=>'<option value="'+m.id+'"'+(br.upset==m.id?' selected':'')+'>'+m.home+' v '+m.away+' ('+m.date+')</option>').join('');
+    const results_u = await getR();
+    // Build list of GS matches with upset values, sort by upset desc
+    const gsMatches = MATCHES.filter(m=>isGS(m)).map(m=>{
+      const r=results_u[m.id];
+      const upsetVal = r ? (r.upset || 0) : 0;
+      return {m, r, upsetVal};
+    });
+    // Sort: played matches with upset first (desc), then unplayed
+    gsMatches.sort((a,b)=>{
+      if(b.upsetVal !== a.upsetVal) return b.upsetVal - a.upsetVal;
+      return a.m.id - b.m.id;
+    });
+    upSel.innerHTML = '<option value="">— Vali mäng —</option>' +
+      gsMatches.map(({m,r,upsetVal})=>{
+        const score = r ? r.h+'–'+r.a : '';
+        const upset = upsetVal > 0 ? ' ⚡'+upsetVal : '';
+        const label = m.home+' v '+m.away+(score?' '+score:'')+(upset)+' · '+m.date;
+        return '<option value="'+m.id+'"'+(br.upset==m.id?' selected':'')+'>'+label+'</option>';
+      }).join('');
   }
 }
 
