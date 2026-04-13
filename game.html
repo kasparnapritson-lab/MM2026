@@ -1890,8 +1890,16 @@ async function renderDeadlineTable(){
   const rawStored=deadlines[id]||DEFAULT_KO_TIMES[id]||'';
   const stored=rawStored.replace(/([+-]\d{2}:\d{2}|Z)$/, '');
       const status=isLockedSync(id,window._cachedResults||{},deadlines)?'<span class="deadline-pill deadline-locked" style="font-size:11px">Lukustatud</span>':'<span class="deadline-pill deadline-open" style="font-size:11px">Avatud</span>';
-      html+='<tr>'
-        +'<td style="font-size:12px">#'+id+' '+m.home+' v '+m.away+'</td>'
+      // Resolve TBD for KO matches
+      let dHome=m.home, dAway=m.away;
+      if((dHome==='TBD'||dAway==='TBD')&&R32_SLOTS[id]){
+        const s=R32_SLOTS[id];
+        const st={};
+        Object.keys(GROUPS).forEach(gk=>{ st[gk]=calcGroupStandings(gk,window._cachedResults||{}); });
+        if(s.home) dHome=resolveSlot(s.home,st,window._cachedResults||{});
+        if(s.away) dAway=resolveSlot(s.away,st,window._cachedResults||{});
+      }
+      html+='<tr>'        +'<td style="font-size:12px">#'+id+' '+dHome+' v '+dAway+'</td>'
         +'<td><input type="datetime-local" class="deadline-input" id="dl-'+id+'" value="'+stored+'"></td>'
         +'<td>'+status+'</td></tr>';
     });
@@ -1938,7 +1946,7 @@ async function renderAdminMatches(){
   MATCHES.forEach(m=>{
     if(adminFilter==='GS'&&!isGS(m)) return;
     if(adminFilter==='KO'&&isGS(m)) return;
-    // Resolve TBD for KO matches
+    // Resolve TBD for all KO matches using slot definitions
     if(!isGS(m)&&(m.home==='TBD'||m.away==='TBD')){
       const s=R32_SLOTS[m.id];
       if(s){
