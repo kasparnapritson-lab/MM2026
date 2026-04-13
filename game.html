@@ -1288,8 +1288,25 @@ function filterPred(f,btn){
 async function renderMatches(){
   const preds=await getP(ME),results=await getR(),deadlines=await getDeadlines();
   const rankings=await getFifaRankings();
+  window._cachedResults=results;
+  // Pre-calculate group standings for TBD resolution
+  const _standings={};
+  Object.keys(GROUPS).forEach(gk=>{
+    const rows=calcGroupStandings(gk,results);
+    _standings[gk]=rows;
+  });
+  function resolveMatch(m){
+    if(m.home!=='TBD'&&m.away!=='TBD') return m;
+    // For R32: resolve from group standings
+    const slot=R32_SLOTS[m.id];
+    if(!slot) return m;
+    const home=slot.home?resolveSlot(slot.home,_standings,results):m.home;
+    const away=slot.away?resolveSlot(slot.away,_standings,results):m.away;
+    return {...m,home,away};
+  }
   let html='',shown=0;
   MATCHES.forEach(m=>{
+    m=resolveMatch(m);
     const locked=isLockedSync(m.id,results,deadlines);
     if(predFilter==='GS'&&!isGS(m)) return;
     if(predFilter==='KO'&&isGS(m)) return;
@@ -1547,6 +1564,58 @@ async function renderGroups(){
 /* ═══════════════════════════════════════════
    KNOCKOUT BRACKET
 ═══════════════════════════════════════════ */
+// R32 slot definitions for resolving TBD teams
+const R32_SLOTS = {
+  73:{home:{type:'group',gk:'A',pos:1}, away:{type:'group',gk:'B',pos:1}},
+  74:{home:{type:'group',gk:'C',pos:0}, away:{type:'group',gk:'F',pos:1}},
+  75:{home:{type:'group',gk:'E',pos:0}, away:{type:'best3rd',n:0}},
+  76:{home:{type:'group',gk:'F',pos:0}, away:{type:'group',gk:'C',pos:1}},
+  77:{home:{type:'group',gk:'E',pos:1}, away:{type:'group',gk:'I',pos:1}},
+  78:{home:{type:'group',gk:'I',pos:0}, away:{type:'best3rd',n:1}},
+  79:{home:{type:'group',gk:'A',pos:0}, away:{type:'best3rd',n:2}},
+  80:{home:{type:'group',gk:'L',pos:0}, away:{type:'best3rd',n:3}},
+  81:{home:{type:'group',gk:'G',pos:0}, away:{type:'group',gk:'H',pos:1}},
+  82:{home:{type:'group',gk:'H',pos:0}, away:{type:'group',gk:'G',pos:1}},
+  83:{home:{type:'group',gk:'J',pos:0}, away:{type:'best3rd',n:4}},
+  84:{home:{type:'group',gk:'K',pos:1}, away:{type:'group',gk:'L',pos:1}},
+  85:{home:{type:'group',gk:'B',pos:0}, away:{type:'best3rd',n:5}},
+  86:{home:{type:'group',gk:'D',pos:0}, away:{type:'group',gk:'J',pos:1}},
+  87:{home:{type:'group',gk:'K',pos:0}, away:{type:'best3rd',n:6}},
+  88:{home:{type:'group',gk:'D',pos:1}, away:{type:'best3rd',n:7}},
+};
+
+function resolveSlot(slot, standings, results){
+  if(slot.type==='group'){
+    const rows=standings[slot.gk]||[];
+    return rows[slot.pos]?rows[slot.pos].team:'TBD';
+  }
+  if(slot.type==='best3rd'){
+    // Calculate best 3rd place teams
+    const fp=window._cachedFairPlay||{};
+    const mo=window._cachedManualOverride||{};
+    const thirds=Object.keys(GROUPS).map(gk=>{
+      const rows=standings[gk]||[];
+      return rows[2]?{...rows[2],group:gk}:null;
+    }).filter(Boolean);
+    thirds.sort((a,b)=>{
+      if(b.pts!==a.pts) return b.pts-a.pts;
+      if(b.gd!==a.gd) return b.gd-a.gd;
+      if(b.gf!==a.gf) return b.gf-a.gf;
+      const fpA=fp[a.team]||{}, fpB=fp[b.team]||{};
+      const sA=-(fpA.y||0)-(fpA.iy||0)*3-(fpA.r||0)*4-(fpA.yr||0)*5;
+      const sB=-(fpB.y||0)-(fpB.iy||0)*3-(fpB.r||0)*4-(fpB.yr||0)*5;
+      if(sA!==sB) return sB-sA;
+      return (mo[b.team]||0)-(mo[a.team]||0);
+    });
+    return thirds[slot.n]?thirds[slot.n].team:'Best 3rd';
+  }
+  // For KO rounds: use previous match winner
+  if(slot.type==='winner'){
+    return getWinner(slot.matchId)||'TBD';
+  }
+  return 'TBD';
+}
+
 function getWinner(id){
   const r=(window._cachedResults||{})[id],m=MATCHES.find(x=>x.id===id);
   if(!r||!m||m.home==='TBD') return null;
@@ -1805,9 +1874,21 @@ async function renderAdminMatches(){
   const results=await getR(),deadlines=await getDeadlines();
   const rankings=await getFifaRankings();
   let html='';
+  window._cachedResults=results;
+  const _adSt={};
+  Object.keys(GROUPS).forEach(gk=>{ _adSt[gk]=calcGroupStandings(gk,results); });
   MATCHES.forEach(m=>{
     if(adminFilter==='GS'&&!isGS(m)) return;
     if(adminFilter==='KO'&&isGS(m)) return;
+    // Resolve TBD for KO matches
+    if(!isGS(m)&&(m.home==='TBD'||m.away==='TBD')){
+      const s=R32_SLOTS[m.id];
+      if(s){
+        const rh=s.home?resolveSlot(s.home,_adSt,results):m.home;
+        const ra=s.away?resolveSlot(s.away,_adSt,results):m.away;
+        m={...m,home:rh,away:ra};
+      }
+    }
     const r=results[m.id]||{},set=r.h!==undefined;
     html+='<div class="match-card">'
       +'<div class="match-meta"><span>Mäng #'+m.id+' · '+m.date+'</span>'+roundPill(m)+'</div>'
