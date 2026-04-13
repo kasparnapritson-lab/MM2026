@@ -1582,6 +1582,27 @@ const R32_SLOTS = {
   86:{home:{type:'group',gk:'D',pos:0}, away:{type:'group',gk:'J',pos:1}},
   87:{home:{type:'group',gk:'K',pos:0}, away:{type:'best3rd',n:6}},
   88:{home:{type:'group',gk:'D',pos:1}, away:{type:'best3rd',n:7}},
+  // R16 slots
+  89:{home:{type:'winner',matchId:73}, away:{type:'winner',matchId:74}},
+  90:{home:{type:'winner',matchId:75}, away:{type:'winner',matchId:76}},
+  91:{home:{type:'winner',matchId:77}, away:{type:'winner',matchId:78}},
+  92:{home:{type:'winner',matchId:79}, away:{type:'winner',matchId:80}},
+  93:{home:{type:'winner',matchId:81}, away:{type:'winner',matchId:82}},
+  94:{home:{type:'winner',matchId:83}, away:{type:'winner',matchId:84}},
+  95:{home:{type:'winner',matchId:85}, away:{type:'winner',matchId:86}},
+  96:{home:{type:'winner',matchId:87}, away:{type:'winner',matchId:88}},
+  // QF slots
+  97:{home:{type:'winner',matchId:89}, away:{type:'winner',matchId:90}},
+  98:{home:{type:'winner',matchId:91}, away:{type:'winner',matchId:92}},
+  99:{home:{type:'winner',matchId:93}, away:{type:'winner',matchId:94}},
+  100:{home:{type:'winner',matchId:95}, away:{type:'winner',matchId:96}},
+  // SF slots
+  101:{home:{type:'winner',matchId:97}, away:{type:'winner',matchId:98}},
+  102:{home:{type:'winner',matchId:99}, away:{type:'winner',matchId:100}},
+  // 3rd place
+  103:{home:{type:'loser',matchId:101}, away:{type:'loser',matchId:102}},
+  // Final
+  104:{home:{type:'winner',matchId:101}, away:{type:'winner',matchId:102}},
 };
 
 function resolveSlot(slot, standings, results){
@@ -1613,12 +1634,49 @@ function resolveSlot(slot, standings, results){
   if(slot.type==='winner'){
     return getWinner(slot.matchId)||'TBD';
   }
+  // For 3rd place: use loser of SF
+  if(slot.type==='loser'){
+    const r=(window._cachedResults||{})[slot.matchId];
+    if(!r) return 'TBD';
+    const m2=MATCHES.find(x=>x.id===slot.matchId);
+    if(!m2) return 'TBD';
+    const h=parseInt(r.h),a=parseInt(r.a);
+    if(isNaN(h)||isNaN(a)) return 'TBD';
+    // Resolve teams if TBD
+    let home=m2.home, away=m2.away;
+    if(home==='TBD'||away==='TBD'){
+      const s=R32_SLOTS[slot.matchId];
+      if(s){
+        if(s.home) home=resolveSlot(s.home,standings,results);
+        if(s.away) away=resolveSlot(s.away,standings,results);
+      }
+    }
+    if(h>a) return away; // loser is away
+    if(a>h) return home; // loser is home
+    if(r.winner) return r.winner===home?away:home; // loser is other team
+    return 'TBD';
+  }
   return 'TBD';
 }
 
 function getWinner(id){
-  const r=(window._cachedResults||{})[id],m=MATCHES.find(x=>x.id===id);
-  if(!r||!m||m.home==='TBD') return null;
+  const r=(window._cachedResults||{})[id];
+  if(!r) return null;
+  let m=MATCHES.find(x=>x.id===id);
+  if(!m) return null;
+  // Resolve TBD teams for KO matches using group standings
+  if(m.home==='TBD'||m.away==='TBD'){
+    const slot=R32_SLOTS[id];
+    if(slot){
+      const st={};
+      Object.keys(GROUPS).forEach(gk=>{ st[gk]=calcGroupStandings(gk,window._cachedResults||{}); });
+      const rh=slot.home?resolveSlot(slot.home,st,window._cachedResults||{}):m.home;
+      const ra=slot.away?resolveSlot(slot.away,st,window._cachedResults||{}):m.away;
+      m={...m,home:rh,away:ra};
+    } else {
+      return null; // Can't resolve yet
+    }
+  }
   const h=parseInt(r.h),a=parseInt(r.a);
   if(isNaN(h)||isNaN(a)) return null;
   if(h>a) return m.home;
