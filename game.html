@@ -712,6 +712,20 @@ const _db = firebase.firestore();
 
   <hr class="section-divider">
 
+  <div class="admin-section-title">🏆 Turniirivõitja — ametlik tulemus</div>
+  <div class="admin-section-sub">Sisesta ametlik turniirivõitja turniiri lõpus. Õiged ennustajad saavad automaatselt +20 punkti.</div>
+  <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="officialWinner" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;flex:1;min-width:200px">
+        <option value="">— Vali meeskond —</option>
+      </select>
+      <button class="btn-primary" style="padding:8px 18px;font-size:13px" onclick="saveOfficialWinner()">Salvesta (+20 pts)</button>
+      <span class="save-ok" id="winnerSaveOk">✓ Salvestatud!</span>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
   <div class="admin-section-title">🌟 Sümboolne koosseis — ametlik tulemus</div>
   <div class="admin-section-sub">Sisesta turniiri lõpus FIFA ametlik sümboolne koosseis. Mängijad kes valisid õigesti saavad +2 punkti iga õige mängija eest ja boonuspunktid (5+→+5, 8+→+10, 11→+20).</div>
   <div id="squadResultAdmin" style="margin-bottom:1rem">
@@ -2735,6 +2749,13 @@ async function renderBonusResultSelects(){
     ggSel.innerHTML = '<option value="">— Vali väravavaht —</option>'+
       gks.map(p=>'<option value="'+p+'"'+(br.goldenglove===p?' selected':'')+'>'+p+'</option>').join('');
   }
+  // Populate winner dropdown with all teams
+  const winnerSel = document.getElementById('officialWinner');
+  if(winnerSel){
+    const allTeams = [...new Set(MATCHES.flatMap(m=>[m.home,m.away]))].filter(t=>t!=='TBD').sort();
+    winnerSel.innerHTML = '<option value="">— Vali meeskond —</option>'+
+      allTeams.map(t=>'<option value="'+t+'"'+(br.winner===t?' selected':'')+'>'+t+'</option>').join('');
+  }
   // Upset select
   const upSel = document.getElementById('officialUpset');
   if(upSel){
@@ -2872,6 +2893,17 @@ async function saveOfficialGoldenGlove(){
   ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'),3000);
 }
 
+async function saveOfficialWinner(){
+  const val = document.getElementById('officialWinner').value;
+  if(!val){ alert('Vali esmalt meeskond.'); return; }
+  const br = await getBonusResults();
+  br.winner = val;
+  await setBonusResults(br);
+  await applyBonusPoints();
+  const ok = document.getElementById('winnerSaveOk');
+  ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'),3000);
+}
+
 async function renderUpsetLeaderboard(){
   const results = await getR();
   const rankings = await getFifaRankings();
@@ -2951,10 +2983,12 @@ async function applyBonusPoints(){
     if(br.topscorer && bonus.topscorer === br.topscorer) pts += 10;
     // +10 if predicted golden glove
     if(br.goldenglove && bonus.gk === br.goldenglove) pts += 10;
+    // +20 if predicted tournament winner
+    if(br.winner && bonus.winner === br.winner) pts += 20;
     // +5 if predicted biggest upset
     if(br.upset && bonus.upset == br.upset) pts += 5;
     // Save bonus points
-    await fbSet('bonuspoints', player, {pts, breakdown:{scorerGoals:bonus.topscorer?scorerGoals[bonus.topscorer]||0:0, topscorer:br.topscorer&&bonus.topscorer===br.topscorer?10:0, goldenglove:br.goldenglove&&bonus.gk===br.goldenglove?10:0, upset:br.upset&&bonus.upset==br.upset?5:0}});
+    await fbSet('bonuspoints', player, {pts, breakdown:{scorerGoals:bonus.topscorer?scorerGoals[bonus.topscorer]||0:0, topscorer:br.topscorer&&bonus.topscorer===br.topscorer?10:0, goldenglove:br.goldenglove&&bonus.gk===br.goldenglove?10:0, winner:br.winner&&bonus.winner===br.winner?20:0, upset:br.upset&&bonus.upset==br.upset?5:0}});
   }));
 }
 
