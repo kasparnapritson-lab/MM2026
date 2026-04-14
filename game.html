@@ -2181,11 +2181,22 @@ async function renderPredTable(){
   headHtml+='</tr>';
   document.getElementById('predTableHead').innerHTML=headHtml;
   let bodyHtml='';
+  const _stPred={};
+  Object.keys(GROUPS).forEach(gk=>{ _stPred[gk]=calcGroupStandings(gk,results); });
   MATCHES.forEach(m=>{
     if(predTableFilter==='GS'&&!isGS(m)) return;
     if(predTableFilter==='KO'&&isGS(m)) return;
     const r=results[m.id];
     if(predTableFilter==='scored'&&!r) return;
+    // Resolve TBD
+    if(!isGS(m)&&(m.home==='TBD'||m.away==='TBD')){
+      const s=R32_SLOTS[m.id];
+      if(s){
+        const rh=s.home?resolveSlot(s.home,_stPred,results):m.home;
+        const ra=s.away?resolveSlot(s.away,_stPred,results):m.away;
+        m={...m,home:rh,away:ra};
+      }
+    }
     const ko=!isGS(m);
     const resTd=r?'<span class="result-cell">'+r.h+' – '+r.a+'</span>':'<span class="result-cell unset">TBD</span>';
     bodyHtml+='<tr>'
@@ -2232,9 +2243,21 @@ async function renderMyStats(){
   let exact=0,correct=0,wrong=0,noPred=0,gsPts=0,koPts=0;
   const recent=[];
 
+  // Pre-calculate standings for TBD resolution
+  const _stStats={};
+  Object.keys(GROUPS).forEach(gk=>{ _stStats[gk]=calcGroupStandings(gk,results); });
   MATCHES.forEach(m=>{
     const r=results[m.id];
     if(!r) return;
+    // Resolve TBD for KO matches
+    if(!isGS(m)&&(m.home==='TBD'||m.away==='TBD')){
+      const s=R32_SLOTS[m.id];
+      if(s){
+        const rh=s.home?resolveSlot(s.home,_stStats,results):m.home;
+        const ra=s.away?resolveSlot(s.away,_stStats,results):m.away;
+        m={...m,home:rh,away:ra};
+      }
+    }
     const p=preds[m.id], ko=!isGS(m);
     const pts=p?calcPts(p,r,ko):null;
     if(pts===null){noPred++;return;}
