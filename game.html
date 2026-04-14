@@ -1814,7 +1814,9 @@ async function renderLeaderboard(){
   await Promise.all(players.map(async p=>{allPreds[p]=await getP(p);}));
   // Load bonus points for all players
   const allBonusPts={};
+  // Always load fresh bonuspoints (never use cache)
   await Promise.all(players.map(async p=>{
+    fbClearCache('bonuspoints', p);
     const bp=await fbGet('bonuspoints',p);
     allBonusPts[p]=bp?bp.pts:0;
   }));
@@ -2977,6 +2979,8 @@ async function applyBonusPoints(){
       scorerGoals[g.player] = (scorerGoals[g.player]||0) + (g.count||1);
     });
   });
+  // Clear bonuspoints cache for all players before recalculating
+  players.forEach(p => fbClearCache('bonuspoints', p));
   await Promise.all(players.map(async player=>{
     const bonus = await getBonus(player);
     let pts = 0;
