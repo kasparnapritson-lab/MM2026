@@ -2289,7 +2289,11 @@ async function renderMyStats(){
   });
 
   const played=exact+correct+wrong;
-  const total=gsPts+koPts;
+  // Load bonus points from Firebase
+  fbClearCache('bonuspoints', ME);
+  const myBonusPtsDoc = await fbGet('bonuspoints', ME);
+  const myBonusPts = myBonusPtsDoc ? (myBonusPtsDoc.pts||0) : 0;
+  const total=gsPts+koPts+myBonusPts;
   const maxPossible=MATCHES.filter(m=>results[m.id]).reduce((s,m)=>s+(!isGS(m)?10:5),0);
   const accPct=maxPossible>0?Math.round(total/maxPossible*100):0;
   const streak=calcStreak(recent);
