@@ -1270,7 +1270,7 @@ function showTab(id,el){
   if(id==='groups')      renderGroups();
   if(id==='bracket')     renderBracket();
   if(id==='bonus')       renderBonusTab();
-  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderUpsetLeaderboard();renderOverrideTable();renderSquadResultAdmin();renderPredTable();}
+  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderUpsetLeaderboard();renderOverrideTable();renderBonusResultSelects();renderSquadResultAdmin();renderPredTable();}
   if(id==='mystats')     renderMyStats();
   if(id==='settings')    renderSettingsTab();
 }
@@ -2911,12 +2911,7 @@ async function saveOfficialWinner(){
   const br = await getBonusResults();
   br.winner = val;
   await setBonusResults(br);
-  console.log('[Winner] Saved winner:', val, 'bonusresults:', JSON.stringify(br));
   await applyBonusPoints();
-  console.log('[Winner] applyBonusPoints done');
-  // Force reload leaderboard cache
-  const players = await getAllPlayers();
-  players.forEach(p => { fbClearCache('bonuspoints', p); fbClearCache('predictions_bonus', p); });
   const ok = document.getElementById('winnerSaveOk');
   ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'),3000);
 }
@@ -3003,8 +2998,7 @@ async function applyBonusPoints(){
     // +10 if predicted golden glove
     if(br.goldenglove && bonus.gk === br.goldenglove) pts += 10;
     // +20 if predicted tournament winner
-    if(br.winner && bonus.winner === br.winner){ pts += 20; console.log('[Bonus] '+player+' winner match: '+bonus.winner+' === '+br.winner+' +20pts'); }
-    else if(br.winner){ console.log('[Bonus] '+player+' winner NO match: predicted='+bonus.winner+' official='+br.winner); }
+    if(br.winner && bonus.winner === br.winner) pts += 20;
     // +5 if predicted biggest upset
     if(br.upset && bonus.upset == br.upset) pts += 5;
     // Save bonus points
