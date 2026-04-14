@@ -725,8 +725,25 @@ const _db = firebase.firestore();
   <hr class="section-divider">
 
   <div class="admin-section-title">😲 Suurim üllatus</div>
-  <div class="admin-section-sub">Märgi mäng mis kvalifitseerus suurimaks üllatuseks. Õige ennustaja saab +5 punkti.</div>
+  <div class="admin-section-sub">Automaatne edetabel — suurim FIFA edetabeli vahe üleval. Vali 1. real olev mäng ja salvesta. Õige ennustaja saab +5 punkti.</div>
+
+  <div id="upsetLeaderboard" style="margin-bottom:1rem;overflow-x:auto">
+    <table class="deadline-table">
+      <thead><tr>
+        <th>#</th>
+        <th>Mäng</th>
+        <th style="text-align:center">Tulemus</th>
+        <th style="text-align:center">⚡ Üllatuse suurus</th>
+        <th style="text-align:center">Kategooria</th>
+      </tr></thead>
+      <tbody id="upsetLeaderboardBody">
+        <tr><td colspan="5" style="color:var(--muted);font-size:13px;padding:1rem">Mängitud mänge pole veel...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:.5rem">Vali ametlik suurim üllatus:</div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <select id="officialUpset" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;flex:1;min-width:200px">
         <option value="">— Vali mäng —</option>
@@ -1239,7 +1256,7 @@ function showTab(id,el){
   if(id==='groups')      renderGroups();
   if(id==='bracket')     renderBracket();
   if(id==='bonus')       renderBonusTab();
-  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderOverrideTable();renderSquadResultAdmin();renderPredTable();}
+  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderUpsetLeaderboard();renderOverrideTable();renderSquadResultAdmin();renderPredTable();}
   if(id==='mystats')     renderMyStats();
   if(id==='settings')    renderSettingsTab();
 }
@@ -2830,6 +2847,51 @@ async function saveOfficialGoldenGlove(){
   await applyBonusPoints();
   const ok = document.getElementById('ggSaveOk');
   ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'),3000);
+}
+
+async function renderUpsetLeaderboard(){
+  const results = await getR();
+  const rankings = await getFifaRankings();
+  const body = document.getElementById('upsetLeaderboardBody');
+  if(!body) return;
+
+  // Build upset list from all GS matches with results
+  const upsets = [];
+  MATCHES.filter(m=>isGS(m)).forEach(m=>{
+    const r = results[m.id];
+    if(!r || r.h===undefined) return;
+    const hRank = rankings[m.home];
+    const aRank = rankings[m.away];
+    const val = r.upset !== undefined ? r.upset : getUpsetValue(rankings, m.home, m.away, r.h, r.a);
+    if(val > 0){
+      upsets.push({m, r, val});
+    }
+  });
+
+  // Sort by upset value descending
+  upsets.sort((a,b) => b.val - a.val);
+
+  if(!upsets.length){
+    body.innerHTML = '<tr><td colspan="5" style="color:var(--muted);font-size:13px;padding:1rem">Üllatustulemusi pole veel sisestatud.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = upsets.slice(0, 15).map(({m, r, val}, i) => {
+    const cat = val >= 40 ? '🔥🔥🔥 Mega üllatus'
+      : val >= 25 ? '🔥🔥 Suur üllatus'
+      : val >= 10 ? '🔥 Üllatus'
+      : 'Kerge üllatus';
+    const isDraw = r.h === r.a;
+    const score = r.h + '–' + r.a + (isDraw ? ' (viik)' : '');
+    const rowBg = i === 0 ? 'background:#fffbeb' : '';
+    return '<tr style="'+rowBg+'">'
+      + '<td style="font-weight:600;font-size:13px;color:'+(i===0?'var(--red)':'var(--muted)')+'">'+( i+1)+'</td>'
+      + '<td style="font-size:13px"><b>'+m.home+'</b> v <b>'+m.away+'</b><span style="font-size:11px;color:var(--muted)"> · '+m.date+'</span></td>'
+      + '<td style="text-align:center;font-size:13px;font-weight:600">'+score+'</td>'
+      + '<td style="text-align:center"><span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--red)">'+val+'</span></td>'
+      + '<td style="text-align:center;font-size:12px">'+cat+'</td>'
+      + '</tr>';
+  }).join('');
 }
 
 async function saveOfficialUpset(){
