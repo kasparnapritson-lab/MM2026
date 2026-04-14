@@ -1288,7 +1288,10 @@ function calcPts(pred,result,ko){
   const ph=parseInt(pred.h),pa=parseInt(pred.a),rh=parseInt(result.h),ra=parseInt(result.a);
   if(isNaN(ph)||isNaN(pa)) return null;
   if(ph===rh&&pa===ra) return ko?10:5;
-  if(Math.sign(ph-pa)===Math.sign(rh-ra)) return ko?4:2;
+  // For draws: Math.sign(0)===Math.sign(0) always true — only award pts if direction matches non-draw
+  const predDir=Math.sign(ph-pa), resDir=Math.sign(rh-ra);
+  if(predDir===0&&resDir===0) return 0; // both draw but different score = 0 pts
+  if(predDir===resDir) return ko?4:2;
   return 0;
 }
 function getBadge(exact,total){
@@ -2355,6 +2358,7 @@ async function renderMyStats(){
 
   // Bonus status section
   const bonus = await getBonus(ME);
+  fbClearCache('settings','bonusresults'); // Always fresh bonus results
   const br = await getBonusResults();
   const details = await getMatchDetails();
   // Build scorer goals map
