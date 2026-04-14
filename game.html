@@ -2379,9 +2379,14 @@ async function renderMyStats(){
     +'<div style="font-size:12px;color:'+(ggPts?'var(--green)':'var(--muted)')+'margin-top:4px">'+(ggPts?'✅ +10pts':'⏳ Ootel')+'</div></div>';
   // Winner
   const myWinner = bonus.winner||'—';
+  const winnerPts = br.winner && bonus.winner === br.winner ? 20 : 0;
+  const winnerStatus = br.winner
+    ? (winnerPts > 0 ? '<div style="font-size:12px;color:var(--green);font-weight:600;margin-top:4px">✅ +20pts — Õige!</div>'
+      : '<div style="font-size:12px;color:var(--red);margin-top:4px">❌ Vale — Võitis: '+br.winner+'</div>')
+    : '<div style="font-size:12px;color:var(--muted);margin-top:4px">⏳ Selgub turniiri lõpus</div>';
   bonusHtml += '<div class="stats-big-card"><div class="stats-big-num" style="font-size:1.4rem">'+myWinner+'</div>'
     +'<div class="stats-big-lbl">Turniiri võitja ennustus</div>'
-    +'<div style="font-size:12px;color:var(--muted);margin-top:4px">⏳ Selgub turniiri lõpus</div></div>';
+    +winnerStatus+'</div>';
   // Upset
   const myUpset = bonus.upset ? MATCHES.find(x=>x.id==bonus.upset) : null;
   const upsetPts = br.upset&&bonus.upset==br.upset?5:0;
