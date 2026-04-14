@@ -1608,7 +1608,8 @@ const R32_SLOTS = {
 function resolveSlot(slot, standings, results){
   if(slot.type==='group'){
     const rows=standings[slot.gk]||[];
-    return rows[slot.pos]?rows[slot.pos].team:'TBD';
+    const allPlayed = rows.length>=2 && rows[0].mp>=3 && rows[1].mp>=3;
+    return (allPlayed && rows[slot.pos]) ? rows[slot.pos].team : 'TBD';
   }
   if(slot.type==='best3rd'){
     // Calculate best 3rd place teams
@@ -1687,9 +1688,10 @@ function getWinner(id){
 }
 function getGroupTop(gk,pos){
   const rows=calcGroupStandings(gk);
-  // Show team from standings even with 0 games played (sorted by initial order)
-  // Only show TBD if group doesn't have enough teams
-  return rows[pos]?rows[pos].team:'TBD';
+  // Only show team when all 3 group games played (mp>=3 for each team)
+  // This prevents showing wrong team before group is complete
+  const allPlayed = rows.length>=2 && rows[0].mp>=3 && rows[1].mp>=3;
+  return (allPlayed && rows[pos]) ? rows[pos].team : 'TBD';
 }
 function bkMatch(home,away,id){
   const r=(window._cachedResults||{})[id];
@@ -1712,7 +1714,7 @@ async function renderBracket(){
   const manualOverride=window._cachedManualOverride||{};
   const thirdPlaces=Object.keys(GROUPS).map(gk=>{
     const rows=calcGroupStandings(gk,window._cachedResults);
-    if(rows.length<3) return null; // Show 3rd place even with partial results
+    if(rows.length<3||rows[0].mp<3) return null; // Only show when group complete
     return {...rows[2],group:gk};
   }).filter(Boolean);
   thirdPlaces.sort((a,b)=>{
