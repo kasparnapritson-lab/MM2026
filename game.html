@@ -583,6 +583,11 @@ const _db = firebase.firestore();
 
   <!-- DEADLINES -->
   <div class="admin-section-title">⏰ Mängude tähtajad</div>
+
+  <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px;margin-bottom:1rem">
+    <button onclick="debugBonusPoints()" style="padding:6px 14px;background:#ffc107;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">🔍 Debug: Näita bonuspunkte Firebase'ist</button>
+    <pre id="debugOutput" style="font-size:11px;margin-top:8px;white-space:pre-wrap"></pre>
+  </div>
   <div class="admin-section-sub">Sisesta mängude algusajad <b>Eesti aja järgi (EEST, UTC+3)</b>. Ajavöönd lisatakse automaatselt — ennustused lukustuvad õigel ajal kõigi mängijate jaoks, olenemata nende asukohast. Lukustumise ajavahemik (vaikimisi 30 min) on muudetav allpool.</div>
   <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
     <label style="font-size:13px;font-weight:600">Lukustumise aeg (mitu minutit enne avavilet):</label>
@@ -2956,6 +2961,24 @@ async function renderUpsetLeaderboard(){
       + '<td style="text-align:center;font-size:12px">'+cat+'</td>'
       + '</tr>';
   }).join('');
+}
+
+async function debugBonusPoints(){
+  const out = document.getElementById('debugOutput');
+  out.textContent = 'Laen...';
+  fbClearCache('bonuspoints','kaspar');
+  fbClearCache('settings','bonusresults');
+  fbClearCache('settings','squadresult');
+  const bp = await fbGet('bonuspoints','kaspar') || {};
+  const br = await getBonusResults();
+  const sq = await getSquadResult();
+  const mySquad = await getSquad('kaspar');
+  const squadB = calcSquadBonus(mySquad, Object.keys(sq).length>0?sq:null);
+  out.textContent = 
+    'bonuspoints/kaspar: ' + JSON.stringify(bp, null, 2) +
+    '\n\nbonusresults: ' + JSON.stringify(br, null, 2) +
+    '\n\nsquadResult keys: ' + Object.keys(sq).join(',') +
+    '\n\ncalcSquadBonus pts: ' + squadB.pts;
 }
 
 async function saveOfficialUpset(){
