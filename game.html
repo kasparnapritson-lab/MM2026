@@ -586,6 +586,7 @@ const _db = firebase.firestore();
 
   <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px;margin-bottom:1rem">
     <button onclick="debugBonusPoints()" style="padding:6px 14px;background:#ffc107;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">🔍 Debug: Näita bonuspunkte Firebase'ist</button>
+    <button onclick="forceRecalcBonus()" style="padding:6px 14px;background:#28a745;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;margin-left:8px">🔄 Arvuta boonused uuesti</button>
     <pre id="debugOutput" style="font-size:11px;margin-top:8px;white-space:pre-wrap"></pre>
   </div>
   <div class="admin-section-sub">Sisesta mängude algusajad <b>Eesti aja järgi (EEST, UTC+3)</b>. Ajavöönd lisatakse automaatselt — ennustused lukustuvad õigel ajal kõigi mängijate jaoks, olenemata nende asukohast. Lukustumise ajavahemik (vaikimisi 30 min) on muudetav allpool.</div>
@@ -2961,6 +2962,21 @@ async function renderUpsetLeaderboard(){
       + '<td style="text-align:center;font-size:12px">'+cat+'</td>'
       + '</tr>';
   }).join('');
+}
+
+async function forceRecalcBonus(){
+  const out = document.getElementById('debugOutput');
+  out.textContent = 'Arvutan...';
+  // Clear all caches
+  fbClearCache('settings','bonusresults');
+  fbClearCache('settings','squadresult');
+  const players = await getAllPlayers();
+  players.forEach(p => { fbClearCache('bonuspoints', p); fbClearCache('predictions_bonus', p); fbClearCache('squad_picks', p); });
+  await applyBonusPoints();
+  // Show result
+  fbClearCache('bonuspoints','kaspar');
+  const bp = await fbGet('bonuspoints','kaspar') || {};
+  out.textContent = 'Valmis! bonuspoints/kaspar: ' + JSON.stringify(bp, null, 2);
 }
 
 async function debugBonusPoints(){
