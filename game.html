@@ -2870,21 +2870,8 @@ async function saveSquadResult(){
 
   const result = {gk, def, mid, fwd};
   await setSquadResult(result);
-
-  // Calculate squad bonus points for all players
-  const players = await getAllPlayers();
-  await Promise.all(players.map(async player => {
-    const mySquad = await getSquad(player);
-    const {pts, correct} = calcSquadBonus(mySquad, result);
-    if(pts > 0){
-      // Add to existing bonus points
-      const existing = await fbGet('bonuspoints', player) || {pts:0, breakdown:{}};
-      existing.pts = (existing.pts||0) + pts;
-      existing.breakdown = existing.breakdown||{};
-      existing.breakdown.squad = {pts, correct};
-      await fbSet('bonuspoints', player, existing);
-    }
-  }));
+  // Recalculate all bonus points (includes squad)
+  await applyBonusPoints();
 
   const ok = document.getElementById('squadResultOk');
   ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'), 3000);
@@ -3011,9 +2998,21 @@ async function applyBonusPoints(){
     // +20 if predicted tournament winner
     if(br.winner && bonus.winner === br.winner) pts += 20;
     // +5 if predicted biggest upset
-    if(br.upset && bonus.upset == br.upset) pts += 5;
+    if(br.upset && parseInt(bonus.upset) === parseInt(br.upset)) pts += 5;
+    // Squad bonus (calculated from official squad result)
+    const squadResult = await getSquadResult();
+    const mySquad = await getSquad(player);
+    const squadBonus = calcSquadBonus(mySquad, Object.keys(squadResult).length > 0 ? squadResult : null);
+    pts += squadBonus.pts;
     // Save bonus points
-    await fbSet('bonuspoints', player, {pts, breakdown:{scorerGoals:bonus.topscorer?scorerGoals[bonus.topscorer]||0:0, topscorer:br.topscorer&&bonus.topscorer===br.topscorer?10:0, goldenglove:br.goldenglove&&bonus.gk===br.goldenglove?10:0, winner:br.winner&&bonus.winner===br.winner?20:0, upset:br.upset&&bonus.upset==br.upset?5:0}});
+    await fbSet('bonuspoints', player, {pts, breakdown:{
+      scorerGoals: bonus.topscorer ? scorerGoals[bonus.topscorer]||0 : 0,
+      topscorer: br.topscorer && bonus.topscorer === br.topscorer ? 10 : 0,
+      goldenglove: br.goldenglove && bonus.gk === br.goldenglove ? 10 : 0,
+      winner: br.winner && bonus.winner === br.winner ? 20 : 0,
+      upset: br.upset && parseInt(bonus.upset) === parseInt(br.upset) ? 5 : 0,
+      squad: squadBonus.pts
+    }});
   }));
 }
 
