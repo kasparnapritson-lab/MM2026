@@ -2399,7 +2399,7 @@ async function renderMyStats(){
     +winnerStatus+'</div>';
   // Upset
   const myUpset = bonus.upset ? MATCHES.find(x=>x.id==bonus.upset) : null;
-  const upsetPts = br.upset&&bonus.upset==br.upset?5:0;
+  const upsetPts = br.upset&&parseInt(bonus.upset)==parseInt(br.upset)?5:0;
   // Find current biggest upset from results
   const rankings_ms = await getFifaRankings();
   let biggestUpset = null, biggestVal = 0;
@@ -2412,9 +2412,13 @@ async function renderMyStats(){
   const upsetHint = biggestUpset
     ? '<br><span style="font-size:11px;color:var(--muted)">Hetke suurim: '+biggestUpset.m.home+' v '+biggestUpset.m.away+' (⚡'+biggestUpset.val+')</span>'
     : '';
+  const upsetStatus = br.upset
+    ? (upsetPts > 0 ? '✅ +5pts'
+      : '❌ Vale')
+    : '⏳ Ootel';
   bonusHtml += '<div class="stats-big-card"><div class="stats-big-num" style="font-size:1.2rem">'+(myUpset?myUpset.home+' v '+myUpset.away:'—')+'</div>'
     +'<div class="stats-big-lbl">Suurim üllatus ennustus</div>'
-    +'<div style="font-size:12px;color:'+(upsetPts?'var(--green)':'var(--muted)')+';margin-top:4px">'+(upsetPts?'✅ +5pts':'⏳ Ootel')+upsetHint+'</div></div>';
+    +'<div style="font-size:12px;color:'+(upsetPts?'var(--green)':br.upset?'var(--red)':'var(--muted)')+';margin-top:4px">'+upsetStatus+upsetHint+'</div>';
   bonusHtml += '</div>';
 
   // Squad bonus
@@ -2889,6 +2893,7 @@ async function saveSquadResult(){
 async function saveOfficialTopScorer(){
   const val = document.getElementById('officialTopScorer').value;
   if(!val){ alert('Vali esmalt võitja.'); return; }
+  fbClearCache('settings','bonusresults');
   const br = await getBonusResults();
   br.topscorer = val;
   await setBonusResults(br);
@@ -2900,6 +2905,7 @@ async function saveOfficialTopScorer(){
 async function saveOfficialGoldenGlove(){
   const val = document.getElementById('officialGoldenGlove').value;
   if(!val){ alert('Vali esmalt väravavaht.'); return; }
+  fbClearCache('settings','bonusresults');
   const br = await getBonusResults();
   br.goldenglove = val;
   await setBonusResults(br);
@@ -2968,6 +2974,7 @@ async function renderUpsetLeaderboard(){
 async function saveOfficialUpset(){
   const val = document.getElementById('officialUpset').value;
   if(!val){ alert('Vali esmalt mäng.'); return; }
+  fbClearCache('settings','bonusresults');
   const br = await getBonusResults();
   br.upset = parseInt(val);
   await setBonusResults(br);
