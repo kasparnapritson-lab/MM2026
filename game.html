@@ -409,7 +409,7 @@ const _db = firebase.firestore();
     <div class="squad-pts-preview">+2 punkti iga õige mängija eest · +5 boonus 5+ õige · +10 boonus 8+ õige · +20 boonus kõik 11 õiged</div>
     <div class="squad-validation" id="squad-validation"></div>
     <div class="save-bar">
-      <button class="btn-primary" onclick="saveSquadPicks()" id="squadSaveBtn">Salvesta sümboolne koosseis</button>
+      <button class="btn-secondary" onclick="clearSquadPicks()" style="margin-right:8px">🗑️ Tühjenda</button><button class="btn-primary" onclick="saveSquadPicks()" id="squadSaveBtn">Salvesta sümboolne koosseis</button>
       <span class="save-ok" id="squadSaveOk">✓ Salvestatud!</span>
     </div>
   </div>
@@ -3554,15 +3554,30 @@ function validateSquad(){
   return {valid: errors.length === 0, errors, vals};
 }
 
+async function clearSquadPicks(){
+  if(isSquadLocked()){ alert('Sümboolne koosseis on lukustatud.'); return; }
+  if(!confirm('Kas oled kindel et soovid koosseisu tühjendada?')) return;
+  await setSquad(ME, {gk:[], def:[], mid:[], fwd:[]});
+  renderSquadPicker();
+  const valEl = document.getElementById('squad-validation');
+  valEl.className = 'squad-validation show success';
+  valEl.textContent = '✅ Koosseis tühjendatud!';
+  setTimeout(()=>{ valEl.className = 'squad-validation'; renderBonusTab(); }, 2000);
+}
+
 async function saveSquadPicks(){
   if(isSquadLocked()){ alert('Sümboolne koosseis on lukustatud.'); return; }
 
   const {valid, errors, vals} = validateSquad();
   const valEl = document.getElementById('squad-validation');
 
+  // Allow saving partial squad with warning (useful for testing)
   if(!valid){
     valEl.className = 'squad-validation show error';
-    valEl.innerHTML = '⚠️ ' + errors.join(' · ');
+    valEl.innerHTML = '⚠️ ' + errors.join(' · ') + ' — <b>Salvestan pooleli jäänud koosseisu...</b>';
+    // Save anyway (partial)
+    await setSquad(ME, vals);
+    setTimeout(()=>{ valEl.className = 'squad-validation'; }, 4000);
     return;
   }
 
