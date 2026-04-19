@@ -1022,6 +1022,28 @@ function getUpsetValue(rankings, homeTeam, awayTeam, homeScore, awayScore){
 }
 
 // Filter players by team — returns only players whose code matches the team
+function buildGroupedPlayerOptions(players, selectedVal=''){
+  // Group by position tag
+  const groups = {
+    'Väravavaht': players.filter(p => !p.match(/\[(K|PK|R)\]$/)),
+    'Kaitsja': players.filter(p => p.endsWith('[K]')),
+    'Poolkaitsja': players.filter(p => p.endsWith('[PK]')),
+    'Ründaja': players.filter(p => p.endsWith('[R]')),
+  };
+  let html = '<option value="">— Vali mängija —</option>';
+  for(const [label, group] of Object.entries(groups)){
+    if(!group.length) continue;
+    html += `<optgroup label="${label}">`;
+    group.forEach(p => {
+      const display = p.replace(/\s*\[(K|PK|R)\]$/, '');
+      const sel = selectedVal === p ? ' selected' : '';
+      html += `<option value="${p}"${sel}>${display}</option>`;
+    });
+    html += '</optgroup>';
+  }
+  return html;
+}
+
 function filterPlayersByTeam(players, teamName){
   const code = TEAM_CODES[teamName];
   if(!code) return players; // unknown team — show all
@@ -1445,12 +1467,12 @@ async function renderBonusTab(){
   // Populate top scorer
   const scorers=await getScorerList();
   const scorerSel=document.getElementById('bonus_topscorer');
-  scorerSel.innerHTML='<option value="">— Vali mängija —</option>'+scorers.map(p=>'<option value="'+p+'"'+(bonus.topscorer===p?' selected':'')+'>'+p+'</option>').join('');
+  scorerSel.innerHTML=buildBonusPlayerOpts(scorers, bonus.topscorer, '— Vali mängija —');
   scorerSel.disabled=locked;
   // Populate GK
   const gks=await getGkList();
   const gkSel=document.getElementById('bonus_gk');
-  gkSel.innerHTML='<option value="">— Vali väravavaht —</option>'+gks.map(p=>'<option value="'+p+'"'+(bonus.gk===p?' selected':'')+'>'+p+'</option>').join('');
+  gkSel.innerHTML=buildBonusPlayerOpts(gks, bonus.gk, '— Vali väravavaht —');
   gkSel.disabled=locked;
   // Populate upset (group stage matches)
   const upsetSel=document.getElementById('bonus_upset');
@@ -2088,8 +2110,7 @@ async function toggleMatchDetails(matchId){
         <option value="${away}"${g.team===away?' selected':''}>${away}</option>
       </select>
       <select id="goal-player-${matchId}-${gi}" style="width:200px">
-        <option value="">— Vali mängija —</option>
-        ${filterPlayersByTeam(scorers, g.team||home).map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('')}
+        ${buildGroupedPlayerOptions([...filterPlayersByTeam(gks,g.team||home),...filterPlayersByTeam(scorers,g.team||home)], g.player||'')}
       </select>
       <input type="number" id="goal-count-${matchId}-${gi}" value="${g.count||1}" min="1" max="5" style="width:52px" title="Väravate arv">
       <span style="font-size:11px;color:var(--muted)">väravat</span>
@@ -2104,8 +2125,7 @@ async function toggleMatchDetails(matchId){
         <option value="${away}"${c.team===away?' selected':''}>${away}</option>
       </select>
       <select id="card-player-${matchId}-${ci}" style="width:200px">
-        <option value="">— Vali mängija —</option>
-        ${filterPlayersByTeam(allPlayers, c.team||home).map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('')}
+        ${buildGroupedPlayerOptions(filterPlayersByTeam(allPlayers, c.team||home), c.player||'')}
       </select>
       <select id="card-type-${matchId}-${ci}" style="width:130px">
         <option value="y"${c.type==='y'?' selected':''}>🟨 Kollane (−1)</option>
@@ -2634,8 +2654,7 @@ async function renderMatchDetailsList(){
           <option value="${m.away}"${g.team===m.away?' selected':''}>${m.away}</option>
         </select>
         <select id="goal-player-${m.id}-${gi}" style="width:220px">
-          <option value="">— Vali mängija —</option>
-          ${filterPlayersByTeam(scorerList, g.team||m.home).map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('')}
+          ${buildGroupedPlayerOptions([...filterPlayersByTeam(gkList,g.team||m.home),...filterPlayersByTeam(scorerList,g.team||m.home)], g.player)}
         </select>
         <input type="number" id="goal-count-${m.id}-${gi}" value="${g.count||1}" min="1" max="5" style="width:52px" title="Väravate arv">
         <span style="font-size:11px;color:var(--muted)">väravat</span>
@@ -2651,8 +2670,7 @@ async function renderMatchDetailsList(){
           <option value="${m.away}"${c.team===m.away?' selected':''}>${m.away}</option>
         </select>
         <select id="card-player-${m.id}-${ci}" style="width:220px">
-          <option value="">— Vali mängija —</option>
-          ${filterPlayersByTeam(allPlayerList, c.team||m.home).map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('')}
+          ${buildGroupedPlayerOptions(filterPlayersByTeam(allPlayerList, c.team||m.home), c.player)}
         </select>
         <select id="card-type-${m.id}-${ci}" style="width:130px">
           <option value="y"${c.type==='y'?' selected':''}>🟨 Kollane (−1)</option>
@@ -2691,29 +2709,27 @@ async function renderMatchDetailsList(){
 }
 
 async function updateGoalPlayers(matchId, idx){
-  const m = MATCHES.find(x=>x.id===matchId);
   const teamSel = document.getElementById('goal-team-'+matchId+'-'+idx);
   const playerSel = document.getElementById('goal-player-'+matchId+'-'+idx);
   if(!teamSel||!playerSel) return;
   const selectedTeam = teamSel.value;
   const scorers = await getScorerList();
-  const filtered = filterPlayersByTeam(scorers, selectedTeam);
-  playerSel.innerHTML = '<option value="">— Vali mängija —</option>'
-    + filtered.map(p=>`<option value="${p}">${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('');
+  const gks = await getGkList();
+  const allPlayers = [...gks, ...scorers]; // include GKs for goals (penalties, corners etc)
+  const filtered = filterPlayersByTeam(allPlayers, selectedTeam);
+  playerSel.innerHTML = buildGroupedPlayerOptions(filtered);
 }
 
 async function updateCardPlayers(matchId, idx){
-  const m = MATCHES.find(x=>x.id===matchId);
   const teamSel = document.getElementById('card-team-'+matchId+'-'+idx);
   const playerSel = document.getElementById('card-player-'+matchId+'-'+idx);
   if(!teamSel||!playerSel) return;
   const selectedTeam = teamSel.value;
   const scorers = await getScorerList();
   const gks = await getGkList();
-  const allPlayers = [...scorers, ...gks];
+  const allPlayers = [...gks, ...scorers];
   const filtered = filterPlayersByTeam(allPlayers, selectedTeam);
-  playerSel.innerHTML = '<option value="">— Vali mängija —</option>'
-    + filtered.map(p=>`<option value="${p}">${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('');
+  playerSel.innerHTML = buildGroupedPlayerOptions(filtered);
 }
 
 async function addGoalRow(matchId){
@@ -3291,6 +3307,29 @@ function isSquadLocked(){
 }
 
 // Build player dropdown options grouped by position type
+function buildBonusPlayerOpts(players, selectedVal, placeholder){
+  // Group by team code, sort teams alphabetically
+  const groups = {};
+  players.forEach(p => {
+    const m = p.match(/\(([A-Z]+)\)/);
+    const team = m ? m[1] : 'Muu';
+    if(!groups[team]) groups[team] = [];
+    groups[team].push(p);
+  });
+  const keys = Object.keys(groups).sort();
+  let html = `<option value="">${placeholder}</option>`;
+  keys.forEach(team => {
+    html += `<optgroup label="${team}">`;
+    groups[team].forEach(p => {
+      const display = p.replace(/\s*\[(K|PK|R)\]$/, '');
+      const sel = selectedVal === p ? ' selected' : '';
+      html += `<option value="${p}"${sel}>${display}</option>`;
+    });
+    html += '</optgroup>';
+  });
+  return html;
+}
+
 async function buildPlayerOptions(posType){
   const scorers = await getScorerList();
   const gks = await getGkList();
@@ -3314,9 +3353,9 @@ async function buildPlayerOptions(posType){
     // Map posType to position tag
     const posTag = posType === 'def' ? 'K' : posType === 'mid' ? 'PK' : posType === 'fwd' ? 'R' : null;
     
-    // Filter by position tag if present, otherwise show all
+    // Filter strictly by position tag
     const filtered = posTag
-      ? scorers.filter(p => p.endsWith('['+posTag+']') || !p.match(/\[(K|PK|R)\]$/))
+      ? scorers.filter(p => p.endsWith('['+posTag+']'))
       : scorers;
     
     // Clean display name (remove position tag)
