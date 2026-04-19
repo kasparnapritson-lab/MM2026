@@ -585,9 +585,10 @@ const _db = firebase.firestore();
   <div class="admin-section-title">⏰ Mängude tähtajad</div>
 
   <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px;margin-bottom:1rem">
-    <button onclick="debugBonusPoints()" style="padding:6px 14px;background:#ffc107;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">🔍 Debug: Näita bonuspunkte Firebase'ist</button>
-    <button onclick="forceRecalcBonus()" style="padding:6px 14px;background:#28a745;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;margin-left:8px">🔄 Arvuta boonused uuesti</button>
-    <pre id="debugOutput" style="font-size:11px;margin-top:8px;white-space:pre-wrap"></pre>
+    <div style="font-size:12px;font-weight:600;margin-bottom:6px">🛠️ Haldustööriistad</div>
+    <button onclick="forceRecalcBonus()" style="padding:6px 14px;background:#28a745;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;margin-right:8px">🔄 Arvuta boonused uuesti</button>
+    <button onclick="debugBonusPoints()" style="padding:6px 14px;background:#ffc107;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">🔍 Debug bonuspunktid</button>
+    <pre id="debugOutput" style="font-size:11px;margin-top:8px;white-space:pre-wrap;max-height:200px;overflow-y:auto"></pre>
   </div>
   <div class="admin-section-sub">Sisesta mängude algusajad <b>Eesti aja järgi (EEST, UTC+3)</b>. Ajavöönd lisatakse automaatselt — ennustused lukustuvad õigel ajal kõigi mängijate jaoks, olenemata nende asukohast. Lukustumise ajavahemik (vaikimisi 30 min) on muudetav allpool.</div>
   <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
@@ -2023,10 +2024,87 @@ async function renderAdminMatches(){
         +'</select>'
         +'</div>'
         :'')
-      +'</div>';
-  });
-  document.getElementById('adminMatchList').innerHTML=html;
+      +'</div>'      +'<div style="margin-top:6px">'      +'<button onclick="toggleMatchDetails('+m.id+')" style="font-size:12px;padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--muted)">⚽ Väravad ja kaardid</button>'      +'</div>'      +'<div id="match-details-inline-'+m.id+'" style="display:none;margin-top:8px;border-top:1px solid var(--border);padding-top:8px"></div>'      +'</div>';  });  document.getElementById('adminMatchList').innerHTML=html;}
+async function toggleMatchDetails(matchId){
+  const container = document.getElementById('match-details-inline-'+matchId);
+  if(!container) return;
+  if(container.style.display !== 'none'){
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+  if(container.innerHTML.trim()) return; // already loaded
+  container.innerHTML = '<div style="color:var(--muted);font-size:13px">Laen...</div>';
+  const m = MATCHES.find(x=>x.id===matchId);
+  const details = await getMatchDetails();
+  const d = details[matchId] || {goals:[], cards:[]};
+  const scorers = await getScorerList();
+  const gks = await getGkList();
+  const allPlayers = [...scorers, ...gks];
+  const results = window._cachedResults||await getR();
+  // Resolve team names
+  let home=m.home, away=m.away;
+  if(!isGS(m)&&(home==='TBD'||away==='TBD')){
+    const s=R32_SLOTS[matchId];
+    if(s){
+      const st={};Object.keys(GROUPS).forEach(gk=>{st[gk]=calcGroupStandings(gk,results);});
+      if(s.home) home=resolveSlot(s.home,st,results);
+      if(s.away) away=resolveSlot(s.away,st,results);
+    }
+  }
+  // Build goals HTML
+  let goalsHtml = (d.goals||[]).map((g,gi)=>`
+    <div class="md-entry-row" id="goal-row-${matchId}-${gi}">
+      <span style="font-size:11px;color:var(--muted);width:16px">${gi+1}.</span>
+      <select id="goal-team-${matchId}-${gi}" style="width:150px" onchange="updateGoalPlayers(${matchId},${gi})">
+        <option value="${home}"${g.team===home?' selected':''}>${home}</option>
+        <option value="${away}"${g.team===away?' selected':''}>${away}</option>
+      </select>
+      <select id="goal-player-${matchId}-${gi}" style="width:200px">
+        <option value="">— Vali mängija —</option>
+        ${filterPlayersByTeam(scorers, g.team||home).map(p=>`<option value="${p}"${g.player===p?' selected':''}>${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('')}
+      </select>
+      <input type="number" id="goal-count-${matchId}-${gi}" value="${g.count||1}" min="1" max="5" style="width:52px" title="Väravate arv">
+      <span style="font-size:11px;color:var(--muted)">väravat</span>
+      <button class="del-btn" onclick="removeGoalRow(${matchId},${gi})">✕</button>
+    </div>`).join('');
+  // Build cards HTML
+  let cardsHtml = (d.cards||[]).map((c,ci)=>`
+    <div class="md-entry-row" id="card-row-${matchId}-${ci}">
+      <span style="font-size:11px;color:var(--muted);width:16px">${ci+1}.</span>
+      <select id="card-team-${matchId}-${ci}" style="width:150px" onchange="updateCardPlayers(${matchId},${ci})">
+        <option value="${home}"${c.team===home?' selected':''}>${home}</option>
+        <option value="${away}"${c.team===away?' selected':''}>${away}</option>
+      </select>
+      <select id="card-player-${matchId}-${ci}" style="width:200px">
+        <option value="">— Vali mängija —</option>
+        ${filterPlayersByTeam(allPlayers, c.team||home).map(p=>`<option value="${p}"${c.player===p?' selected':''}>${p.replace(/\s*\[(K|PK|R)\]$/,'')}</option>`).join('')}
+      </select>
+      <select id="card-type-${matchId}-${ci}" style="width:130px">
+        <option value="y"${c.type==='y'?' selected':''}>🟨 Kollane (−1)</option>
+        <option value="iy"${c.type==='iy'?' selected':''}>🟨🟥 Kaudne punane (−3)</option>
+        <option value="r"${c.type==='r'?' selected':''}>🟥 Otse punane (−4)</option>
+        <option value="yr"${c.type==='yr'?' selected':''}>🟨🟥 Koll+punane (−5)</option>
+      </select>
+      <button class="del-btn" onclick="removeCardRow(${matchId},${ci})">✕</button>
+    </div>`).join('');
+  container.innerHTML = `
+    <div class="md-section">
+      <div class="md-section-title">⚽ Väravad</div>
+      <div id="goals-container-${matchId}">${goalsHtml}</div>
+      <button class="md-add-btn" onclick="addGoalRow(${matchId})">+ Lisa värav</button>
+    </div>
+    <div class="md-section" style="margin-top:8px">
+      <div class="md-section-title">🟨 Kaardid</div>
+      <div id="cards-container-${matchId}">${cardsHtml}</div>
+      <button class="md-add-btn" onclick="addCardRow(${matchId})">+ Lisa kaart</button>
+    </div>
+    <div style="margin-top:8px">
+      <button class="btn-primary" style="padding:6px 16px;font-size:12px" onclick="saveMatchDetail(${matchId})">Salvesta detailid #${matchId}</button>
+      <span class="save-ok" id="md-ok-${matchId}">✓ Salvestatud!</span>
+    </div>`;
 }
+
 async function saveResults(){
   fbClearCache('results','main');
   const results=await getR();
@@ -2967,15 +3045,13 @@ async function renderUpsetLeaderboard(){
 async function forceRecalcBonus(){
   const out = document.getElementById('debugOutput');
   out.textContent = 'Arvutan...';
-  // Clear all caches
   fbClearCache('settings','bonusresults');
   fbClearCache('settings','squadresult');
   const players = await getAllPlayers();
-  players.forEach(p => { fbClearCache('bonuspoints', p); fbClearCache('predictions_bonus', p); fbClearCache('squad_picks', p); });
+  players.forEach(p => { fbClearCache('bonuspoints',p); fbClearCache('predictions_bonus',p); fbClearCache('squad_picks',p); });
   await applyBonusPoints();
-  // Show result
   fbClearCache('bonuspoints','kaspar');
-  const bp = await fbGet('bonuspoints','kaspar') || {};
+  const bp = await fbGet('bonuspoints','kaspar')||{};
   out.textContent = 'Valmis! bonuspoints/kaspar: ' + JSON.stringify(bp, null, 2);
 }
 
@@ -2985,12 +3061,12 @@ async function debugBonusPoints(){
   fbClearCache('bonuspoints','kaspar');
   fbClearCache('settings','bonusresults');
   fbClearCache('settings','squadresult');
-  const bp = await fbGet('bonuspoints','kaspar') || {};
+  const bp = await fbGet('bonuspoints','kaspar')||{};
   const br = await getBonusResults();
   const sq = await getSquadResult();
   const mySquad = await getSquad('kaspar');
   const squadB = calcSquadBonus(mySquad, Object.keys(sq).length>0?sq:null);
-  out.textContent = 
+  out.textContent =
     'bonuspoints/kaspar: ' + JSON.stringify(bp, null, 2) +
     '\n\nbonusresults: ' + JSON.stringify(br, null, 2) +
     '\n\nsquadResult keys: ' + Object.keys(sq).join(',') +
