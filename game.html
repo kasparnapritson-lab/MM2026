@@ -1133,12 +1133,39 @@ async function saveLockWindowFb(v){
 
 // Player lists (scorers/gks)
 async function getScorerList(){
+  // Try squad_picks first (new system), fall back to settings/players (old system)
+  const squadPlayers = await getPlayersFromSquadPicks();
+  if(squadPlayers.scorers.length > 0) return squadPlayers.scorers;
   const d=await fbGet('settings','players');
   return d.scorers||[...DEFAULT_SCORERS];
 }
 async function getGkList(){
+  const squadPlayers = await getPlayersFromSquadPicks();
+  if(squadPlayers.gks.length > 0) return squadPlayers.gks;
   const d=await fbGet('settings','players');
   return d.gks||[...DEFAULT_GKS];
+}
+async function getPlayersFromSquadPicks(){
+  // Read all squad_picks documents and build scorer + GK lists
+  if(window._cachedSquadPlayerLists) return window._cachedSquadPlayerLists;
+  try {
+    const snap = await _db.collection('squad_picks').get();
+    const scorers = [], gks = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      (d.gk||[]).forEach(p => gks.push(p));
+      (d.def||[]).forEach(p => scorers.push(p));
+      (d.mid||[]).forEach(p => scorers.push(p));
+      (d.fwd||[]).forEach(p => scorers.push(p));
+    });
+    scorers.sort((a,b) => a.localeCompare(b));
+    gks.sort((a,b) => a.localeCompare(b));
+    window._cachedSquadPlayerLists = {scorers, gks};
+    return {scorers, gks};
+  } catch(e) {
+    console.error('getPlayersFromSquadPicks error:', e);
+    return {scorers: [], gks: []};
+  }
 }
 async function savePlayerLists_fb(scorers,gks){
   await fbSet('settings','players',{scorers,gks});
@@ -1277,7 +1304,7 @@ function showTab(id,el){
   if(id==='groups')      renderGroups();
   if(id==='bracket')     renderBracket();
   if(id==='bonus')       renderBonusTab();
-  if(id==='admin')       {renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderUpsetLeaderboard();renderOverrideTable();renderBonusResultSelects();renderSquadResultAdmin();renderPredTable();}
+  if(id==='admin')       {window._cachedSquadPlayerLists=null;renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderUpsetLeaderboard();renderOverrideTable();renderBonusResultSelects();renderSquadResultAdmin();renderPredTable();}
   if(id==='mystats')     renderMyStats();
   if(id==='settings')    renderSettingsTab();
 }
