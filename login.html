@@ -345,10 +345,15 @@ function closeVideo(e){
 window._login = login;
 
 window.switchTab = function switchTab(tab){
-  document.getElementById('loginForm').classList.toggle('hide', tab !== 'login');
-  document.getElementById('regForm').classList.toggle('show', tab === 'reg');
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('regForm').style.display = tab === 'reg' ? 'block' : 'none';
   document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
   document.getElementById('tabReg').classList.toggle('active', tab === 'reg');
+  // Hide login errors when switching to register
+  if(tab === 'reg'){
+    document.getElementById('loginErr').style.display = 'none';
+    document.getElementById('connErr').style.display = 'none';
+  }
 }
 
 async function register(){
