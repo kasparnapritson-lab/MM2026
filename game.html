@@ -661,7 +661,7 @@ const _db = firebase.firestore();
   <div class="admin-section-title">🔑 Kontode haldus</div>
   <div class="admin-section-sub">Lisa mängijaid, lähtesta paroole või eemalda kontosid. Paroolid salvestatakse räsi kujul — neid ei saa hiljem algsel kujul tagasi vaadata.</div>
   <table class="account-table" id="accountTable">
-    <thead><tr><th>Kasutajanimi</th><th>Määra uus parool</th><th>Roll</th><th>Tegevus</th></tr></thead>
+    <thead><tr><th>Kasutajanimi</th><th>E-post</th><th>Määra uus parool</th><th>Roll</th><th>Tegevus</th></tr></thead>
     <tbody id="accountTableBody"></tbody>
   </table>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem">
@@ -701,6 +701,20 @@ const _db = firebase.firestore();
       <button class="btn-primary" style="padding:8px 18px;font-size:13px" onclick="saveOfficialTopScorer()">Salvesta (+10 pts)</button>
       <span class="save-ok" id="tsSaveOk">✓ Salvestatud!</span>
     </div>
+  </div>
+
+
+  <hr class="section-divider">
+
+  <div class="admin-section-title">🔑 Kutsekood</div>
+  <div class="admin-section-sub">Registreerimisel nõutav kutsekood. Jaga ainult kutsutud mängijatega.</div>
+  <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input type="text" id="inviteCodeInput" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:600;flex:1;min-width:150px;max-width:200px" placeholder="Kutsekood...">
+      <button class="btn-primary" style="padding:8px 18px;font-size:13px" onclick="saveInviteCode()">Salvesta kood</button>
+      <span class="save-ok" id="inviteCodeOk">✓ Salvestatud!</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px">Vaikimisi: <b>MM2026</b></div>
   </div>
 
   <hr class="section-divider">
@@ -1326,7 +1340,7 @@ function showTab(id,el){
   if(id==='groups')      renderGroups();
   if(id==='bracket')     renderBracket();
   if(id==='bonus')       renderBonusTab();
-  if(id==='admin')       {window._cachedSquadPlayerLists=null;renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderUpsetLeaderboard();renderOverrideTable();renderBonusResultSelects();renderSquadResultAdmin();renderPredTable();}
+  if(id==='admin')       {window._cachedSquadPlayerLists=null;loadInviteCode();renderDeadlineTable();renderAdminMatches();renderPlayerListAdmin();renderRankingsAdmin();renderAccountTable();renderMatchDetailsList();renderUpsetLeaderboard();renderOverrideTable();renderBonusResultSelects();renderSquadResultAdmin();renderPredTable();}
   if(id==='mystats')     renderMyStats();
   if(id==='settings')    renderSettingsTab();
 }
@@ -2252,6 +2266,21 @@ async function savePlayerLists(){
 /* ═══════════════════════════════════════════
    ADMIN — ACCOUNT MANAGER
 ═══════════════════════════════════════════ */
+async function saveInviteCode(){
+  const val = document.getElementById('inviteCodeInput').value.trim();
+  if(!val){ alert('Sisesta kutsekood.'); return; }
+  await fbSet('settings','config',{inviteCode: val});
+  const ok = document.getElementById('inviteCodeOk');
+  ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'),3000);
+}
+
+async function loadInviteCode(){
+  const snap = await fbGet('settings','config');
+  const code = snap ? snap.inviteCode : 'MM2026';
+  const el = document.getElementById('inviteCodeInput');
+  if(el) el.value = code || 'MM2026';
+}
+
 async function renderAccountTable(){
   const accounts=await getAllAccountsFromDB();
   let html='';

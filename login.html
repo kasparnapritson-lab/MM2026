@@ -39,6 +39,16 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:
 .slideshow::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--red),var(--gold));width:100%}
 
 /* ── LOGIN CARD ── */
+.tab-btns{display:flex;margin-bottom:16px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border)}
+.tab-btn{flex:1;padding:10px;background:none;border:none;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);transition:.2s;font-family:'DM Sans',sans-serif}
+.tab-btn.active{background:var(--red);color:#fff}
+.tab-btn:hover:not(.active){background:var(--bg)}
+.tab-btns{display:flex;margin-bottom:20px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border)}
+.tab-btn{flex:1;padding:10px;background:none;border:none;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);transition:.2s}
+.tab-btn.active{background:var(--red);color:#fff}
+.reg-form{display:none}
+.reg-form.show{display:block}
+.login-form.hide{display:none}
 .card{background:var(--cream);border-radius:18px;padding:2rem 2rem 1.75rem;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
 .card-header{text-align:center;margin-bottom:1.25rem}
 .trophy{font-size:2.2rem;display:block;margin-bottom:.4rem}
@@ -160,19 +170,55 @@ h1 span{color:var(--red)}
     <div class="info" id="firstRunNote">
       👋 <b>Tere tulemast, korraldaja!</b> Esmakordsel avamisel on loodud ajutine admin-konto. Logi sisse kasutajanimega <b>admin</b> ja parooliga <b>admin</b>, seejärel mine Admin Paneeli → Kontode haldus, et luua päris kontod ja muuta admin parool.
     </div>
-    <div class="err" id="loginErr">Vale kasutajanimi või parool. Proovi uuesti.</div>
-    <div class="err" id="connErr">Andmebaasiga ühendamine ebaõnnestus. Kontrolli internetiühendust.</div>
+    <!-- TABS -->
+    <div class="tab-btns">
+      <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Sisene</button>
+      <button class="tab-btn" id="tabReg" onclick="switchTab('reg')">Registreeru</button>
+    </div>
 
-    <div class="field">
-      <label for="u">Kasutajanimi</label>
-      <input type="text" id="u" placeholder="Sisesta oma kasutajanimi" autocomplete="username">
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <div class="err" id="loginErr">Vale kasutajanimi või parool. Proovi uuesti.</div>
+      <div class="err" id="connErr">Andmebaasiga ühendamine ebaõnnestus. Kontrolli internetiühendust.</div>
+      <div class="field">
+        <label for="u">Kasutajanimi</label>
+        <input type="text" id="u" placeholder="Sisesta oma kasutajanimi" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="p">Parool</label>
+        <input type="password" id="p" placeholder="Sisesta oma parool" autocomplete="current-password">
+      </div>
+      <button class="btn" id="loginBtn" onclick="window._login&&window._login()">Sisene ennustusvõistlusele</button>
+      <p class="note">Ligipääsuprobleemide korral võta ühendust korraldajaga.</p>
     </div>
-    <div class="field">
-      <label for="p">Parool</label>
-      <input type="password" id="p" placeholder="Sisesta oma parool" autocomplete="current-password">
+
+    <!-- REGISTER FORM -->
+    <div id="regForm" style="display:none">
+      <div class="err" id="regErr" style="display:none"></div>
+      <div id="regOk" style="display:none;background:#d4edda;color:#155724;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;text-align:center"></div>
+      <div class="field">
+        <label>Kasutajanimi</label>
+        <input type="text" id="ru" placeholder="Vali kasutajanimi (ilma tühikuteta)" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>E-posti aadress</label>
+        <input type="email" id="remail" placeholder="sinu@email.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Parool</label>
+        <input type="password" id="rp" placeholder="Vähemalt 6 tähemärki" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label>Kinnita parool</label>
+        <input type="password" id="rp2" placeholder="Korda parooli" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label>Kutse­kood</label>
+        <input type="text" id="rcode" placeholder="Sisesta kutsekood" autocomplete="off">
+      </div>
+      <button class="btn" id="regBtn" onclick="window._register&&window._register()">Loo konto</button>
+      <p class="note">Kutsekoodi saad korraldajalt.</p>
     </div>
-    <button class="btn" id="loginBtn" onclick="window._login&&window._login()">Sisene ennustusvõistlusele</button>
-    <p class="note">Ligipääsuprobleemide korral võta ühendust korraldajaga.</p>
   </div>
 
 </div>
@@ -297,6 +343,93 @@ function closeVideo(e){
 
 /* Expose all functions to global scope for onclick handlers */
 window._login = login;
+
+function switchTab(tab){
+  document.getElementById('loginForm').classList.toggle('hide', tab !== 'login');
+  document.getElementById('regForm').classList.toggle('show', tab === 'reg');
+  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('tabReg').classList.toggle('active', tab === 'reg');
+}
+
+async function register(){
+  const u = document.getElementById('ru').value.trim().toLowerCase();
+  const email = document.getElementById('remail').value.trim();
+  const p = document.getElementById('rp').value;
+  const p2 = document.getElementById('rp2').value;
+  const code = document.getElementById('rcode').value.trim();
+  const errEl = document.getElementById('regErr');
+  const okEl = document.getElementById('regOk');
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  // Validate
+  if(!u || u.length < 3){ errEl.textContent = 'Kasutajanimi peab olema vähemalt 3 tähemärki.'; errEl.style.display='block'; return; }
+  if(u.includes(' ')){ errEl.textContent = 'Kasutajanimes ei tohi olla tühikuid.'; errEl.style.display='block'; return; }
+  if(!email || !email.includes('@')){ errEl.textContent = 'Sisesta korrektne e-posti aadress.'; errEl.style.display='block'; return; }
+  if(p.length < 6){ errEl.textContent = 'Parool peab olema vähemalt 6 tähemärki.'; errEl.style.display='block'; return; }
+  if(p !== p2){ errEl.textContent = 'Paroolid ei kattu.'; errEl.style.display='block'; return; }
+
+  // Check invite code
+  const btn = document.getElementById('regBtn');
+  btn.disabled = true;
+  btn.textContent = 'Kontrollin...';
+
+  try {
+    // Check invite code from Firebase settings/config
+    const configSnap = await _db.collection('settings').doc('config').get();
+    const config = configSnap.exists ? configSnap.data() : {};
+    const validCode = config.inviteCode || 'MM2026';
+    
+    if(code !== validCode){
+      errEl.textContent = 'Vale kutsekood. Kontrolli ja proovi uuesti.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Loo konto';
+      return;
+    }
+
+    // Check if username taken
+    const existing = await _db.collection('accounts').doc(u).get();
+    if(existing.exists){
+      errEl.textContent = 'See kasutajanimi on juba kasutusel. Vali teine.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Loo konto';
+      return;
+    }
+
+    // Create account
+    const hash = await sha256(u + ':' + p);
+    await _db.collection('accounts').doc(u).set({
+      hash,
+      email,
+      role: 'player',
+      created: new Date().toISOString()
+    });
+
+    okEl.textContent = '✅ Konto loodud! Saad nüüd sisse logida.';
+    okEl.style.display = 'block';
+    document.getElementById('ru').value = '';
+    document.getElementById('remail').value = '';
+    document.getElementById('rp').value = '';
+    document.getElementById('rp2').value = '';
+    document.getElementById('rcode').value = '';
+    
+    // Auto-switch to login after 2 seconds
+    setTimeout(()=>{ 
+      switchTab('login');
+      document.getElementById('u').value = u;
+    }, 2000);
+
+  } catch(e){
+    errEl.textContent = 'Viga: ' + e.message;
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Loo konto';
+}
+
+window._register = register;
 window._goTo = goTo;
 window._openVideo = openVideo;
 window._closeVideoBtn = closeVideoBtn;
