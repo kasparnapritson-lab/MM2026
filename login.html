@@ -381,7 +381,7 @@ async function register(){
 
   try {
     // Check invite code from Firebase settings/config
-    const configSnap = await _db.collection('settings').doc('config').get();
+    const configSnap = await db.collection('settings').doc('config').get();
     const config = configSnap.exists ? configSnap.data() : {};
     const validCode = config.inviteCode || 'MM2026';
     
@@ -394,7 +394,7 @@ async function register(){
     }
 
     // Check if username taken
-    const existing = await _db.collection('accounts').doc(u).get();
+    const existing = await db.collection('accounts').doc(u).get();
     if(existing.exists){
       errEl.textContent = 'See kasutajanimi on juba kasutusel. Vali teine.';
       errEl.style.display = 'block';
@@ -405,7 +405,7 @@ async function register(){
 
     // Create account
     const hash = await sha256(u + ':' + p);
-    await _db.collection('accounts').doc(u).set({
+    await db.collection('accounts').doc(u).set({
       hash,
       email,
       role: 'player',
