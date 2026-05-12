@@ -805,6 +805,31 @@ const _db = firebase.firestore();
 
   <hr class="section-divider">
 
+  <div class="admin-section-title">📧 E-posti teavitused</div>
+  <div class="admin-section-sub">Saada teavitus kõigile mängijatele kelle e-post on kontol olemas. Kirjad saadetakse <b>mm2026@toomatool.ee</b> kaudu.</div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <button onclick="fillEmailTemplate('reminder')" style="padding:7px 14px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">⏰ Lukostumine</button>
+    <button onclick="fillEmailTemplate('results')" style="padding:7px 14px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">📊 Tulemused</button>
+    <button onclick="fillEmailTemplate('winner')" style="padding:7px 14px;background:#c0392b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">🏆 Võitja</button>
+  </div>
+
+  <div style="margin-bottom:10px">
+    <label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:4px">Teema</label>
+    <input type="text" id="emailSubject" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit" placeholder="E-kirja teema...">
+  </div>
+  <div style="margin-bottom:10px">
+    <label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:4px">Sõnum</label>
+    <textarea id="emailBody" rows="5" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical" placeholder="Kirjuta sõnum siia..."></textarea>
+  </div>
+  <div style="margin-bottom:12px">
+    <label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:4px">Secret võti</label>
+    <input type="password" id="emailSecret" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit" placeholder="send_email.php secret võti">
+  </div>
+
+  <button onclick="sendEmailNotification()" style="padding:10px 24px;background:#c0392b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600">📨 Saada kõigile mängijatele</button>
+  <div id="emailStatus" style="margin-top:10px;font-size:13px;display:none"></div>
+
   <div class="admin-section-title">📊 Täielik ennustuste tabel</div>
   <div class="admin-section-sub">Kõigi mängijate ennustused kõrvuti. <span style="color:#15803d;font-weight:600">Roheline=täpne</span> · <span style="color:#d97706;font-weight:600">Kollakas=õige tulemus</span> · <span style="color:#dc2626;font-weight:600">Punane=vale tulemus</span> · Hall=puudu/ootel.</div>
   <div class="filter-bar" id="predTableFilterBar">
@@ -3723,6 +3748,71 @@ async function resetGameData(){
     alert('Viga kustutamisel: ' + e.message);
   }
 }
+
+
+// ── E-POSTI TEAVITUSED ──────────────────────────────────
+
+function fillEmailTemplate(type) {
+  const subject = document.getElementById('emailSubject');
+  const body = document.getElementById('emailBody');
+  if (type === 'reminder') {
+    subject.value = '⏰ MM2026 — Ennustuse tähtaeg läheneb!';
+    body.value = 'Tere!\n\nMeeldetuletus: mõne mängu ennustuse tähtaeg läheneb.\n\nSisesta oma ennustused enne mängu algust — hiljem lukustuvad!\n\nEdukust!\nMM2026 korraldaja';
+  } else if (type === 'results') {
+    subject.value = '📊 MM2026 — Uued tulemused sisestatud!';
+    body.value = 'Tere!\n\nUued mängutulemused on sisestatud ja punktid uuendatud.\n\nVaata oma kohta edetabelis!\n\nEdu!\nMM2026 korraldaja';
+  } else if (type === 'winner') {
+    subject.value = '🏆 MM2026 — Turniir on läbi! Võitja selgunud!';
+    body.value = 'Tere!\n\nFIFA MM 2026 on läbi! Lõplik edetabel on valmis.\n\nTäname kõiki osalemast!\nMM2026 korraldaja';
+  }
+}
+
+async function sendEmailNotification() {
+  const subject = document.getElementById('emailSubject').value.trim();
+  const message = document.getElementById('emailBody').value.trim();
+  const secret = document.getElementById('emailSecret').value.trim();
+  const statusEl = document.getElementById('emailStatus');
+  if (!subject || !message) {
+    statusEl.style.display = 'block'; statusEl.style.color = '#c0392b';
+    statusEl.textContent = '❌ Täida teema ja sõnum.'; return;
+  }
+  if (!secret) {
+    statusEl.style.display = 'block'; statusEl.style.color = '#c0392b';
+    statusEl.textContent = '❌ Sisesta secret võti.'; return;
+  }
+  statusEl.style.display = 'block'; statusEl.style.color = '#666';
+  statusEl.textContent = '⏳ Kogun e-posti aadressid...';
+  try {
+    const snap = await _db.collection('accounts').get();
+    const recipients = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.email && d.email.includes('@')) recipients.push(d.email);
+    });
+    if (recipients.length === 0) {
+      statusEl.style.color = '#c0392b';
+      statusEl.textContent = '❌ Ühelgi mängijal pole e-posti aadressi.'; return;
+    }
+    statusEl.textContent = '⏳ Saadan ' + recipients.length + ' mängijale...';
+    const response = await fetch('send_email.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'manual', subject, message, recipients, secret })
+    });
+    const result = await response.json();
+    if (result.ok) {
+      statusEl.style.color = '#15803d';
+      statusEl.textContent = '✅ Saadetud ' + result.sent + ' mängijale!';
+    } else {
+      statusEl.style.color = '#c0392b';
+      statusEl.textContent = '❌ Viga: ' + (result.error || 'Ebaõnnestus');
+    }
+  } catch(e) {
+    statusEl.style.color = '#c0392b';
+    statusEl.textContent = '❌ ' + e.message;
+  }
+}
+
 
 // All functions are globally accessible (plain script tag, no module scope)
 </script>

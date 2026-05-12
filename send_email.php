@@ -8,7 +8,7 @@
  */
 
 // ── SEADED ──────────────────────────────────────────────
-define('SECRET_KEY', 'Tooma2026mäng');  // Muuda see unikaalseks!
+define('SECRET_KEY', 'MM2026_email_secret_changeme');  // Muuda see unikaalseks!
 define('FROM_EMAIL', 'mm2026@toomatool.ee');
 define('FROM_NAME',  'MM2026 Ennustusmäng');
 define('ALLOWED_ORIGIN', 'https://mm2026.toomatool.ee');
