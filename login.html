@@ -216,6 +216,12 @@ h1 span{color:var(--red)}
         <label>Kutse­kood</label>
         <input type="text" id="rcode" placeholder="Sisesta kutsekood" autocomplete="off">
       </div>
+      <div style="margin:12px 0 14px;display:flex;align-items:flex-start;gap:10px">
+        <input type="checkbox" id="gdprConsent" style="margin-top:3px;accent-color:var(--red);width:16px;height:16px;flex-shrink:0;cursor:pointer">
+        <label for="gdprConsent" style="font-size:13px;color:#555;line-height:1.5;cursor:pointer">
+          Olen tutvunud <a href="privacy.html" target="_blank" style="color:var(--red);font-weight:600">privaatsuspoliitikaga</a> ja nõustun oma andmete (kasutajanimi, e-post) töötlemisega MM2026 ennustusmängu raames. Andmed kustutatakse 1 kuu pärast turniiri lõppu.
+        </label>
+      </div>
       <button class="btn" id="regBtn" onclick="window._register&&window._register()">Loo konto</button>
       <p class="note">Kutsekoodi saad korraldajalt.</p>
     </div>
@@ -373,6 +379,13 @@ async function register(){
   if(!email || !email.includes('@')){ errEl.textContent = 'Sisesta korrektne e-posti aadress.'; errEl.style.display='block'; return; }
   if(p.length < 6){ errEl.textContent = 'Parool peab olema vähemalt 6 tähemärki.'; errEl.style.display='block'; return; }
   if(p !== p2){ errEl.textContent = 'Paroolid ei kattu.'; errEl.style.display='block'; return; }
+
+  // Check GDPR consent
+  if(!document.getElementById('gdprConsent').checked){
+    errEl.textContent = 'Palun nõustu privaatsuspoliitikaga et jätkata.';
+    errEl.style.display = 'block';
+    return;
+  }
 
   // Check invite code
   const btn = document.getElementById('regBtn');
