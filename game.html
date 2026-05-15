@@ -3981,14 +3981,21 @@ async function sendEmailNotification() {
 
 // Sticky save bar logic
 function updateStickySave() {
-  const section = document.getElementById('predictions');
+  const section = document.getElementById('predict');
   const sticky = document.getElementById('stickySave');
   if (!section || !sticky) return;
-  const rect = section.getBoundingClientRect();
-  const isVisible = rect.top < window.innerHeight && rect.bottom > 100;
-  sticky.classList.toggle('visible', isVisible);
+  // Show sticky bar when predictions section is active (visible)
+  const isActive = section.style.display !== 'none' && section.classList.contains('active');
+  sticky.classList.toggle('visible', isActive);
 }
 window.addEventListener('scroll', updateStickySave);
+
+// Also trigger when tab changes
+const _origShowTab = window.showTab;
+window.showTab = function(tab, el) {
+  if (_origShowTab) _origShowTab(tab, el);
+  setTimeout(updateStickySave, 50);
+};
 
 // Hook into savePredictions to show ok message in sticky bar too
 const _origSave = window.savePredictions;
