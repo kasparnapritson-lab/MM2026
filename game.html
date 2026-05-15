@@ -452,6 +452,166 @@ const _db = firebase.firestore();
 <section class="section" id="rules">
   <h2 class="sec-title">Reeglid &amp; punktiarvestus</h2>
   <p class="sec-sub">MM2026 ennustusvõistluse täielikud reeglid.</p>
+
+  <!-- Interaktiivne juhend -->
+  <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.5rem">
+    <div style="display:flex;justify-content:center;gap:8px;padding:14px 0 0">
+      <span class="guide-dot active" onclick="goToSlide(0)"></span>
+      <span class="guide-dot" onclick="goToSlide(1)"></span>
+      <span class="guide-dot" onclick="goToSlide(2)"></span>
+      <span class="guide-dot" onclick="goToSlide(3)"></span>
+      <span class="guide-dot" onclick="goToSlide(4)"></span>
+    </div>
+    <div id="guideSlider">
+      <!-- Slide 1 -->
+      <div class="guide-slide" style="display:block">
+        <div style="background:linear-gradient(135deg,#1a1a2e,#c0392b);padding:2rem;text-align:center">
+          <div style="font-size:3rem">⚽</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#fff;letter-spacing:3px">MM2026 JUHEND</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:.5rem">Loe läbi 5 sammuga — mäng selgeks!</div>
+        </div>
+        <div style="padding:1.5rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
+          <div style="text-align:center;background:#f8f8fc;border-radius:10px;padding:1rem">
+            <div style="font-size:1.8rem">📅</div>
+            <div style="font-size:12px;font-weight:700;color:var(--dark);margin-top:.4rem">104 mängu</div>
+            <div style="font-size:11px;color:var(--muted)">11 juuni – 19 juuli</div>
+          </div>
+          <div style="text-align:center;background:#f8f8fc;border-radius:10px;padding:1rem">
+            <div style="font-size:1.8rem">🏆</div>
+            <div style="font-size:12px;font-weight:700;color:var(--dark);margin-top:.4rem">Auhinnafond</div>
+            <div style="font-size:11px;color:var(--muted)">Toomatool kinkekaardid</div>
+          </div>
+          <div style="text-align:center;background:#f8f8fc;border-radius:10px;padding:1rem">
+            <div style="font-size:1.8rem">🎯</div>
+            <div style="font-size:12px;font-weight:700;color:var(--dark);margin-top:.4rem">Boonused</div>
+            <div style="font-size:11px;color:var(--muted)">Kuni 100+ lisapunkti</div>
+          </div>
+        </div>
+      </div>
+      <!-- Slide 2 -->
+      <div class="guide-slide" style="display:none">
+        <div style="background:#1a1a2e;padding:1.2rem 1.5rem">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#fff;letter-spacing:2px">🚀 KUIDAS ALUSTADA?</div>
+        </div>
+        <div style="padding:1.5rem;display:flex;flex-direction:column;gap:1rem">
+          <div style="display:flex;align-items:flex-start;gap:1rem;background:#f8f8fc;border-radius:10px;padding:1rem">
+            <div style="background:#c0392b;color:#fff;font-weight:700;font-size:14px;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+            <div><div style="font-weight:700;color:var(--dark);font-size:14px">Registreeru kutsekoodiga</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:.3rem">Vajuta "Registreeru" → sisesta andmed ja kutsekoodi saad korraldajalt</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:1rem;background:#f8f8fc;border-radius:10px;padding:1rem">
+            <div style="background:#c0392b;color:#fff;font-weight:700;font-size:14px;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+            <div><div style="font-weight:700;color:var(--dark);font-size:14px">Sisesta ennustused</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:.3rem">Mine "Minu ennustused" → leia mäng → sisesta tulemus (nt 2-1) → vajuta "Salvesta"</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:1rem;background:#f8f8fc;border-radius:10px;padding:1rem">
+            <div style="background:#c0392b;color:#fff;font-weight:700;font-size:14px;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+            <div><div style="font-weight:700;color:var(--dark);font-size:14px">Täida boonusennustused</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:.3rem">Mine "Boonusennustused" → täida kõik 5 boonust enne 11. juunit kell 14:00!</div></div>
+          </div>
+          <div style="background:#fef9c3;border-radius:8px;padding:.75rem;font-size:12px;color:#92400e">
+            ⏰ <b>Oluline:</b> Ennustused lukustuvad 30 minutit enne avavilet!
+          </div>
+        </div>
+      </div>
+      <!-- Slide 3 -->
+      <div class="guide-slide" style="display:none">
+        <div style="background:#1a1a2e;padding:1.2rem 1.5rem">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#fff;letter-spacing:2px">🏟 PUNKTIARVESTUS</div>
+        </div>
+        <div style="padding:1.5rem">
+          <div style="font-weight:700;color:var(--dark);margin-bottom:.75rem">Alagrupimängud</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1.25rem">
+            <div style="text-align:center;background:#c0392b;border-radius:10px;padding:1rem;color:#fff"><div style="font-size:2rem;font-weight:700">5</div><div style="font-size:11px;margin-top:.3rem">Täpne skoor</div></div>
+            <div style="text-align:center;background:#2563eb;border-radius:10px;padding:1rem;color:#fff"><div style="font-size:2rem;font-weight:700">2</div><div style="font-size:11px;margin-top:.3rem">Õige tulemus</div></div>
+            <div style="text-align:center;background:#6b7280;border-radius:10px;padding:1rem;color:#fff"><div style="font-size:2rem;font-weight:700">0</div><div style="font-size:11px;margin-top:.3rem">Vale ennustus</div></div>
+          </div>
+          <div style="font-weight:700;color:var(--dark);margin-bottom:.75rem">Play-off mängud</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1rem">
+            <div style="text-align:center;background:#c0392b;border-radius:10px;padding:1rem;color:#fff"><div style="font-size:2rem;font-weight:700">10</div><div style="font-size:11px;margin-top:.3rem">Täpne skoor</div></div>
+            <div style="text-align:center;background:#2563eb;border-radius:10px;padding:1rem;color:#fff"><div style="font-size:2rem;font-weight:700">4</div><div style="font-size:11px;margin-top:.3rem">Õige tulemus</div></div>
+            <div style="text-align:center;background:#6b7280;border-radius:10px;padding:1rem;color:#fff"><div style="font-size:2rem;font-weight:700">0</div><div style="font-size:11px;margin-top:.3rem">Vale ennustus</div></div>
+          </div>
+          <div style="background:#fef3c7;border-radius:8px;padding:.75rem;font-size:12px;color:#92400e">
+            ⚠️ Play-off mängudes loeb ainult 90 minuti tulemus. Lisaaeg ja penaltid ei mõjuta punktiarvestust.
+          </div>
+        </div>
+      </div>
+      <!-- Slide 4 -->
+      <div class="guide-slide" style="display:none">
+        <div style="background:#1a1a2e;padding:1.2rem 1.5rem">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#fff;letter-spacing:2px">🎁 BOONUSENNUSTUSED</div>
+        </div>
+        <div style="padding:1.5rem;display:flex;flex-direction:column;gap:.6rem">
+          <div style="background:#f8f8fc;border-radius:10px;padding:.75rem;display:flex;justify-content:space-between;align-items:center">
+            <div><span style="font-size:1.2rem">⚽</span><b style="font-size:13px;color:var(--dark);margin-left:.4rem">Suurim väravakütt</b><div style="font-size:11px;color:var(--muted);margin-top:.2rem">+1p iga värava eest + +10p kui ametlik Top Scorer</div></div>
+            <div style="background:#c0392b;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;white-space:nowrap">50+ p</div>
+          </div>
+          <div style="background:#f8f8fc;border-radius:10px;padding:.75rem;display:flex;justify-content:space-between;align-items:center">
+            <div><span style="font-size:1.2rem">🧤</span><b style="font-size:13px;color:var(--dark);margin-left:.4rem">Parim väravavaht</b><div style="font-size:11px;color:var(--muted);margin-top:.2rem">Vali FIFA Golden Glove võitja</div></div>
+            <div style="background:#2563eb;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;white-space:nowrap">+10 p</div>
+          </div>
+          <div style="background:#f8f8fc;border-radius:10px;padding:.75rem;display:flex;justify-content:space-between;align-items:center">
+            <div><span style="font-size:1.2rem">🏆</span><b style="font-size:13px;color:var(--dark);margin-left:.4rem">Turniirivõitja</b><div style="font-size:11px;color:var(--muted);margin-top:.2rem">Vali kogu turniiri võitja</div></div>
+            <div style="background:#15803d;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;white-space:nowrap">+20 p</div>
+          </div>
+          <div style="background:#f8f8fc;border-radius:10px;padding:.75rem;display:flex;justify-content:space-between;align-items:center">
+            <div><span style="font-size:1.2rem">😲</span><b style="font-size:13px;color:var(--dark);margin-left:.4rem">Suurim üllatus</b><div style="font-size:11px;color:var(--muted);margin-top:.2rem">Vali mäng kus suurim üllatus juhtub</div></div>
+            <div style="background:#7c3aed;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;white-space:nowrap">+5 p</div>
+          </div>
+          <div style="background:#f8f8fc;border-radius:10px;padding:.75rem;display:flex;justify-content:space-between;align-items:center">
+            <div><span style="font-size:1.2rem">🌟</span><b style="font-size:13px;color:var(--dark);margin-left:.4rem">Sümboolne koosseis</b><div style="font-size:11px;color:var(--muted);margin-top:.2rem">11 parimat mängijat — +2p õige + boonused</div></div>
+            <div style="background:#f59e0b;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;white-space:nowrap">42+ p</div>
+          </div>
+        </div>
+      </div>
+      <!-- Slide 5 -->
+      <div class="guide-slide" style="display:none">
+        <div style="background:#1a1a2e;padding:1.2rem 1.5rem">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#fff;letter-spacing:2px">🏅 MÄRGID & TÄIELIK JUHEND</div>
+        </div>
+        <div style="padding:1.5rem">
+          <div style="font-weight:700;color:var(--dark);margin-bottom:.75rem">Teeni märke!</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.25rem">
+            <div style="background:#f8f8fc;border-radius:8px;padding:.6rem;font-size:12px">🏆 <b>Legend</b> — 20+ täpset</div>
+            <div style="background:#f8f8fc;border-radius:8px;padding:.6rem;font-size:12px">🎯 <b>Snaiper</b> — 12+ täpset</div>
+            <div style="background:#f8f8fc;border-radius:8px;padding:.6rem;font-size:12px">💯 <b>Sajalised</b> — 100+ punkti</div>
+            <div style="background:#f8f8fc;border-radius:8px;padding:.6rem;font-size:12px">🔥 <b>Kuum seeria</b> — 6+ järjest</div>
+            <div style="background:#f8f8fc;border-radius:8px;padding:.6rem;font-size:12px">⭐ <b>Tõusev täht</b> — 50+ punkti</div>
+            <div style="background:#f8f8fc;border-radius:8px;padding:.6rem;font-size:12px">✨ <b>Terav silm</b> — 3+ täpset</div>
+          </div>
+          <div style="background:linear-gradient(135deg,#1a1a2e,#c0392b);border-radius:10px;padding:1.25rem;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:.5rem">📄</div>
+            <div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:.4rem">Lae alla täielik juhend PDF-ina</div>
+            <div style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:.75rem">Kõik reeglid ühes failis</div>
+            <a href="MM2026_juhend.pdf" download style="display:inline-block;background:#fff;color:#c0392b;font-weight:700;font-size:13px;padding:8px 24px;border-radius:8px;text-decoration:none">⬇ Lae alla PDF</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Navigation -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 1.5rem">
+      <button onclick="prevSlide()" style="padding:6px 18px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--dark)">← Eelmine</button>
+      <span id="slideCounter" style="font-size:12px;color:var(--muted)">1 / 5</span>
+      <button onclick="nextSlide()" style="padding:6px 18px;background:#c0392b;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:#fff">Järgmine →</button>
+    </div>
+  </div>
+  <style>
+  .guide-dot{width:8px;height:8px;border-radius:50%;background:#d1d5db;cursor:pointer;transition:all .2s;display:inline-block}
+  .guide-dot.active{background:#c0392b;width:20px;border-radius:4px}
+  </style>
+  <script>
+  let currentSlide=0;
+  function updateSlider(){
+    document.querySelectorAll('.guide-slide').forEach((s,i)=>{s.style.display=i===currentSlide?'block':'none'});
+    document.querySelectorAll('.guide-dot').forEach((d,i)=>{d.classList.toggle('active',i===currentSlide)});
+    document.getElementById('slideCounter').textContent=(currentSlide+1)+' / 5';
+  }
+  function nextSlide(){if(currentSlide<4){currentSlide++;updateSlider();}}
+  function prevSlide(){if(currentSlide>0){currentSlide--;updateSlider();}}
+  function goToSlide(n){currentSlide=n;updateSlider();}
+  </script>
+
   <div class="rules-card">
     <h3>⚽ Kuidas mäng käib</h3>
     <ul>
@@ -521,7 +681,7 @@ const _db = firebase.firestore();
     <ul>
       <li><b>1st:</b> Võrdse seisu korral võidab see, kellel on rohkem täpseid ennustusi (5 p või 10 p).</li>
       <li><b>2nd:</b> Kui viik püsib, loeb rohkem õigesti ennustatud tulemuse suundi.</li>
-      <li><b>3rd:</b> Kui ka siis on viik, loeb rohkem õigesti ennustatud alagrupivõitjaid. Kui kõik jääb endiselt võrdseks — jagatakse auhind omavahel!</li>
+      <li><b>3rd:</b> Kui kõik jääb endiselt võrdseks — jagatakse auhind omavahel!</li>
     </ul>
   </div>
   <div class="rules-card">
